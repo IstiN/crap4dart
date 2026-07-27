@@ -20,6 +20,7 @@ jobs:
           dart pub global run coverage:format_coverage
           --lcov --in coverage --out coverage/lcov.info --report-on lib
       - name: Install crap4dart
-        run: dart pub global activate crap4dart
+        # Self-hosting: use the checked-out sources, not the published package.
+        run: dart pub global activate --source path .
       - run: crap4dart check --all
       - run: crap4dart analyze
