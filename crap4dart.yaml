@@ -1,0 +1,44 @@
+# crap4dart self-configuration (dogfooding).
+# This repository is a pure Dart package, so Flutter-specific gates
+# (golden, accessibility, hardcoded_strings) are disabled.
+sources: [lib, bin, test]
+
+crap:
+  enabled: true
+  threshold: 8.0
+
+coverage:
+  lcov_path: coverage/lcov.info
+  run_tests: false
+  required: false
+  branch_coverage: true
+
+gates:
+  loc:
+    enabled: true
+    max_lines: 800
+    exclude:
+      - '**.g.dart'
+      - '**.freezed.dart'
+      - '**.mocks.dart'
+  test_coverage:
+    enabled: true
+    min_percent: 70.0
+    per_file: false
+  golden:
+    enabled: false
+  hardcoded_strings:
+    enabled: false
+  accessibility:
+    enabled: false
+  complexity:
+    enabled: true
+    max_complexity: 12
+  method_size:
+    enabled: true
+    max_lines: 80
+    max_params: 8
+  public_docs:
+    enabled: true
+    exclude:
+      - 'test/**'

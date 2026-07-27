@@ -1,0 +1,18 @@
+# Dart
+.dart_tool/
+.packages
+build/
+
+# Coverage
+coverage/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+
+# Pub
+pubspec.lock
