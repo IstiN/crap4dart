@@ -11,7 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `lib/src/coverage/` sources from both git and the pub.dev archive; anchor it
   to the repository root (`/coverage/`).
 - CI workflow template and this repo's workflow install crap4dart from
-  pub.dev instead of the git source.
+  pub.dev instead of the git source; this repo's own CI self-hosts from the
+  checkout.
+- `Crap4DartRunner` and commands accept an optional `projectRoot`; the LCOV
+  path resolves against it.
+- CLI tests run in-process for honest coverage; `CoverageRunner` accepts an
+  injectable process spawner; fix unawaited futures in file selection.
 
 ## 0.1.0
 
