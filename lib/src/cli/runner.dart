@@ -17,6 +17,7 @@ import '../gates/gate_context.dart';
 import '../gates/gate_runner.dart';
 import '../hooks/ci_installer.dart';
 import '../hooks/hook_installer.dart';
+import '../report/badge_svg.dart';
 import '../report/json_reporter.dart';
 import 'exit_codes.dart';
 
@@ -121,6 +122,10 @@ class AnalyzeCommand extends Command<int> {
       ..addOption(
         'diff-base',
         help: 'Like --diff, but diffs against the given git ref.',
+      )
+      ..addOption(
+        'badge',
+        help: 'Write an SVG badge with the max CRAP score to this path.',
       );
   }
 
@@ -173,6 +178,7 @@ class AnalyzeCommand extends Command<int> {
       _computeMetrics(files, lcovPath, projectRoot, config, diff.map),
     );
     _printReport(report, threshold, diff.base);
+    _writeBadge(report, threshold);
     if (report.isThresholdExceeded(threshold)) {
       stderr.writeln(
         'CRAP threshold exceeded: ${report.maxCrap.toStringAsFixed(2)} > '
@@ -240,6 +246,27 @@ class AnalyzeCommand extends Command<int> {
           header: diffBase == null ? null : 'Diff mode: base $diffBase',
         ),
       );
+    }
+  }
+
+  /// Writes the SVG badge when `--badge` is given. Always runs — also
+  /// when the threshold is exceeded — and never changes the exit code.
+  void _writeBadge(CrapReport report, double threshold) {
+    final badgePath = argResults!['badge'] as String?;
+    if (badgePath == null) return;
+    final hasNumeric = report.metrics.any((m) => m.crap != null);
+    final message = hasNumeric ? report.maxCrap.toStringAsFixed(2) : 'N/A';
+    final color = badgeColorFor(hasNumeric ? report.maxCrap : null, threshold);
+    try {
+      final file = File(badgePath);
+      file.parent.createSync(recursive: true);
+      file.writeAsStringSync(
+        renderBadgeSvg(label: 'CRAP', message: message, colorHex: color),
+      );
+      stderr.writeln('Badge written to $badgePath');
+      stderr.writeln('![CRAP]($badgePath)');
+    } on FileSystemException catch (e) {
+      stderr.writeln('Warning: could not write badge: ${e.message}');
     }
   }
 

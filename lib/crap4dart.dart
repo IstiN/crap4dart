@@ -14,4 +14,5 @@ export 'src/coverage/method_coverage.dart';
 export 'src/crap/crap_analyzer.dart';
 export 'src/crap/crap_score.dart';
 export 'src/files/diff_parser.dart';
+export 'src/report/badge_svg.dart';
 export 'src/report/json_reporter.dart';

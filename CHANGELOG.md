@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   path resolves against it.
 - CLI tests run in-process for honest coverage; `CoverageRunner` accepts an
   injectable process spawner; fix unawaited futures in file selection.
+- `analyze --badge <path>` writes a local shields.io-style SVG badge with
+  the max CRAP score (green/yellow/red against the threshold, grey for
+  N/A); written even when the threshold is exceeded.
 
 ## 0.1.0
 

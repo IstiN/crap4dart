@@ -5,6 +5,7 @@ projects.
 
 [![Quality](https://github.com/IstiN/crap4dart/actions/workflows/quality.yml/badge.svg)](https://github.com/IstiN/crap4dart/actions/workflows/quality.yml)
 [![pub package](https://img.shields.io/pub/v/crap4dart.svg)](https://pub.dev/packages/crap4dart)
+![CRAP](badges/crap.svg)
 
 ## What is CRAP?
 
@@ -337,6 +338,28 @@ git commit --no-verify
 and `crap4dart analyze`. Flutter projects get a Flutter-based workflow
 (`subosito/flutter-action`, `flutter test --coverage`); pure Dart projects
 get a Dart-based one (`dart-lang/setup-dart`, `format_coverage`).
+
+## CRAP badge
+
+`analyze --badge <path>` writes a local shields.io-style SVG badge with the
+maximum CRAP score — no external services involved:
+
+```sh
+crap4dart analyze --badge badges/crap.svg
+```
+
+Embed it in your README:
+
+```md
+![CRAP](badges/crap.svg)
+```
+
+Colors: green when the max CRAP is at or below the threshold, yellow up to
+twice the threshold, red beyond that, and grey `N/A` when no coverage data
+is available. The badge is written even when the analysis fails the
+threshold (exit 2), so it always reflects the actual state. Commit
+`badges/crap.svg` and regenerate it in CI or a pre-push hook to keep it
+fresh.
 
 ## JSON output
 

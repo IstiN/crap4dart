@@ -103,6 +103,9 @@ The tool shall support these commands:
   `--diff` uses base `HEAD`; `--diff-base` implies `--diff` with the given
   ref. Shall not be combined with `--changed` or explicit paths.
 
+- `--badge <path>`
+  Write an SVG badge with the max CRAP score to `<path>` (see §9.4).
+
 ### 4.3 check Options
 
 - `--all` (default), `--changed`, `--staged`
@@ -299,6 +302,21 @@ In diff mode:
   `(diff mode)`.
 - The `test_coverage` aggregate is not meaningful in diff mode; the
   file-level rule above applies to it unchanged.
+
+### 9.4 Badge
+
+With `--badge <path>`, `analyze` shall write a self-contained
+shields.io-style SVG badge to `<path>` after the analysis, creating parent
+directories as needed. The badge shall show the label `CRAP` and the
+maximum numeric CRAP score with two decimals, or `N/A` when no numeric
+scores exist. The color shall be green when the maximum is at or below the
+effective threshold, yellow when above it but at most twice the threshold,
+red beyond that, and light grey for N/A.
+
+The badge shall be written even when the threshold is exceeded (exit code
+2). Write failures shall produce a stderr warning without changing the
+exit code. A confirmation and a Markdown snippet shall be printed to
+stderr, keeping stdout unchanged (including under `--format json`).
 
 ## 10. Configuration
 
