@@ -21,7 +21,7 @@ import '../report/json_reporter.dart';
 import 'exit_codes.dart';
 
 /// Current crap4dart version.
-const String crap4dartVersion = '0.1.0';
+const String crap4dartVersion = '0.1.1';
 
 /// Command-line entry point of crap4dart.
 class Crap4DartRunner {

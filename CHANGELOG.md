@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.1
+
+- Fix the published package: `.gitignore` pattern `coverage/` also excluded
+  `lib/src/coverage/` sources from both git and the pub.dev archive; anchor it
+  to the repository root (`/coverage/`).
+- CI workflow template and this repo's workflow install crap4dart from
+  pub.dev instead of the git source.
+
 ## 0.1.0
 
 Initial release.
