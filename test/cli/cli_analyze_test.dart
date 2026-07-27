@@ -3,6 +3,7 @@ library;
 
 import 'dart:io';
 
+import 'package:crap4dart/src/cli/runner.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -24,7 +25,7 @@ void main() {
     test('--version prints the version', () async {
       final result = await runCli(tempDir, ['--version']);
       expect(result.exitCode, 0);
-      expect(result.stdout, contains('crap4dart 0.1.0'));
+      expect(result.stdout, contains('crap4dart $crap4dartVersion'));
     });
 
     test('empty selection exits 0 with a message', () async {
