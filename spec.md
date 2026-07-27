@@ -449,7 +449,6 @@ The current implementation is not required to support:
 - automatic fixing of violations
 - watch mode
 - machine mutation of source code
-- publication to pub.dev (pending)
 
 ## 17. Conformance
 

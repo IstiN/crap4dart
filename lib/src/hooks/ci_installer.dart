@@ -58,10 +58,7 @@ jobs:
           dart pub global run coverage:format_coverage
           --lcov --in coverage --out coverage/lcov.info --report-on lib
       - name: Install crap4dart
-        # TODO: replace with the pub.dev version once crap4dart is published.
-        run: >-
-          dart pub global activate -sgit
-          https://github.com/IstiN/crap4dart.git
+        run: dart pub global activate crap4dart
       - run: crap4dart check --all
       - run: crap4dart analyze
 ''';
@@ -84,10 +81,7 @@ jobs:
       - run: flutter analyze
       - run: flutter test --coverage
       - name: Install crap4dart
-        # TODO: replace with the pub.dev version once crap4dart is published.
-        run: >-
-          dart pub global activate -sgit
-          https://github.com/IstiN/crap4dart.git
+        run: dart pub global activate crap4dart
       - run: crap4dart check --all
       - run: crap4dart analyze
 ''';

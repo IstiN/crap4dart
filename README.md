@@ -5,7 +5,6 @@ projects.
 
 [![Quality](https://github.com/IstiN/crap4dart/actions/workflows/quality.yml/badge.svg)](https://github.com/IstiN/crap4dart/actions/workflows/quality.yml)
 [![pub package](https://img.shields.io/pub/v/crap4dart.svg)](https://pub.dev/packages/crap4dart)
-_(pub.dev publication pending)_
 
 ## What is CRAP?
 
@@ -39,13 +38,13 @@ crap4dart is a Dart port of the Java tool
 
 ## Installation
 
-Published on pub.dev (pending):
+Published on pub.dev:
 
 ```sh
 dart pub global activate crap4dart
 ```
 
-From the repository (works today):
+From the repository:
 
 ```sh
 dart pub global activate -sgit https://github.com/IstiN/crap4dart.git
