@@ -37,10 +37,12 @@ class DiffLineMap {
     return false;
   }
 
-  /// Project-relative paths of files in the diff that exist on disk.
+  /// Paths of files in the diff that exist on disk, joined to
+  /// [projectRoot].
   List<String> existingFiles() => [
         for (final file in addedLines.keys)
-          if (File(p.join(projectRoot, file)).existsSync()) file,
+          if (File(p.join(projectRoot, file)).existsSync())
+            p.join(projectRoot, file),
       ];
 
   String _relative(String file) =>

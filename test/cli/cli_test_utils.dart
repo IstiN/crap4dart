@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:crap4dart/src/cli/runner.dart';
 import 'package:path/path.dart' as p;
 
 /// Path to the crap4dart executable under test.
@@ -11,13 +12,61 @@ final String binScript = p.normalize(
 Directory createCliTestProject() =>
     Directory.systemTemp.createTempSync('crap4dart_cli_test_');
 
-/// Runs the crap4dart CLI in [workDir] with [args].
+/// Runs the crap4dart CLI in [workDir] with [args] as a subprocess.
+///
+/// Used only for smoke tests of the real binary; prefer
+/// [runCliInProcess] so coverage is attributed to the test run.
 Future<ProcessResult> runCli(Directory workDir, List<String> args) =>
     Process.run(
       'dart',
       ['run', binScript, ...args],
       workingDirectory: workDir.path,
     );
+
+/// Outcome of an in-process CLI invocation.
+class CliResult {
+  /// Creates a [CliResult].
+  const CliResult(this.exitCode, this.stdout, this.stderr);
+
+  /// The exit code returned by the runner.
+  final int exitCode;
+
+  /// Everything written to stdout.
+  final String stdout;
+
+  /// Everything written to stderr.
+  final String stderr;
+}
+
+/// Runs the crap4dart CLI with [args] in the current process, with
+/// [workDir] as the project root and stdout/stderr captured.
+Future<CliResult> runCliInProcess(Directory workDir, List<String> args) async {
+  final out = StringBuffer();
+  final err = StringBuffer();
+  final code = await IOOverrides.runZoned(
+    () => Crap4DartRunner(projectRoot: workDir.path).run(args),
+    stdout: () => _BufferStdout(out),
+    stderr: () => _BufferStdout(err),
+  );
+  return CliResult(code, out.toString(), err.toString());
+}
+
+/// A [Stdout] that appends everything to a [StringBuffer]. Members the
+/// runner never calls are silent no-ops.
+class _BufferStdout implements Stdout {
+  _BufferStdout(this._buffer);
+
+  final StringBuffer _buffer;
+
+  @override
+  void write(Object? object) => _buffer.write(object);
+
+  @override
+  void writeln([Object? object = '']) => _buffer.writeln(object);
+
+  @override
+  void noSuchMethod(Invocation invocation) {}
+}
 
 /// LCOV fixture: `risky()` in lib/sample.dart fully uncovered.
 const String zeroCoverageLcov = '''
@@ -79,7 +128,7 @@ Future<void> gitInitAndCommit(Directory root, String message) async {
   Future<void> git(List<String> args) async {
     final result = await Process.run('git', args, workingDirectory: root.path);
     if (result.exitCode != 0) {
-      throw StateError('git ${args.first} failed: ${result.stderr}');
+      throw StateError('git ${args.join(' ')} failed: ${result.stderr}');
     }
   }
 
@@ -91,7 +140,9 @@ Future<void> gitInitAndCommit(Directory root, String message) async {
     '-c',
     'user.name=test',
     'commit',
-    '-qm',
+    '-q',
+    '--allow-empty',
+    '-m',
     message,
   ]);
 }

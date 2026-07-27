@@ -17,7 +17,7 @@ void main() {
 
   group('crap4dart init', () {
     test('creates a config file that the loader accepts', () async {
-      final result = await runCli(tempDir, ['init']);
+      final result = await runCliInProcess(tempDir, ['init']);
       expect(result.exitCode, 0);
       expect(result.stdout, contains('Created crap4dart.yaml'));
       final file = File(p.join(tempDir.path, 'crap4dart.yaml'));
@@ -29,15 +29,15 @@ void main() {
     });
 
     test('refuses to overwrite without --force', () async {
-      expect((await runCli(tempDir, ['init'])).exitCode, 0);
-      final second = await runCli(tempDir, ['init']);
+      expect((await runCliInProcess(tempDir, ['init'])).exitCode, 0);
+      final second = await runCliInProcess(tempDir, ['init']);
       expect(second.exitCode, 1);
       expect(second.stderr, contains('already exists'));
     });
 
     test('--force overwrites an existing config', () async {
-      expect((await runCli(tempDir, ['init'])).exitCode, 0);
-      final forced = await runCli(tempDir, ['init', '--force']);
+      expect((await runCliInProcess(tempDir, ['init'])).exitCode, 0);
+      final forced = await runCliInProcess(tempDir, ['init', '--force']);
       expect(forced.exitCode, 0);
     });
   });
@@ -46,7 +46,7 @@ void main() {
     test('sets up the hook and (with --ci) the workflow', () async {
       final init = await Process.run('git', ['init', tempDir.path]);
       expect(init.exitCode, 0);
-      final result = await runCli(tempDir, ['install', '--ci']);
+      final result = await runCliInProcess(tempDir, ['install', '--ci']);
       expect(result.exitCode, 0);
       expect(result.stdout, contains('Installed git hook'));
       expect(result.stdout, contains('Installed CI workflow'));
@@ -61,7 +61,7 @@ void main() {
     });
 
     test('outside a git repository exits 1', () async {
-      final result = await runCli(tempDir, ['install']);
+      final result = await runCliInProcess(tempDir, ['install']);
       expect(result.exitCode, 1);
       expect(result.stderr, contains('not a git repository'));
     });

@@ -15,13 +15,14 @@ void main() {
   setUp(() => tempDir = createCliTestProject());
   tearDown(() => tempDir.deleteSync(recursive: true));
 
-  Map<String, dynamic> decode(ProcessResult result) =>
-      jsonDecode(result.stdout as String) as Map<String, dynamic>;
+  Map<String, dynamic> decode(CliResult result) =>
+      jsonDecode(result.stdout) as Map<String, dynamic>;
 
   group('crap4dart --format json', () {
     test('analyze emits only JSON and keeps exit 2', () async {
       writeMiniProject(tempDir, lcov: zeroCoverageLcov);
-      final result = await runCli(tempDir, ['analyze', '--format', 'json']);
+      final result =
+          await runCliInProcess(tempDir, ['analyze', '--format', 'json']);
       expect(result.exitCode, 2);
       final json = decode(result);
       expect(json['command'], 'analyze');
@@ -39,7 +40,8 @@ void main() {
     test('analyze emits nulls when coverage is missing', () async {
       writeMiniProject(tempDir, lcov: '');
       File(p.join(tempDir.path, 'coverage', 'lcov.info')).deleteSync();
-      final result = await runCli(tempDir, ['analyze', '--format', 'json']);
+      final result =
+          await runCliInProcess(tempDir, ['analyze', '--format', 'json']);
       expect(result.exitCode, 0);
       final json = decode(result);
       expect(json['passed'], isTrue);
@@ -52,7 +54,8 @@ void main() {
 
     test('check emits a JSON gate report', () async {
       writeCleanProject(tempDir);
-      final result = await runCli(tempDir, ['check', '--format', 'json']);
+      final result =
+          await runCliInProcess(tempDir, ['check', '--format', 'json']);
       expect(result.exitCode, 0);
       final json = decode(result);
       expect(json['command'], 'check');

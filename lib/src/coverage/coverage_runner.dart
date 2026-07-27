@@ -1,7 +1,16 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
-import 'package:yaml/yaml.dart';
+
+import '../files/flutter_project.dart';
+
+/// Signature of a process spawn — matches the relevant part of
+/// [Process.run] so tests can inject a fake.
+typedef ProcessSpawner = Future<ProcessResult> Function(
+  String executable,
+  List<String> arguments, {
+  String? workingDirectory,
+});
 
 /// Runs the project's test suite to produce an LCOV coverage file.
 ///
@@ -10,7 +19,12 @@ import 'package:yaml/yaml.dart';
 /// `dart test --coverage` followed by `coverage:format_coverage`.
 class CoverageRunner {
   /// Creates a [CoverageRunner].
-  const CoverageRunner();
+  ///
+  /// [spawn] defaults to [Process.run]; tests inject a fake instead of
+  /// running real test suites.
+  const CoverageRunner({ProcessSpawner spawn = Process.run}) : _spawn = spawn;
+
+  final ProcessSpawner _spawn;
 
   /// Default LCOV output path, relative to the project root.
   static const String defaultLcovPath = 'coverage/lcov.info';
@@ -32,13 +46,13 @@ class CoverageRunner {
 
   Future<String?> _run(String projectRoot) async {
     final lcovPath = p.join(projectRoot, defaultLcovPath);
-    final isFlutter = _isFlutterProject(projectRoot);
+    final isFlutter = isFlutterProject(projectRoot);
     stderr.writeln(
       isFlutter
           ? 'Running "flutter test --coverage"...'
           : 'Running "dart test --coverage"...',
     );
-    final testResult = await Process.run(
+    final testResult = await _spawn(
       isFlutter ? 'flutter' : 'dart',
       isFlutter
           ? const ['test', '--coverage']
@@ -61,7 +75,7 @@ class CoverageRunner {
 
   Future<void> _formatCoverage(String projectRoot) async {
     stderr.writeln('Formatting coverage with "coverage:format_coverage"...');
-    final result = await Process.run(
+    final result = await _spawn(
       'dart',
       const [
         'pub',
@@ -85,17 +99,5 @@ class CoverageRunner {
       );
       stderr.writeln('${result.stderr}'.trim());
     }
-  }
-
-  bool _isFlutterProject(String projectRoot) {
-    final pubspec = File(p.join(projectRoot, 'pubspec.yaml'));
-    if (!pubspec.existsSync()) return false;
-    final doc = loadYaml(pubspec.readAsStringSync());
-    if (doc is! YamlMap) return false;
-    for (final section in const ['dependencies', 'dev_dependencies']) {
-      final deps = doc[section];
-      if (deps is YamlMap && deps.containsKey('flutter')) return true;
-    }
-    return false;
   }
 }

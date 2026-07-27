@@ -23,7 +23,7 @@ void main() {
       writeMiniProject(tempDir, lcov: zeroCoverageLcov);
       // risky() has CRAP 12.00: passes with threshold 15, fails with 8.
       writeConfig('crap:\n  threshold: 15.0\n');
-      final result = await runCli(tempDir, []);
+      final result = await runCliInProcess(tempDir, []);
       expect(result.exitCode, 0);
       expect(
         result.stdout,
@@ -34,7 +34,8 @@ void main() {
     test('CLI --threshold overrides the config value', () async {
       writeMiniProject(tempDir, lcov: zeroCoverageLcov);
       writeConfig('crap:\n  threshold: 15.0\n');
-      final result = await runCli(tempDir, ['analyze', '--threshold', '8.0']);
+      final result =
+          await runCliInProcess(tempDir, ['analyze', '--threshold', '8.0']);
       expect(result.exitCode, 2);
       expect(result.stderr, contains('CRAP threshold exceeded: 12.00 > 8.0'));
     });
@@ -42,7 +43,7 @@ void main() {
     test('crap.enabled: false exits 0 without analysis', () async {
       writeMiniProject(tempDir, lcov: zeroCoverageLcov);
       writeConfig('crap:\n  enabled: false\n');
-      final result = await runCli(tempDir, []);
+      final result = await runCliInProcess(tempDir, []);
       expect(result.exitCode, 0);
       expect(result.stdout, contains('CRAP analysis disabled in config.'));
     });
@@ -50,7 +51,7 @@ void main() {
     test('invalid config exits 1 with the offending key', () async {
       writeMiniProject(tempDir, lcov: zeroCoverageLcov);
       writeConfig('crap:\n  threshld: 8.0\n');
-      final result = await runCli(tempDir, []);
+      final result = await runCliInProcess(tempDir, []);
       expect(result.exitCode, 1);
       expect(result.stderr, contains('crap.threshld'));
     });

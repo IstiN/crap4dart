@@ -89,7 +89,19 @@ Conventions:
 
 - `package:test`; fixtures are inline strings or temp directories created
   per test (see `test/gates/gate_test_utils.dart`, `test/cli/`).
-- CLI tests run the real binary via `Process.run` and assert exit codes.
+- CLI tests run **in-process** via `runCliInProcess` (see
+  `test/cli/cli_test_utils.dart`): it invokes
+  `Crap4DartRunner(projectRoot: workDir)` directly and captures
+  stdout/stderr through `IOOverrides.runZoned`, so command code gets real
+  coverage attribution. Assert on the returned `CliResult`
+  (exitCode/stdout/stderr), never on the global `exitCode` setter.
+- Subprocess execution (`runCli` → `Process.run('dart', ['run', ...])`)
+  is reserved for the smoke tests in `test/cli/cli_smoke_test.dart`
+  (`--help`, `--version`, `check --help`) that verify the real binary
+  entry point; do not add new subprocess tests.
+- `Crap4DartRunner` and all commands accept an optional `projectRoot`
+  (default: `Directory.current`) — pass it instead of changing cwd.
+  Config-relative LCOV paths resolve against the project root.
 - Never run the project's own test suite from inside unit tests
   (`coverage_runner` paths are tested via flag parsing only).
 

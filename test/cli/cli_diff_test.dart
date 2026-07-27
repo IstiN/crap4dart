@@ -48,7 +48,7 @@ void main() {
     test('ignores violations on untouched legacy lines', () async {
       await commitBase();
       append('int addedClean() => 1;\n');
-      final result = await runCli(
+      final result = await runCliInProcess(
         tempDir,
         ['check', '--diff', '--only', 'complexity'],
       );
@@ -59,14 +59,15 @@ void main() {
     test('fails on the same violation without --diff', () async {
       await commitBase();
       append('int addedClean() => 1;\n');
-      final result = await runCli(tempDir, ['check', '--only', 'complexity']);
+      final result =
+          await runCliInProcess(tempDir, ['check', '--only', 'complexity']);
       expect(result.exitCode, 2);
     });
 
     test('flags violations on newly added lines', () async {
       await commitBase();
       append(riskyMethod.replaceAll('oldRisky', 'newRisky'));
-      final result = await runCli(
+      final result = await runCliInProcess(
         tempDir,
         ['check', '--diff', '--only', 'complexity'],
       );
@@ -84,7 +85,7 @@ void main() {
         ['add', 'lib/brand_new.dart'],
         workingDirectory: tempDir.path,
       );
-      final result = await runCli(
+      final result = await runCliInProcess(
         tempDir,
         ['check', '--diff', '--only', 'complexity'],
       );
@@ -95,7 +96,8 @@ void main() {
     test('--diff conflicts with --changed and --staged', () async {
       await commitBase();
       for (final flag in ['--changed', '--staged']) {
-        final result = await runCli(tempDir, ['check', '--diff', flag]);
+        final result =
+            await runCliInProcess(tempDir, ['check', '--diff', flag]);
         expect(result.exitCode, 1, reason: flag);
       }
     });

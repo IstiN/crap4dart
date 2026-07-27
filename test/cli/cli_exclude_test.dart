@@ -21,7 +21,7 @@ void main() {
       File(p.join(tempDir.path, 'lib', 'gen', 'bad.dart'))
           .writeAsStringSync('void undocumented() {}\n');
       // Without the exclude, public_docs would fail on gen/bad.dart.
-      final withoutExclude = await runCli(tempDir, ['check']);
+      final withoutExclude = await runCliInProcess(tempDir, ['check']);
       expect(withoutExclude.exitCode, 2);
 
       File(p.join(tempDir.path, 'crap4dart.yaml')).writeAsStringSync('''
@@ -30,7 +30,7 @@ coverage:
 exclude:
   - 'lib/gen/**'
 ''');
-      final result = await runCli(tempDir, ['check']);
+      final result = await runCliInProcess(tempDir, ['check']);
       expect(result.exitCode, 0);
       expect(result.stdout, isNot(contains('gen/bad.dart')));
     });
@@ -44,7 +44,7 @@ exclude:
 exclude:
   - 'lib/gen/**'
 ''');
-      final result = await runCli(tempDir, ['analyze']);
+      final result = await runCliInProcess(tempDir, ['analyze']);
       expect(result.exitCode, 0);
       expect(result.stdout, contains('risky'));
       expect(result.stdout, isNot(contains('extra')));

@@ -2,11 +2,11 @@ import 'dart:io';
 
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
-import 'package:yaml/yaml.dart';
 
 import '../analysis/dart_parser.dart';
 import '../config/config.dart';
 import '../coverage/lcov_parser.dart';
+import '../files/flutter_project.dart' as files_flutter;
 
 /// Shared input for all quality gates: project root, config, target files,
 /// optional coverage data and a memoized AST cache.
@@ -60,15 +60,6 @@ class GateContext {
   }
 
   /// Whether the pubspec at [root] declares a `flutter` dependency.
-  static bool isFlutterProjectAt(String root) {
-    final pubspec = File(p.join(root, 'pubspec.yaml'));
-    if (!pubspec.existsSync()) return false;
-    final doc = loadYaml(pubspec.readAsStringSync());
-    if (doc is! YamlMap) return false;
-    for (final section in const ['dependencies', 'dev_dependencies']) {
-      final deps = doc[section];
-      if (deps is YamlMap && deps.containsKey('flutter')) return true;
-    }
-    return false;
-  }
+  static bool isFlutterProjectAt(String root) =>
+      files_flutter.isFlutterProject(root);
 }

@@ -17,7 +17,7 @@ void main() {
   group('crap4dart check', () {
     test('exit 0 on a clean project', () async {
       writeCleanProject(tempDir);
-      final result = await runCli(tempDir, ['check']);
+      final result = await runCliInProcess(tempDir, ['check']);
       expect(result.exitCode, 0);
       expect(result.stdout, contains('[PASS] loc'));
       expect(result.stdout, contains('[SKIP] test_coverage'));
@@ -34,7 +34,7 @@ gates:
   loc:
     max_lines: 100
 ''');
-      final result = await runCli(tempDir, ['check']);
+      final result = await runCliInProcess(tempDir, ['check']);
       expect(result.exitCode, 2);
       expect(result.stdout, contains('[FAIL] loc'));
       expect(result.stdout, contains('900 lines > max 100'));
@@ -42,26 +42,21 @@ gates:
 
     test('--only and --skip filter gates', () async {
       writeCleanProject(tempDir);
-      final only = await runCli(tempDir, ['check', '--only', 'loc']);
+      final only = await runCliInProcess(tempDir, ['check', '--only', 'loc']);
       expect(only.exitCode, 0);
       expect(only.stdout, contains('[PASS] loc'));
       expect(only.stdout, isNot(contains('public_docs')));
 
-      final skip = await runCli(tempDir, ['check', '--skip', 'loc']);
+      final skip = await runCliInProcess(tempDir, ['check', '--skip', 'loc']);
       expect(skip.exitCode, 0);
       expect(skip.stdout, isNot(contains('[PASS] loc')));
     });
 
     test('unknown gate id in --only exits 1', () async {
       writeCleanProject(tempDir);
-      final result = await runCli(tempDir, ['check', '--only', 'bogus']);
+      final result =
+          await runCliInProcess(tempDir, ['check', '--only', 'bogus']);
       expect(result.exitCode, 1);
-    });
-
-    test('check --run-tests flag is accepted', () async {
-      final result = await runCli(tempDir, ['check', '--help']);
-      expect(result.exitCode, 0);
-      expect(result.stdout, contains('--run-tests'));
     });
   });
 }

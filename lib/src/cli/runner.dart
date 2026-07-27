@@ -26,19 +26,22 @@ const String crap4dartVersion = '0.1.1';
 /// Command-line entry point of crap4dart.
 class Crap4DartRunner {
   /// Creates a [Crap4DartRunner].
-  Crap4DartRunner() : _runner = _buildRunner();
+  ///
+  /// [projectRoot] overrides the project root (default: the current
+  /// working directory) — used by in-process invocations and tests.
+  Crap4DartRunner({String? projectRoot}) : _runner = _buildRunner(projectRoot);
 
   final CommandRunner<int> _runner;
 
-  static CommandRunner<int> _buildRunner() {
+  static CommandRunner<int> _buildRunner(String? projectRoot) {
     final runner = CommandRunner<int>(
       'crap4dart',
       'CRAP metric analyzer for Dart and Flutter projects.',
     )
-      ..addCommand(AnalyzeCommand())
-      ..addCommand(CheckCommand())
-      ..addCommand(InitCommand())
-      ..addCommand(InstallCommand());
+      ..addCommand(AnalyzeCommand(projectRoot: projectRoot))
+      ..addCommand(CheckCommand(projectRoot: projectRoot))
+      ..addCommand(InitCommand(projectRoot: projectRoot))
+      ..addCommand(InstallCommand(projectRoot: projectRoot));
     runner.argParser.addFlag(
       'version',
       abbr: 'v',
@@ -80,7 +83,7 @@ Future<DiffLineMap?> _loadDiff(String projectRoot, String base) async {
 /// The `analyze` command: computes CRAP scores for Dart source files.
 class AnalyzeCommand extends Command<int> {
   /// Creates an [AnalyzeCommand].
-  AnalyzeCommand() {
+  AnalyzeCommand({this.projectRoot}) {
     argParser
       ..addFlag(
         'changed',
@@ -121,6 +124,9 @@ class AnalyzeCommand extends Command<int> {
       );
   }
 
+  /// Project root override (default: the current working directory).
+  final String? projectRoot;
+
   @override
   final String name = 'analyze';
 
@@ -135,7 +141,7 @@ class AnalyzeCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final projectRoot = Directory.current.path;
+    final projectRoot = this.projectRoot ?? Directory.current.path;
     final config = _loadConfig(projectRoot);
     if (config == null) return ExitCodes.usageError;
     if (!config.crap.enabled) {
@@ -267,7 +273,8 @@ class AnalyzeCommand extends Command<int> {
     final paths = argResults!.rest;
     try {
       if (argResults!['changed'] as bool) {
-        return const ChangedFilesFinder().find(projectRoot);
+        final changed = await const ChangedFilesFinder().find(projectRoot);
+        return [for (final f in changed) p.join(projectRoot, f)];
       }
       if (paths.isNotEmpty) return finder.expandPaths(paths);
       return finder.findDefaultSources(projectRoot, roots: sources);
@@ -297,14 +304,17 @@ class AnalyzeCommand extends Command<int> {
       final generated = await const CoverageRunner().run(projectRoot);
       if (generated != null) return generated;
     }
-    return File(lcovPath).existsSync() ? lcovPath : null;
+    // Config-relative LCOV paths resolve against the project root.
+    final resolved =
+        p.isAbsolute(lcovPath) ? lcovPath : p.join(projectRoot, lcovPath);
+    return File(resolved).existsSync() ? resolved : null;
   }
 }
 
 /// The `check` command: runs the quality gates enabled in the config.
 class CheckCommand extends Command<int> {
   /// Creates a [CheckCommand].
-  CheckCommand() {
+  CheckCommand({this.projectRoot}) {
     argParser
       ..addFlag(
         'all',
@@ -346,6 +356,9 @@ class CheckCommand extends Command<int> {
       );
   }
 
+  /// Project root override (default: the current working directory).
+  final String? projectRoot;
+
   @override
   final String name = 'check';
 
@@ -359,26 +372,15 @@ class CheckCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final projectRoot = Directory.current.path;
+    final projectRoot = this.projectRoot ?? Directory.current.path;
     final config = _loadConfigOrReport(projectRoot);
     if (config == null) return ExitCodes.usageError;
-    final diffBase = argResults!['diff-base'] as String?;
-    final diffMode = (argResults!['diff'] as bool) || diffBase != null;
-    DiffLineMap? diffMap;
-    if (diffMode) {
-      if ((argResults!['changed'] as bool) || (argResults!['staged'] as bool)) {
-        throw UsageException(
-          '--diff cannot be combined with --changed/--staged',
-          invocation,
-        );
-      }
-      diffMap = await _loadDiff(projectRoot, diffBase ?? 'HEAD');
-      if (diffMap == null) return ExitCodes.usageError;
-    }
+    final diff = await _resolveDiff(projectRoot);
+    if (!diff.ok) return ExitCodes.usageError;
     final files = const SourceFinder().filterByGlobs(
       projectRoot,
-      diffMap != null
-          ? diffMap.existingFiles()
+      diff.map != null
+          ? diff.map!.existingFiles()
           : await _selectFiles(projectRoot, config.sources),
       config.exclude,
     );
@@ -400,14 +402,32 @@ class CheckCommand extends Command<int> {
       context,
       only: _gateFilter('only'),
       skip: _gateFilter('skip'),
-      diff: diffMap,
+      diff: diff.map,
     );
+    _printResult(runner, result);
+    return result.passed ? ExitCodes.success : ExitCodes.thresholdExceeded;
+  }
+
+  Future<({DiffLineMap? map, bool ok})> _resolveDiff(String projectRoot) async {
+    final diffBase = argResults!['diff-base'] as String?;
+    final diffMode = (argResults!['diff'] as bool) || diffBase != null;
+    if (!diffMode) return (map: null, ok: true);
+    if ((argResults!['changed'] as bool) || (argResults!['staged'] as bool)) {
+      throw UsageException(
+        '--diff cannot be combined with --changed/--staged',
+        invocation,
+      );
+    }
+    final map = await _loadDiff(projectRoot, diffBase ?? 'HEAD');
+    return (map: map, ok: map != null);
+  }
+
+  void _printResult(GateRunner runner, GateRunResult result) {
     if (argResults!['format'] == 'json') {
       stdout.writeln(const JsonReporter().renderCheck(result));
     } else {
       stdout.writeln(runner.render(result));
     }
-    return result.passed ? ExitCodes.success : ExitCodes.thresholdExceeded;
   }
 
   Future<bool> _runTestsIfRequested(
@@ -450,9 +470,10 @@ class CheckCommand extends Command<int> {
       );
     }
     try {
-      if (changed) return const ChangedFilesFinder().find(projectRoot);
-      if (staged) {
-        return const ChangedFilesFinder().find(projectRoot, staged: true);
+      if (changed || staged) {
+        final files =
+            await const ChangedFilesFinder().find(projectRoot, staged: staged);
+        return [for (final f in files) p.join(projectRoot, f)];
       }
       return const SourceFinder()
           .findDefaultSources(projectRoot, roots: sources);
@@ -462,7 +483,10 @@ class CheckCommand extends Command<int> {
   }
 
   List<FileCoverage>? _loadLcov(String projectRoot, Crap4DartConfig config) {
-    final file = File(config.coverage.lcovPath);
+    final lcovPath = config.coverage.lcovPath;
+    final resolved =
+        p.isAbsolute(lcovPath) ? lcovPath : p.join(projectRoot, lcovPath);
+    final file = File(resolved);
     if (!file.existsSync()) return null;
     return LcovParser(projectRoot: projectRoot).parse(file.readAsStringSync());
   }
@@ -484,7 +508,7 @@ class CheckCommand extends Command<int> {
 /// The `init` command: writes a default `crap4dart.yaml` config file.
 class InitCommand extends Command<int> {
   /// Creates an [InitCommand].
-  InitCommand() {
+  InitCommand({this.projectRoot}) {
     argParser.addFlag(
       'force',
       abbr: 'f',
@@ -492,6 +516,9 @@ class InitCommand extends Command<int> {
       help: 'Overwrite an existing config file.',
     );
   }
+
+  /// Project root override (default: the current working directory).
+  final String? projectRoot;
 
   @override
   final String name = 'init';
@@ -502,7 +529,8 @@ class InitCommand extends Command<int> {
 
   @override
   int run() {
-    final path = p.join(Directory.current.path, ConfigLoader.configFileName);
+    final root = projectRoot ?? Directory.current.path;
+    final path = p.join(root, ConfigLoader.configFileName);
     final file = File(path);
     if (file.existsSync() && !(argResults!['force'] as bool)) {
       stderr.writeln(
@@ -520,7 +548,7 @@ class InitCommand extends Command<int> {
 /// The `install` command: installs git hooks and CI workflow templates.
 class InstallCommand extends Command<int> {
   /// Creates an [InstallCommand].
-  InstallCommand() {
+  InstallCommand({this.projectRoot}) {
     argParser
       ..addOption(
         'hook',
@@ -541,6 +569,9 @@ class InstallCommand extends Command<int> {
       ..addOption('config', help: 'Path to a crap4dart.yaml config file.');
   }
 
+  /// Project root override (default: the current working directory).
+  final String? projectRoot;
+
   @override
   final String name = 'install';
 
@@ -550,7 +581,7 @@ class InstallCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final projectRoot = Directory.current.path;
+    final projectRoot = this.projectRoot ?? Directory.current.path;
     try {
       final config = const ConfigLoader().load(
         projectRoot,
@@ -580,5 +611,5 @@ class InstallCommand extends Command<int> {
   }
 
   String _relative(String path) =>
-      p.relative(path, from: Directory.current.path);
+      p.relative(path, from: projectRoot ?? Directory.current.path);
 }

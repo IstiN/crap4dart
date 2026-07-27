@@ -29,7 +29,7 @@ void main() {
         'int addedMethod() => 1;\n',
         mode: FileMode.append,
       );
-      final result = await runCli(tempDir, ['analyze', '--diff']);
+      final result = await runCliInProcess(tempDir, ['analyze', '--diff']);
       expect(result.exitCode, 0);
       expect(result.stdout, contains('Diff mode: base HEAD'));
       expect(result.stdout, contains('addedMethod'));
@@ -44,10 +44,10 @@ void main() {
       );
       await gitInitAndCommit(tempDir, 'second');
       // Working tree is clean: plain --diff has nothing to report.
-      final clean = await runCli(tempDir, ['analyze', '--diff']);
+      final clean = await runCliInProcess(tempDir, ['analyze', '--diff']);
       expect(clean.stdout, contains('No Dart files to analyze.'));
       final result =
-          await runCli(tempDir, ['analyze', '--diff-base', 'HEAD~1']);
+          await runCliInProcess(tempDir, ['analyze', '--diff-base', 'HEAD~1']);
       expect(result.exitCode, 0);
       expect(result.stdout, contains('Diff mode: base HEAD~1'));
       expect(result.stdout, contains('addedMethod'));
@@ -55,7 +55,7 @@ void main() {
 
     test('git failure exits 1', () async {
       writeCleanProject(tempDir); // not a git repo
-      final result = await runCli(tempDir, ['analyze', '--diff']);
+      final result = await runCliInProcess(tempDir, ['analyze', '--diff']);
       expect(result.exitCode, 1);
       expect(result.stderr, contains('git diff failed'));
     });
