@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.1.2
+
+- fix(cli): monorepo-aware staged/changed file resolution — git diff/status
+  report paths relative to the repo top-level, but the runner joined them
+  against the current directory, so `check --staged`/`analyze --changed`
+  crashed with PathNotFoundException or scanned outside the package when
+  run from a monorepo sub-package. Selections now resolve against
+  `git rev-parse --show-toplevel` (canonical, symlink-free) and are
+  filtered to files inside the project root.
+
+
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
