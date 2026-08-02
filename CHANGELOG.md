@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.1.3
+
+- Same as 0.1.2, with the embedded `--version` string updated (it stayed
+  hardcoded at 0.1.1 in the 0.1.2 archive).
+
+
 ## 0.1.2
 
 - fix(cli): monorepo-aware staged/changed file resolution — git diff/status
