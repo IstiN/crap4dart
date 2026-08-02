@@ -21,6 +21,33 @@ import '../report/badge_svg.dart';
 import '../report/json_reporter.dart';
 import 'exit_codes.dart';
 
+
+
+/// Canonical absolute form of [path] (symlinks resolved — git reports
+/// /private/var on macOS while callers often hold /var).
+String canonicalPath(String path) => Directory(path).resolveSymbolicLinksSync();
+
+/// Resolves the git working-tree root containing [dir]. `git diff/status`
+/// report paths relative to this root (not to the current directory), so
+/// monorepo sub-package runs must join staged/changed paths against it.
+Future<String> gitTopLevel(String dir) async {
+  final result = await Process.run(
+    'git',
+    const ['rev-parse', '--show-toplevel'],
+    workingDirectory: dir,
+  );
+  if (result.exitCode != 0) {
+    throw ProcessException(
+      'git',
+      const ['rev-parse', '--show-toplevel'],
+      '${result.stderr}'.trim(),
+      result.exitCode,
+    );
+  }
+  return '${result.stdout}'.trim();
+}
+
+
 /// Current crap4dart version.
 const String crap4dartVersion = '0.1.1';
 
@@ -301,7 +328,13 @@ class AnalyzeCommand extends Command<int> {
     try {
       if (argResults!['changed'] as bool) {
         final changed = await const ChangedFilesFinder().find(projectRoot);
-        return [for (final f in changed) p.join(projectRoot, f)];
+        final topLevel = canonicalPath(await gitTopLevel(projectRoot));
+        final rootAbs = canonicalPath(projectRoot);
+        return [
+          for (final f in changed)
+            if (p.isWithin(rootAbs, p.join(topLevel, f)))
+              p.join(topLevel, f),
+        ];
       }
       if (paths.isNotEmpty) return finder.expandPaths(paths);
       return finder.findDefaultSources(projectRoot, roots: sources);
@@ -500,7 +533,13 @@ class CheckCommand extends Command<int> {
       if (changed || staged) {
         final files =
             await const ChangedFilesFinder().find(projectRoot, staged: staged);
-        return [for (final f in files) p.join(projectRoot, f)];
+        final topLevel = canonicalPath(await gitTopLevel(projectRoot));
+        final rootAbs = canonicalPath(projectRoot);
+        return [
+          for (final f in files)
+            if (p.isWithin(rootAbs, p.join(topLevel, f)))
+              p.join(topLevel, f),
+        ];
       }
       return const SourceFinder()
           .findDefaultSources(projectRoot, roots: sources);
