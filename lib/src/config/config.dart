@@ -86,12 +86,11 @@ class GatesConfig {
   const GatesConfig({
     this.loc = const LocGateConfig(),
     this.testCoverage = const TestCoverageGateConfig(),
-    this.golden = const GoldenGateConfig(),
-    this.hardcodedStrings = const HardcodedStringsGateConfig(),
-    this.accessibility = const AccessibilityGateConfig(),
     this.complexity = const ComplexityGateConfig(),
     this.methodSize = const MethodSizeGateConfig(),
     this.publicDocs = const PublicDocsGateConfig(),
+    this.duplication = const DuplicationGateConfig(),
+    this.flutter = const FlutterGatesConfig(),
   });
 
   /// File size gate (`loc`).
@@ -99,15 +98,6 @@ class GatesConfig {
 
   /// Minimum test coverage gate (`test_coverage`).
   final TestCoverageGateConfig testCoverage;
-
-  /// Golden test coverage gate (`golden`).
-  final GoldenGateConfig golden;
-
-  /// Hardcoded strings gate (`hardcoded_strings`).
-  final HardcodedStringsGateConfig hardcodedStrings;
-
-  /// Accessibility gate (`accessibility`).
-  final AccessibilityGateConfig accessibility;
 
   /// Cyclomatic complexity gate (`complexity`).
   final ComplexityGateConfig complexity;
@@ -117,6 +107,72 @@ class GatesConfig {
 
   /// Public API documentation gate (`public_docs`).
   final PublicDocsGateConfig publicDocs;
+
+  /// Code duplication gate (`duplication`).
+  final DuplicationGateConfig duplication;
+
+  /// Flutter-specific gates grouped together.
+  final FlutterGatesConfig flutter;
+
+  /// Golden test coverage gate (`golden`).
+  GoldenGateConfig get golden => flutter.golden;
+
+  /// Hardcoded strings gate (`hardcoded_strings`).
+  HardcodedStringsGateConfig get hardcodedStrings => flutter.hardcodedStrings;
+
+  /// Accessibility gate (`accessibility`).
+  AccessibilityGateConfig get accessibility => flutter.accessibility;
+}
+
+/// Flutter-specific quality gates.
+class FlutterGatesConfig {
+  /// Creates a [FlutterGatesConfig].
+  const FlutterGatesConfig({
+    this.golden = const GoldenGateConfig(),
+    this.hardcodedStrings = const HardcodedStringsGateConfig(),
+    this.accessibility = const AccessibilityGateConfig(),
+  });
+
+  /// Golden test coverage gate (`golden`).
+  final GoldenGateConfig golden;
+
+  /// Hardcoded strings gate (`hardcoded_strings`).
+  final HardcodedStringsGateConfig hardcodedStrings;
+
+  /// Accessibility gate (`accessibility`).
+  final AccessibilityGateConfig accessibility;
+}
+
+/// Code duplication gate settings (`duplication`).
+class DuplicationGateConfig {
+  /// Creates a [DuplicationGateConfig].
+  const DuplicationGateConfig({
+    this.enabled = true,
+    this.threshold = 1.0,
+    this.minTokens = 50,
+    this.minLines = 5,
+    this.exclude = const [
+      '**.g.dart',
+      '**.freezed.dart',
+      '**.mocks.dart',
+      'test/**',
+    ],
+  });
+
+  /// Whether the gate is enabled.
+  final bool enabled;
+
+  /// Maximum allowed duplicated line percentage per file.
+  final double threshold;
+
+  /// Minimum number of tokens in a block to be considered for duplication.
+  final int minTokens;
+
+  /// Minimum number of lines in a block to be considered for duplication.
+  final int minLines;
+
+  /// Glob patterns excluded from the gate.
+  final List<String> exclude;
 }
 
 /// File size gate settings (`loc`).

@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.2.0
+
+### Added
+
+- New `duplication` quality gate enabled by default. Detects exact copy-paste
+  token blocks across Dart source files using `package:analyzer` tokenization
+  and Rabin-Karp sliding-window indexing. A block counts when it is at least
+  `min_tokens` (default 50) tokens and `min_lines` (default 5) lines long.
+  The gate fails a file when its duplicated line percentage exceeds
+  `threshold` (default 1.0%). Generated files and `test/**` are excluded by
+  default.
+- Cross-file duplicate detection: identical blocks in different files are
+  reported in every file that contains them.
+
+### Changed
+
+- Quality gates now run in the order: `loc`, `test_coverage`, `complexity`,
+  `method_size`, `duplication`, `public_docs`, `hardcoded_strings`,
+  `accessibility`, `golden`.
+
 ## 0.1.3
 
 - Same as 0.1.2, with the embedded `--version` string updated (it stayed

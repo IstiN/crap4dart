@@ -41,6 +41,7 @@ class ConfigLoader {
     'complexity',
     'method_size',
     'public_docs',
+    'duplication',
   };
 
   /// Loads the configuration for the project at [projectRoot].
@@ -159,29 +160,35 @@ class ConfigLoader {
         base.testCoverage,
         path,
       ),
-      golden: _readGolden(map['golden'], base.golden, path),
-      hardcodedStrings: _readHardcodedStrings(
-        map['hardcoded_strings'],
-        base.hardcodedStrings,
-        path,
-      ),
-      accessibility:
-          _readAccessibility(map['accessibility'], base.accessibility, path),
       complexity: _readComplexity(map['complexity'], base.complexity, path),
       methodSize: _readMethodSize(map['method_size'], base.methodSize, path),
       publicDocs: _readPublicDocs(map['public_docs'], base.publicDocs, path),
+      duplication: _readDuplication(map['duplication'], base.duplication, path),
+      flutter: FlutterGatesConfig(
+        golden: _readGolden(map['golden'], base.flutter.golden, path),
+        hardcodedStrings: _readHardcodedStrings(
+          map['hardcoded_strings'],
+          base.flutter.hardcodedStrings,
+          path,
+        ),
+        accessibility: _readAccessibility(
+            map['accessibility'], base.flutter.accessibility, path),
+      ),
     );
   }
 
   LocGateConfig _readLoc(Object? node, LocGateConfig base, String path) {
-    if (node == null) return base;
-    const ctx = 'gates.loc';
-    final map = _asMap(node, path, ctx);
-    _checkKeys(map, const {'enabled', 'max_lines', 'exclude'}, path, ctx);
-    return LocGateConfig(
-      enabled: _bool(map, 'enabled', base.enabled, path, ctx),
-      maxLines: _int(map, 'max_lines', base.maxLines, path, ctx),
-      exclude: _strList(map, 'exclude', base.exclude, path, ctx),
+    return _readGateConfig(
+      node,
+      base,
+      path,
+      'gates.loc',
+      const {'enabled', 'max_lines', 'exclude'},
+      (map, base, path, ctx) => LocGateConfig(
+        enabled: _bool(map, 'enabled', base.enabled, path, ctx),
+        maxLines: _int(map, 'max_lines', base.maxLines, path, ctx),
+        exclude: _strList(map, 'exclude', base.exclude, path, ctx),
+      ),
     );
   }
 
@@ -190,20 +197,18 @@ class ConfigLoader {
     TestCoverageGateConfig base,
     String path,
   ) {
-    if (node == null) return base;
-    const ctx = 'gates.test_coverage';
-    final map = _asMap(node, path, ctx);
-    _checkKeys(
-      map,
-      const {'enabled', 'min_percent', 'per_file', 'dirs'},
+    return _readGateConfig(
+      node,
+      base,
       path,
-      ctx,
-    );
-    return TestCoverageGateConfig(
-      enabled: _bool(map, 'enabled', base.enabled, path, ctx),
-      minPercent: _num(map, 'min_percent', base.minPercent, path, ctx),
-      perFile: _bool(map, 'per_file', base.perFile, path, ctx),
-      dirs: _strList(map, 'dirs', base.dirs, path, ctx),
+      'gates.test_coverage',
+      const {'enabled', 'min_percent', 'per_file', 'dirs'},
+      (map, base, path, ctx) => TestCoverageGateConfig(
+        enabled: _bool(map, 'enabled', base.enabled, path, ctx),
+        minPercent: _num(map, 'min_percent', base.minPercent, path, ctx),
+        perFile: _bool(map, 'per_file', base.perFile, path, ctx),
+        dirs: _strList(map, 'dirs', base.dirs, path, ctx),
+      ),
     );
   }
 
@@ -212,11 +217,11 @@ class ConfigLoader {
     GoldenGateConfig base,
     String path,
   ) {
-    if (node == null) return base;
-    const ctx = 'gates.golden';
-    final map = _asMap(node, path, ctx);
-    _checkKeys(
-      map,
+    return _readGateConfig(
+      node,
+      base,
+      path,
+      'gates.golden',
       const {
         'enabled',
         'min_widget_coverage',
@@ -224,17 +229,15 @@ class ConfigLoader {
         'test_dirs',
         'exclude_widgets',
       },
-      path,
-      ctx,
-    );
-    return GoldenGateConfig(
-      enabled: _bool(map, 'enabled', base.enabled, path, ctx),
-      minWidgetCoverage:
-          _num(map, 'min_widget_coverage', base.minWidgetCoverage, path, ctx),
-      widgetDirs: _strList(map, 'widget_dirs', base.widgetDirs, path, ctx),
-      testDirs: _strList(map, 'test_dirs', base.testDirs, path, ctx),
-      excludeWidgets:
-          _strList(map, 'exclude_widgets', base.excludeWidgets, path, ctx),
+      (map, base, path, ctx) => GoldenGateConfig(
+        enabled: _bool(map, 'enabled', base.enabled, path, ctx),
+        minWidgetCoverage:
+            _num(map, 'min_widget_coverage', base.minWidgetCoverage, path, ctx),
+        widgetDirs: _strList(map, 'widget_dirs', base.widgetDirs, path, ctx),
+        testDirs: _strList(map, 'test_dirs', base.testDirs, path, ctx),
+        excludeWidgets:
+            _strList(map, 'exclude_widgets', base.excludeWidgets, path, ctx),
+      ),
     );
   }
 
@@ -243,19 +246,17 @@ class ConfigLoader {
     HardcodedStringsGateConfig base,
     String path,
   ) {
-    if (node == null) return base;
-    const ctx = 'gates.hardcoded_strings';
-    final map = _asMap(node, path, ctx);
-    _checkKeys(
-      map,
-      const {'enabled', 'ignore_marker', 'check_params'},
+    return _readGateConfig(
+      node,
+      base,
       path,
-      ctx,
-    );
-    return HardcodedStringsGateConfig(
-      enabled: _bool(map, 'enabled', base.enabled, path, ctx),
-      ignoreMarker: _str(map, 'ignore_marker', base.ignoreMarker, path, ctx),
-      checkParams: _strList(map, 'check_params', base.checkParams, path, ctx),
+      'gates.hardcoded_strings',
+      const {'enabled', 'ignore_marker', 'check_params'},
+      (map, base, path, ctx) => HardcodedStringsGateConfig(
+        enabled: _bool(map, 'enabled', base.enabled, path, ctx),
+        ignoreMarker: _str(map, 'ignore_marker', base.ignoreMarker, path, ctx),
+        checkParams: _strList(map, 'check_params', base.checkParams, path, ctx),
+      ),
     );
   }
 
@@ -264,14 +265,17 @@ class ConfigLoader {
     AccessibilityGateConfig base,
     String path,
   ) {
-    if (node == null) return base;
-    const ctx = 'gates.accessibility';
-    final map = _asMap(node, path, ctx);
-    _checkKeys(map, const {'enabled', 'require_label_for'}, path, ctx);
-    return AccessibilityGateConfig(
-      enabled: _bool(map, 'enabled', base.enabled, path, ctx),
-      requireLabelFor:
-          _strList(map, 'require_label_for', base.requireLabelFor, path, ctx),
+    return _readGateConfig(
+      node,
+      base,
+      path,
+      'gates.accessibility',
+      const {'enabled', 'require_label_for'},
+      (map, base, path, ctx) => AccessibilityGateConfig(
+        enabled: _bool(map, 'enabled', base.enabled, path, ctx),
+        requireLabelFor:
+            _strList(map, 'require_label_for', base.requireLabelFor, path, ctx),
+      ),
     );
   }
 
@@ -280,19 +284,18 @@ class ConfigLoader {
     ComplexityGateConfig base,
     String path,
   ) {
-    if (node == null) return base;
-    const ctx = 'gates.complexity';
-    final map = _asMap(node, path, ctx);
-    _checkKeys(
-      map,
-      const {'enabled', 'max_complexity', 'count_lambdas'},
+    return _readGateConfig(
+      node,
+      base,
       path,
-      ctx,
-    );
-    return ComplexityGateConfig(
-      enabled: _bool(map, 'enabled', base.enabled, path, ctx),
-      maxComplexity: _int(map, 'max_complexity', base.maxComplexity, path, ctx),
-      countLambdas: _bool(map, 'count_lambdas', base.countLambdas, path, ctx),
+      'gates.complexity',
+      const {'enabled', 'max_complexity', 'count_lambdas'},
+      (map, base, path, ctx) => ComplexityGateConfig(
+        enabled: _bool(map, 'enabled', base.enabled, path, ctx),
+        maxComplexity:
+            _int(map, 'max_complexity', base.maxComplexity, path, ctx),
+        countLambdas: _bool(map, 'count_lambdas', base.countLambdas, path, ctx),
+      ),
     );
   }
 
@@ -301,14 +304,17 @@ class ConfigLoader {
     MethodSizeGateConfig base,
     String path,
   ) {
-    if (node == null) return base;
-    const ctx = 'gates.method_size';
-    final map = _asMap(node, path, ctx);
-    _checkKeys(map, const {'enabled', 'max_lines', 'max_params'}, path, ctx);
-    return MethodSizeGateConfig(
-      enabled: _bool(map, 'enabled', base.enabled, path, ctx),
-      maxLines: _int(map, 'max_lines', base.maxLines, path, ctx),
-      maxParams: _int(map, 'max_params', base.maxParams, path, ctx),
+    return _readGateConfig(
+      node,
+      base,
+      path,
+      'gates.method_size',
+      const {'enabled', 'max_lines', 'max_params'},
+      (map, base, path, ctx) => MethodSizeGateConfig(
+        enabled: _bool(map, 'enabled', base.enabled, path, ctx),
+        maxLines: _int(map, 'max_lines', base.maxLines, path, ctx),
+        maxParams: _int(map, 'max_params', base.maxParams, path, ctx),
+      ),
     );
   }
 
@@ -317,14 +323,52 @@ class ConfigLoader {
     PublicDocsGateConfig base,
     String path,
   ) {
-    if (node == null) return base;
-    const ctx = 'gates.public_docs';
-    final map = _asMap(node, path, ctx);
-    _checkKeys(map, const {'enabled', 'exclude'}, path, ctx);
-    return PublicDocsGateConfig(
-      enabled: _bool(map, 'enabled', base.enabled, path, ctx),
-      exclude: _strList(map, 'exclude', base.exclude, path, ctx),
+    return _readGateConfig(
+      node,
+      base,
+      path,
+      'gates.public_docs',
+      const {'enabled', 'exclude'},
+      (map, base, path, ctx) => PublicDocsGateConfig(
+        enabled: _bool(map, 'enabled', base.enabled, path, ctx),
+        exclude: _strList(map, 'exclude', base.exclude, path, ctx),
+      ),
     );
+  }
+
+  DuplicationGateConfig _readDuplication(
+    Object? node,
+    DuplicationGateConfig base,
+    String path,
+  ) {
+    return _readGateConfig(
+      node,
+      base,
+      path,
+      'gates.duplication',
+      const {'enabled', 'threshold', 'min_tokens', 'min_lines', 'exclude'},
+      (map, base, path, ctx) => DuplicationGateConfig(
+        enabled: _bool(map, 'enabled', base.enabled, path, ctx),
+        threshold: _num(map, 'threshold', base.threshold, path, ctx),
+        minTokens: _int(map, 'min_tokens', base.minTokens, path, ctx),
+        minLines: _int(map, 'min_lines', base.minLines, path, ctx),
+        exclude: _strList(map, 'exclude', base.exclude, path, ctx),
+      ),
+    );
+  }
+
+  T _readGateConfig<T>(
+    Object? node,
+    T base,
+    String path,
+    String ctx,
+    Set<String> knownKeys,
+    T Function(YamlMap map, T base, String path, String ctx) build,
+  ) {
+    if (node == null) return base;
+    final map = _asMap(node, path, ctx);
+    _checkKeys(map, knownKeys, path, ctx);
+    return build(map, base, path, ctx);
   }
 
   YamlMap _asMap(Object? node, String path, String key) {

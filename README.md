@@ -28,9 +28,9 @@ crap4dart is a Dart port of the Java tool
 ## Features
 
 - **CRAP analysis** per method, combining complexity and LCOV coverage
-- **8 quality gates**: `loc`, `test_coverage`, `golden`,
+- **9 quality gates**: `loc`, `test_coverage`, `golden`,
   `hardcoded_strings`, `accessibility`, `complexity`, `method_size`,
-  `public_docs`
+  `public_docs`, `duplication`
 - **Configuration** via `crap4dart.yaml` with strict validation
 - **Pre-commit hook** installation (`check --staged` on every commit)
 - **GitHub Actions workflow** template (`crap4dart install --ci`)
@@ -238,6 +238,21 @@ gates:
     max_lines: 60
     # Maximum number of parameters per method.
     max_params: 6
+  # Detect duplicated code blocks.
+  duplication:
+    enabled: true
+    # Maximum allowed duplicated line percentage per file.
+    threshold: 1.0
+    # Minimum number of tokens in a block to count as duplication.
+    min_tokens: 50
+    # Minimum number of lines in a block to count as duplication.
+    min_lines: 5
+    # Glob patterns excluded from the gate.
+    exclude:
+      - '**.g.dart'
+      - '**.freezed.dart'
+      - '**.mocks.dart'
+      - 'test/**'
   # Require dartdoc comments on the public API.
   public_docs:
     enabled: true
@@ -309,6 +324,11 @@ Each gate can be turned off with `enabled: false` in the config.
 - **method_size** — fails methods longer than `max_lines` (default 60) or
   with more than `max_params` parameters (default 6). Constructors are
   checked only for parameter count.
+- **duplication** — detects exact copy-paste token blocks across Dart
+  source files. A block counts when it is at least `min_tokens` tokens
+  (default 50) and `min_lines` lines (default 5) long. The gate fails a
+  file when its duplicated line percentage exceeds `threshold` (default
+  1.0). Generated files and `test/**` are excluded by default.
 - **public_docs** — requires dartdoc on the public API: classes, mixins,
   enums, extension types, named extensions, top-level functions and
   variables, public methods and fields. `@override` members and members of

@@ -341,15 +341,15 @@ count towards the enclosing method's complexity.
 ### 10.3 Gate Identifiers
 
 Known gate ids: `loc`, `test_coverage`, `golden`, `hardcoded_strings`,
-`accessibility`, `complexity`, `method_size`, `public_docs`.
+`accessibility`, `complexity`, `method_size`, `public_docs`, `duplication`.
 
 ## 11. Quality Gates
 
 Gates shall run in the fixed order: `loc`, `test_coverage`, `complexity`,
-`method_size`, `public_docs`, `hardcoded_strings`, `accessibility`,
-`golden`. A gate disabled in the config shall produce a skipped result.
-The run shall fail when at least one gate fails; skipped gates shall not
-fail the run.
+`method_size`, `duplication`, `public_docs`, `hardcoded_strings`,
+`accessibility`, `golden`. A gate disabled in the config shall produce a
+skipped result. The run shall fail when at least one gate fails; skipped
+gates shall not fail the run.
 
 ### 11.1 loc
 
@@ -377,7 +377,18 @@ Fails methods longer than `max_lines` (default 60) or with more than
 `max_params` parameters (default 6). Constructors shall be checked only
 for parameter count.
 
-### 11.5 public_docs
+### 11.5 duplication
+
+Detects exact copy-paste duplicates across Dart source files. Each file is
+tokenized with `package:analyzer` (comments and synthetic tokens are
+ignored). A duplicated block is a sequence of tokens that appears at least
+twice, is at least `min_tokens` long (default 50) and spans at least
+`min_lines` source lines (default 5). The gate reports each file whose
+percentage of duplicated lines exceeds `threshold` (default 1.0). Files
+matching the gate's `exclude` list (default generated files and `test/**`)
+are skipped.
+
+### 11.6 public_docs
 
 Fails public declarations without dartdoc: classes, mixins, enums,
 extension types, named extensions, top-level functions and variables, and
@@ -385,7 +396,7 @@ public methods and fields. `@override` members, members of private
 containers, constructors and files under `exclude` (default `test/**`)
 shall be exempt.
 
-### 11.6 hardcoded_strings
+### 11.7 hardcoded_strings
 
 Skipped for non-Flutter projects. Flags string literals containing Latin
 or Cyrillic letters passed to `Text(...)` or to the parameters in
@@ -395,14 +406,14 @@ the previous line) and files containing `// l10n:ignore-file` within the
 first 5 lines shall be exempt. When ARB files exist under `lib/`,
 `l10n.<key>` references missing from `app_en.arb` shall be flagged.
 
-### 11.7 accessibility
+### 11.8 accessibility
 
 Skipped for non-Flutter projects. Requires `tooltip` on `IconButton`,
 `semanticLabel` on `Image`, and `semanticsLabel` or a wrapping
 `Semantics` widget on `GestureDetector`/`InkWell`, for the widget types
 in `require_label_for`.
 
-### 11.8 golden
+### 11.9 golden
 
 Skipped for non-Flutter projects and for projects without widgets.
 Widgets are public classes in `widget_dirs` extending `StatelessWidget`,

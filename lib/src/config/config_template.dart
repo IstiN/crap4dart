@@ -92,6 +92,21 @@ gates:
     max_lines: 60
     # Maximum number of parameters per method.
     max_params: 6
+  # Detect duplicated code blocks.
+  duplication:
+    enabled: true
+    # Maximum allowed duplicated line percentage per file.
+    threshold: 1.0
+    # Minimum number of tokens in a block to count as duplication.
+    min_tokens: 50
+    # Minimum number of lines in a block to count as duplication.
+    min_lines: 5
+    # Glob patterns excluded from the gate.
+    exclude:
+      - '**.g.dart'
+      - '**.freezed.dart'
+      - '**.mocks.dart'
+      - 'test/**'
   # Require dartdoc comments on the public API.
   public_docs:
     enabled: true

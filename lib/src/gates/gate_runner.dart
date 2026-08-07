@@ -3,6 +3,7 @@ import '../files/diff_parser.dart';
 import 'accessibility_gate.dart';
 import 'complexity_gate.dart';
 import 'coverage_gate.dart';
+import 'duplication_gate.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 import 'golden_gate.dart';
@@ -47,6 +48,7 @@ class GateRunner {
         const CoverageGate(),
         const ComplexityGate(),
         const MethodSizeGate(),
+        const DuplicationGate(),
         const PublicDocsGate(),
         const HardcodedStringsGate(),
         const AccessibilityGate(),
@@ -108,6 +110,7 @@ class GateRunner {
         'test_coverage' => gates.testCoverage.enabled,
         'complexity' => gates.complexity.enabled,
         'method_size' => gates.methodSize.enabled,
+        'duplication' => gates.duplication.enabled,
         'public_docs' => gates.publicDocs.enabled,
         'hardcoded_strings' => gates.hardcodedStrings.enabled,
         'accessibility' => gates.accessibility.enabled,

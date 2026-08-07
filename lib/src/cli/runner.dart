@@ -21,8 +21,6 @@ import '../report/badge_svg.dart';
 import '../report/json_reporter.dart';
 import 'exit_codes.dart';
 
-
-
 /// Canonical absolute form of [path] (symlinks resolved — git reports
 /// /private/var on macOS while callers often hold /var).
 String canonicalPath(String path) => Directory(path).resolveSymbolicLinksSync();
@@ -47,9 +45,8 @@ Future<String> gitTopLevel(String dir) async {
   return '${result.stdout}'.trim();
 }
 
-
 /// Current crap4dart version.
-const String crap4dartVersion = '0.1.3';
+const String crap4dartVersion = '0.2.0';
 
 /// Command-line entry point of crap4dart.
 class Crap4DartRunner {
@@ -108,8 +105,183 @@ Future<DiffLineMap?> _loadDiff(String projectRoot, String base) async {
   }
 }
 
+/// Shared helpers for [AnalyzeCommand] and [CheckCommand].
+mixin _CommandHelpers on Command<int> {
+  /// Loads the config, reporting errors to stderr and returning `null` on
+  /// failure.
+  Crap4DartConfig? _loadConfig(String projectRoot) {
+    try {
+      return const ConfigLoader().load(
+        projectRoot,
+        configPath: argResults!['config'] as String?,
+      );
+    } on ConfigException catch (e) {
+      stderr.writeln(e);
+      return null;
+    }
+  }
+
+  /// Resolves `--diff` / `--diff-base` and returns the diff map together with
+  /// the base ref.
+  Future<({DiffLineMap? map, String? base, bool ok})> _resolveDiff(
+    String projectRoot,
+  ) async {
+    final diffBase = argResults!['diff-base'] as String?;
+    final diffMode = (argResults!['diff'] as bool) || diffBase != null;
+    if (!diffMode) return (map: null, base: null, ok: true);
+    final changed = argResults!['changed'] as bool;
+    final staged = _stagedFlag;
+    if (changed || staged || argResults!.rest.isNotEmpty) {
+      throw UsageException(
+        '--diff cannot be combined with --changed, --staged, or explicit paths',
+        invocation,
+      );
+    }
+    final map = await _loadDiff(projectRoot, diffBase ?? 'HEAD');
+    return (map: map, base: diffBase ?? 'HEAD', ok: map != null);
+  }
+
+  /// Selects files from explicit paths, `--changed`, `--staged`, or default
+  /// sources.
+  Future<List<String>> _selectFiles(
+    String projectRoot,
+    List<String> sources,
+  ) async {
+    const finder = SourceFinder();
+    final paths = argResults!.rest;
+    final changed = argResults!['changed'] as bool;
+    final staged = _stagedFlag;
+    if (changed && staged) {
+      throw UsageException(
+        '--changed and --staged are mutually exclusive',
+        invocation,
+      );
+    }
+    if (changed || staged) {
+      return _findChangedFiles(projectRoot, staged: staged);
+    }
+    try {
+      if (paths.isNotEmpty) return finder.expandPaths(paths);
+      return finder.findDefaultSources(projectRoot, roots: sources);
+    } on FileSystemException catch (e) {
+      throw UsageException('Invalid path: ${e.path}', invocation);
+    }
+  }
+
+  /// Reads the optional `--staged` flag when the command exposes it.
+  bool get _stagedFlag =>
+      argResults!.options.contains('staged') && argResults!['staged'] as bool;
+
+  /// Finds changed or staged files and keeps only those inside the project
+  /// root.
+  Future<List<String>> _findChangedFiles(
+    String projectRoot, {
+    required bool staged,
+  }) async {
+    try {
+      final files =
+          await const ChangedFilesFinder().find(projectRoot, staged: staged);
+      final topLevel = canonicalPath(await gitTopLevel(projectRoot));
+      final rootAbs = canonicalPath(projectRoot);
+      return [
+        for (final f in files)
+          if (p.isWithin(rootAbs, p.join(topLevel, f))) p.join(topLevel, f),
+      ];
+    } on ProcessException catch (e) {
+      throw UsageException('git failed: ${e.message}', invocation);
+    }
+  }
+
+  /// Loads LCOV coverage data when the configured file exists.
+  List<FileCoverage>? _loadLcov(String projectRoot, Crap4DartConfig config) {
+    final lcovPath = config.coverage.lcovPath;
+    final resolved =
+        p.isAbsolute(lcovPath) ? lcovPath : p.join(projectRoot, lcovPath);
+    final file = File(resolved);
+    if (!file.existsSync()) return null;
+    return LcovParser(projectRoot: projectRoot).parse(file.readAsStringSync());
+  }
+
+  /// Parses a comma-separated gate id list for `--only` / `--skip`.
+  Set<String>? _gateFilter(String option) {
+    final raw = argResults![option] as String?;
+    if (raw == null) return null;
+    final ids =
+        raw.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toSet();
+    for (final id in ids) {
+      if (!ConfigLoader.knownGates.contains(id)) {
+        throw UsageException('Unknown gate id: "$id"', invocation);
+      }
+    }
+    return ids;
+  }
+
+  /// Loads config, resolves diff and selects files. Returns an [exitCode] when
+  /// the command should stop early; otherwise returns config/files/diff data.
+  ///
+  /// Pass an already loaded [config] to avoid parsing it twice when the caller
+  /// needs to validate command-specific arguments before file selection.
+  Future<
+      ({
+        Crap4DartConfig? config,
+        List<String>? files,
+        DiffLineMap? diffMap,
+        String? diffBase,
+        int? exitCode,
+      })> _prepareRun(
+    String projectRoot,
+    String emptyMessage, {
+    Crap4DartConfig? config,
+  }) async {
+    final resolvedConfig = config ?? _loadConfig(projectRoot);
+    if (resolvedConfig == null) {
+      return (
+        config: null,
+        files: null,
+        diffMap: null,
+        diffBase: null,
+        exitCode: ExitCodes.usageError
+      );
+    }
+    final diff = await _resolveDiff(projectRoot);
+    if (!diff.ok) {
+      return (
+        config: null,
+        files: null,
+        diffMap: null,
+        diffBase: null,
+        exitCode: ExitCodes.usageError
+      );
+    }
+    final files = const SourceFinder().filterByGlobs(
+      projectRoot,
+      diff.map != null
+          ? diff.map!.existingFiles()
+          : await _selectFiles(projectRoot, resolvedConfig.sources),
+      resolvedConfig.exclude,
+    );
+    if (files.isEmpty) {
+      stdout.writeln(emptyMessage);
+      return (
+        config: null,
+        files: null,
+        diffMap: null,
+        diffBase: null,
+        exitCode: ExitCodes.success
+      );
+    }
+    return (
+      config: resolvedConfig,
+      files: files,
+      diffMap: diff.map,
+      diffBase: diff.base,
+      exitCode: null,
+    );
+  }
+}
+
 /// The `analyze` command: computes CRAP scores for Dart source files.
-class AnalyzeCommand extends Command<int> {
+class AnalyzeCommand extends Command<int> with _CommandHelpers {
   /// Creates an [AnalyzeCommand].
   AnalyzeCommand({this.projectRoot}) {
     argParser
@@ -181,19 +353,13 @@ class AnalyzeCommand extends Command<int> {
       return ExitCodes.success;
     }
     final threshold = _resolveThreshold(config);
-    final diff = await _resolveDiff(projectRoot);
-    if (!diff.ok) return ExitCodes.usageError;
-    final files = const SourceFinder().filterByGlobs(
+    final prepared = await _prepareRun(
       projectRoot,
-      diff.map != null
-          ? diff.map!.existingFiles()
-          : await _selectFiles(projectRoot, config.sources),
-      config.exclude,
+      'No Dart files to analyze.',
+      config: config,
     );
-    if (files.isEmpty) {
-      stdout.writeln('No Dart files to analyze.');
-      return ExitCodes.success;
-    }
+    if (prepared.exitCode != null) return prepared.exitCode!;
+    final files = prepared.files!;
     final lcovPath = await _resolveLcov(projectRoot, config);
     if (lcovPath == null) {
       stderr.writeln(
@@ -202,9 +368,9 @@ class AnalyzeCommand extends Command<int> {
       );
     }
     final report = CrapReport(
-      _computeMetrics(files, lcovPath, projectRoot, config, diff.map),
+      _computeMetrics(files, lcovPath, projectRoot, config, prepared.diffMap),
     );
-    _printReport(report, threshold, diff.base);
+    _printReport(report, threshold, prepared.diffBase);
     _writeBadge(report, threshold);
     if (report.isThresholdExceeded(threshold)) {
       stderr.writeln(
@@ -214,22 +380,6 @@ class AnalyzeCommand extends Command<int> {
       return ExitCodes.thresholdExceeded;
     }
     return ExitCodes.success;
-  }
-
-  Future<({DiffLineMap? map, String? base, bool ok})> _resolveDiff(
-    String projectRoot,
-  ) async {
-    final diffBase = argResults!['diff-base'] as String?;
-    final diffMode = (argResults!['diff'] as bool) || diffBase != null;
-    if (!diffMode) return (map: null, base: null, ok: true);
-    if ((argResults!['changed'] as bool) || argResults!.rest.isNotEmpty) {
-      throw UsageException(
-        '--diff cannot be combined with --changed or explicit paths',
-        invocation,
-      );
-    }
-    final map = await _loadDiff(projectRoot, diffBase ?? 'HEAD');
-    return (map: map, base: diffBase ?? 'HEAD', ok: map != null);
   }
 
   List<MethodMetrics> _computeMetrics(
@@ -297,18 +447,6 @@ class AnalyzeCommand extends Command<int> {
     }
   }
 
-  Crap4DartConfig? _loadConfig(String projectRoot) {
-    try {
-      return const ConfigLoader().load(
-        projectRoot,
-        configPath: argResults!['config'] as String?,
-      );
-    } on ConfigException catch (e) {
-      stderr.writeln(e);
-      return null;
-    }
-  }
-
   double _resolveThreshold(Crap4DartConfig config) {
     if (!argResults!.wasParsed('threshold')) return config.crap.threshold;
     final raw = argResults!['threshold'] as String;
@@ -317,32 +455,6 @@ class AnalyzeCommand extends Command<int> {
       throw UsageException('Invalid --threshold value: "$raw"', invocation);
     }
     return value;
-  }
-
-  Future<List<String>> _selectFiles(
-    String projectRoot,
-    List<String> sources,
-  ) async {
-    const finder = SourceFinder();
-    final paths = argResults!.rest;
-    try {
-      if (argResults!['changed'] as bool) {
-        final changed = await const ChangedFilesFinder().find(projectRoot);
-        final topLevel = canonicalPath(await gitTopLevel(projectRoot));
-        final rootAbs = canonicalPath(projectRoot);
-        return [
-          for (final f in changed)
-            if (p.isWithin(rootAbs, p.join(topLevel, f)))
-              p.join(topLevel, f),
-        ];
-      }
-      if (paths.isNotEmpty) return finder.expandPaths(paths);
-      return finder.findDefaultSources(projectRoot, roots: sources);
-    } on FileSystemException catch (e) {
-      throw UsageException('Invalid path: ${e.path}', invocation);
-    } on ProcessException catch (e) {
-      throw UsageException('git failed: ${e.message}', invocation);
-    }
   }
 
   Future<String?> _resolveLcov(String projectRoot, Crap4DartConfig config) {
@@ -372,7 +484,7 @@ class AnalyzeCommand extends Command<int> {
 }
 
 /// The `check` command: runs the quality gates enabled in the config.
-class CheckCommand extends Command<int> {
+class CheckCommand extends Command<int> with _CommandHelpers {
   /// Creates a [CheckCommand].
   CheckCommand({this.projectRoot}) {
     argParser
@@ -433,21 +545,17 @@ class CheckCommand extends Command<int> {
   @override
   Future<int> run() async {
     final projectRoot = this.projectRoot ?? Directory.current.path;
-    final config = _loadConfigOrReport(projectRoot);
+    final config = _loadConfig(projectRoot);
     if (config == null) return ExitCodes.usageError;
-    final diff = await _resolveDiff(projectRoot);
-    if (!diff.ok) return ExitCodes.usageError;
-    final files = const SourceFinder().filterByGlobs(
+    final only = _gateFilter('only');
+    final skip = _gateFilter('skip');
+    final prepared = await _prepareRun(
       projectRoot,
-      diff.map != null
-          ? diff.map!.existingFiles()
-          : await _selectFiles(projectRoot, config.sources),
-      config.exclude,
+      'No Dart files to check.',
+      config: config,
     );
-    if (files.isEmpty) {
-      stdout.writeln('No Dart files to check.');
-      return ExitCodes.success;
-    }
+    if (prepared.exitCode != null) return prepared.exitCode!;
+    final files = prepared.files!;
     if (!await _runTestsIfRequested(projectRoot, config)) {
       return ExitCodes.usageError;
     }
@@ -460,26 +568,12 @@ class CheckCommand extends Command<int> {
     final runner = GateRunner();
     final result = await runner.run(
       context,
-      only: _gateFilter('only'),
-      skip: _gateFilter('skip'),
-      diff: diff.map,
+      only: only,
+      skip: skip,
+      diff: prepared.diffMap,
     );
     _printResult(runner, result);
     return result.passed ? ExitCodes.success : ExitCodes.thresholdExceeded;
-  }
-
-  Future<({DiffLineMap? map, bool ok})> _resolveDiff(String projectRoot) async {
-    final diffBase = argResults!['diff-base'] as String?;
-    final diffMode = (argResults!['diff'] as bool) || diffBase != null;
-    if (!diffMode) return (map: null, ok: true);
-    if ((argResults!['changed'] as bool) || (argResults!['staged'] as bool)) {
-      throw UsageException(
-        '--diff cannot be combined with --changed/--staged',
-        invocation,
-      );
-    }
-    final map = await _loadDiff(projectRoot, diffBase ?? 'HEAD');
-    return (map: map, ok: map != null);
   }
 
   void _printResult(GateRunner runner, GateRunResult result) {
@@ -503,71 +597,6 @@ class CheckCommand extends Command<int> {
       return false;
     }
     return true;
-  }
-
-  Crap4DartConfig? _loadConfigOrReport(String projectRoot) {
-    try {
-      return const ConfigLoader().load(
-        projectRoot,
-        configPath: argResults!['config'] as String?,
-      );
-    } on ConfigException catch (e) {
-      stderr.writeln(e);
-      return null;
-    }
-  }
-
-  Future<List<String>> _selectFiles(
-    String projectRoot,
-    List<String> sources,
-  ) async {
-    final changed = argResults!['changed'] as bool;
-    final staged = argResults!['staged'] as bool;
-    if (changed && staged) {
-      throw UsageException(
-        '--changed and --staged are mutually exclusive',
-        invocation,
-      );
-    }
-    try {
-      if (changed || staged) {
-        final files =
-            await const ChangedFilesFinder().find(projectRoot, staged: staged);
-        final topLevel = canonicalPath(await gitTopLevel(projectRoot));
-        final rootAbs = canonicalPath(projectRoot);
-        return [
-          for (final f in files)
-            if (p.isWithin(rootAbs, p.join(topLevel, f)))
-              p.join(topLevel, f),
-        ];
-      }
-      return const SourceFinder()
-          .findDefaultSources(projectRoot, roots: sources);
-    } on ProcessException catch (e) {
-      throw UsageException('git failed: ${e.message}', invocation);
-    }
-  }
-
-  List<FileCoverage>? _loadLcov(String projectRoot, Crap4DartConfig config) {
-    final lcovPath = config.coverage.lcovPath;
-    final resolved =
-        p.isAbsolute(lcovPath) ? lcovPath : p.join(projectRoot, lcovPath);
-    final file = File(resolved);
-    if (!file.existsSync()) return null;
-    return LcovParser(projectRoot: projectRoot).parse(file.readAsStringSync());
-  }
-
-  Set<String>? _gateFilter(String option) {
-    final raw = argResults![option] as String?;
-    if (raw == null) return null;
-    final ids =
-        raw.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toSet();
-    for (final id in ids) {
-      if (!ConfigLoader.knownGates.contains(id)) {
-        throw UsageException('Unknown gate id: "$id"', invocation);
-      }
-    }
-    return ids;
   }
 }
 
