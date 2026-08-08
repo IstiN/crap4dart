@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.2.1
+
+### Changed
+
+- `duplication` gate now tokenizes the whole Dart file (imports, declarations,
+  classes, methods) instead of only method bodies, aligning its detection scope
+  with jscpd while keeping the Dart-aware normalization and 1.0% default
+  threshold.
+
 ## 0.2.0
 
 ### Added

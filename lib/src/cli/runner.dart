@@ -46,7 +46,7 @@ Future<String> gitTopLevel(String dir) async {
 }
 
 /// Current crap4dart version.
-const String crap4dartVersion = '0.2.0';
+const String crap4dartVersion = '0.2.1';
 
 /// Command-line entry point of crap4dart.
 class Crap4DartRunner {

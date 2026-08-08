@@ -1,11 +1,9 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 
 import '../analysis/dart_parser.dart';
-import '../analysis/method_extractor.dart';
 import '../config/config.dart';
 import 'gate.dart';
 import 'gate_context.dart';
@@ -42,13 +40,11 @@ class _FileTokens {
 /// The `duplication` gate: fails files whose duplicated line percentage
 /// exceeds the configured threshold.
 ///
-/// The detection combines two ideas:
-///  - Dart-aware tokenization via `package:analyzer` (like the rest of the
-///    tool). String and numeric literals are normalized, comments are
-///    skipped, and identifiers/keywords/operators keep their lexeme.
-///  - Rabin-Karp-style sliding window indexing, similar to jscpd, so any
-///    duplicated block of at least `min_tokens` tokens and `min_lines` lines
-///    is detected within or across files.
+/// The detection tokenizes the whole Dart file with `package:analyzer`,
+/// normalizes string and numeric literals, skips comments, then indexes
+/// sliding windows of tokens with a Rabin-Karp hash, similar to jscpd.
+/// Any duplicated block of at least `min_tokens` tokens and `min_lines`
+/// lines is detected within or across files.
 class DuplicationGate implements Gate {
   /// Creates a [DuplicationGate].
   const DuplicationGate();
@@ -85,7 +81,7 @@ class DuplicationGate implements Gate {
     for (final file in context.files) {
       if (context.matchesAnyGlob(file, config.exclude)) continue;
       final parsed = context.parsed(file);
-      final tokens = _extractMethodTokens(parsed);
+      final tokens = _extractFileTokens(parsed);
       if (tokens.length >= config.minTokens) {
         final totalLines = _lineCount(File(file).readAsStringSync());
         files.add(_FileTokens(file, tokens, totalLines));
@@ -141,38 +137,22 @@ class DuplicationGate implements Gate {
     );
   }
 
-  /// Extracts normalized tokens from method bodies in [parsed].
-  List<_NormalizedToken> _extractMethodTokens(ParsedUnit parsed) {
-    const extractor = MethodExtractor();
+  /// Extracts normalized tokens from the whole parsed file.
+  List<_NormalizedToken> _extractFileTokens(ParsedUnit parsed) {
     final tokens = <_NormalizedToken>[];
-    for (final method in extractor.extractWithNodes(
-      parsed.unit,
-      parsed.lineInfo,
-      filePath: parsed.path,
-    )) {
-      final body = _body(method.node);
-      if (body == null) continue;
-      Token? token = body.beginToken;
-      final end = body.endToken;
-      while (token != null) {
-        if (token.offset > end.offset) break;
-        final normalized = _normalize(token);
-        if (normalized != null) {
-          final line = parsed.lineInfo.getLocation(token.offset).lineNumber;
-          tokens.add(_NormalizedToken(normalized, line));
-        }
-        if (token == end) break;
-        token = token.next;
+    Token? token = parsed.unit.beginToken;
+    final end = parsed.unit.endToken;
+    while (token != null) {
+      if (token.offset > end.offset) break;
+      final normalized = _normalize(token);
+      if (normalized != null) {
+        final line = parsed.lineInfo.getLocation(token.offset).lineNumber;
+        tokens.add(_NormalizedToken(normalized, line));
       }
+      if (token == end) break;
+      token = token.next;
     }
     return tokens;
-  }
-
-  /// Returns the body of a method or top-level function declaration.
-  FunctionBody? _body(AstNode node) {
-    if (node is MethodDeclaration) return node.body;
-    if (node is FunctionDeclaration) return node.functionExpression.body;
-    return null;
   }
 
   /// Normalizes a token for duplicate detection.

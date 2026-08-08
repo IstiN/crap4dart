@@ -37,4 +37,30 @@ void main() {
     final result = await gate.run(makeContext(project, ['test/a_test.dart']));
     expect(result.passed, isTrue);
   });
+
+  test('detects duplicated top-level declarations outside methods', () async {
+    const topLevel = '''
+const String kA = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+const String kB = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+const String kC = 'cccccccccccccccccccccccccccccccccccccccccccccccccc';
+const String kD = 'dddddddddddddddddddddddddddddddddddddddddddddddddd';
+const String kE = 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+const String kF = 'ffffffffffffffffffffffffffffffffffffffffffffffffffff';
+const String kG = 'gggggggggggggggggggggggggggggggggggggggggggggggggg';
+const String kH = 'hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh';
+const String kI = 'iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii';
+const String kJ = 'jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj';
+'''
+        '''
+const String kK = 'kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk';
+'''; // Keep total token stream above min_tokens.
+    writeFile(project, 'lib/a.dart', topLevel);
+    writeFile(project, 'lib/b.dart', topLevel);
+    final result =
+        await gate.run(makeContext(project, ['lib/a.dart', 'lib/b.dart']));
+    expect(result.passed, isFalse);
+    final files = result.violations.map((v) => v.file).toSet();
+    expect(files, contains('lib/a.dart'));
+    expect(files, contains('lib/b.dart'));
+  });
 }
