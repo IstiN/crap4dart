@@ -34,6 +34,18 @@ coverage:
   # Report branch coverage (BRDA records) in addition to line coverage.
   branch_coverage: true
 
+# CPU profiling settings ("profile" command).
+# Instruments every method in lib/ with a Stopwatch, runs the test
+# suite, and reports per-method timing (source instrumentation).
+profile:
+  # Enable profiling.
+  enabled: true
+  # Warn on methods whose total time exceeds this value (milliseconds).
+  # Omit to disable the threshold check.
+  threshold_ms: 10.0
+  # Show only the top N methods by total time (omit to show all).
+  # top: 20
+
 # Quality gates ("check" command).
 gates:
   # Limit file size in lines of code.

@@ -14,6 +14,10 @@ Guidance for AI agents and contributors working on crap4dart.
    `complexity`, `method_size`, `public_docs`.
 3. **Integrations** — `init` (config scaffold), `install` (git hooks +
    GitHub Actions workflow), JSON output, diff mode (`--diff`/`--diff-base`).
+4. **CPU profiling** (`profile`) — instruments every method in `lib/` with
+   a `Stopwatch`, runs the test suite, and reports per-method timing
+   (source instrumentation, not VM service sampling); configured via the
+   `profile` config key (`enabled`, `threshold_ms`, `top`).
 
 The full contract is specified in [spec.md](spec.md). Keep `spec.md`,
 `README.md`, `lib/src/config/config_template.dart` and this file in sync
@@ -58,7 +62,7 @@ suite in CI.
 
 ```
 bin/crap4dart.dart           # entry point -> Crap4DartRunner
-lib/src/cli/runner.dart      # commands: analyze, check, init, install
+lib/src/cli/runner.dart      # commands: analyze, check, init, install, profile
 lib/src/config/              # crap4dart.yaml model, loader (strict), template
 lib/src/analysis/            # analyzer wrappers: parser, method extractor, CC
 lib/src/coverage/            # LCOV parser, per-method coverage, test runner
@@ -66,6 +70,7 @@ lib/src/crap/                # CRAP formula, analyzer, console report
 lib/src/gates/               # Gate framework + 8 gates
 lib/src/files/               # source finder, git changed files, diff parser
 lib/src/report/              # JSON reporter
+lib/src/profile/             # source-instrumentation profiler, per-method timing
 lib/src/hooks/               # git hook installer, CI workflow installer
 ```
 

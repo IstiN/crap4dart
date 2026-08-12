@@ -3,6 +3,7 @@ import 'dart:convert';
 import '../crap/crap_report.dart';
 import '../gates/gate.dart';
 import '../gates/gate_runner.dart';
+import '../profile/profile_reporter.dart';
 
 /// Renders analyze and check results as JSON for machine consumption.
 ///
@@ -52,6 +53,40 @@ class JsonReporter {
       'command': 'check',
       'passed': result.passed,
       'gates': [for (final r in result.results) _gateJson(r)],
+    });
+  }
+
+  /// Renders the `profile` report from [report], optionally limited to [top]
+  /// entries and flagged against [thresholdMs].
+  String renderProfile(
+    ProfileReport report, {
+    double? thresholdMs,
+    int? top,
+  }) {
+    final sorted = report.sorted;
+    final shown = top != null && top > 0 ? sorted.take(top).toList() : sorted;
+    final totalMicros = report.totalMicros;
+    final passed = thresholdMs == null ||
+        sorted.every((p) => p.timing.totalMillis <= thresholdMs);
+    return _encoder.convert({
+      'command': 'profile',
+      'totalMicros': totalMicros,
+      if (thresholdMs != null) 'thresholdMs': thresholdMs,
+      'passed': passed,
+      'methods': [
+        for (final p in shown)
+          {
+            'file': p.method.filePath,
+            'line': p.method.startLine,
+            'class': p.method.className,
+            'method': p.method.methodName,
+            'calls': p.timing.calls,
+            'totalMicros': p.timing.totalMicros,
+            'minMicros': p.timing.minMicros,
+            'maxMicros': p.timing.maxMicros,
+            'meanMicros': p.timing.meanMicros,
+          },
+      ],
     });
   }
 

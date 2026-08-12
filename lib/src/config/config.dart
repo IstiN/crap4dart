@@ -8,6 +8,7 @@ class Crap4DartConfig {
     this.crap = const CrapConfig(),
     this.coverage = const CoverageConfig(),
     this.gates = const GatesConfig(),
+    this.profile = const ProfileConfig(),
     this.sources = const ['lib', 'bin'],
     this.exclude = const [],
   });
@@ -20,6 +21,9 @@ class Crap4DartConfig {
 
   /// Quality gate settings.
   final GatesConfig gates;
+
+  /// CPU profiling settings.
+  final ProfileConfig profile;
 
   /// Directories scanned for Dart sources in the default (all-files) mode
   /// of `analyze` and `check`.
@@ -336,4 +340,25 @@ class PublicDocsGateConfig {
 
   /// Glob patterns excluded from the gate.
   final List<String> exclude;
+}
+
+/// CPU profiling settings (`profile` command).
+class ProfileConfig {
+  /// Creates a [ProfileConfig].
+  const ProfileConfig({
+    this.enabled = true,
+    this.thresholdMs,
+    this.top,
+  });
+
+  /// Whether profiling is enabled.
+  final bool enabled;
+
+  /// Warn on methods whose total time exceeds this value (milliseconds),
+  /// or `null` to disable the threshold check.
+  final double? thresholdMs;
+
+  /// Maximum number of methods shown in the report (sorted by total time),
+  /// or `null` to show all methods.
+  final int? top;
 }

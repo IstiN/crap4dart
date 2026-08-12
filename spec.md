@@ -32,6 +32,7 @@ This specification defines:
 - report formats, ordering and exit codes
 - the configuration file contract
 - the quality gates and their semantics
+- CPU profiling (`profile` command)
 - hook and CI installation behavior
 
 This specification does not define:
@@ -71,6 +72,7 @@ The tool shall support these commands:
 - `crap4dart check`
 - `crap4dart init`
 - `crap4dart install`
+- `crap4dart profile`
 - `crap4dart --help` / `crap4dart --version`
 
 ### 4.2 analyze Options
@@ -141,7 +143,40 @@ with usage-error status.
   an existing workflow file.
 - `--config <path>` selects a non-default config file.
 
-### 4.6 Invalid Usage
+### 4.6 profile Options
+
+- `[paths...]`
+  Explicit test file or directory paths forwarded to the test runner.
+  Without paths, the full test suite is run.
+
+- `--name <pattern>`
+  Run only tests whose name matches the given substring or regex.
+
+- `--tags <t1,t2>`
+  Run only tests with the given tags (comma-separated).
+
+- `--exclude-tags <t1,t2>`
+  Exclude tests with the given tags (comma-separated).
+
+- `--threshold <ms>`
+  Override the configured total-time threshold in milliseconds. Methods
+  whose total time exceeds this value fail the run.
+
+- `--top <N>`
+  Limit the report to the `N` slowest methods (by total time). Defaults to
+  the configured `top` (default 20).
+
+- `--config <path>`
+  Use a non-default config file.
+
+- `--format console|json`
+  Select the report format (default: `console`).
+
+- `--diff` / `--diff-base <ref>`
+  Restrict the report to methods touched by `git diff` (see §9.3). `--diff`
+  uses base `HEAD`; `--diff-base` implies `--diff` with the given ref.
+
+### 4.7 Invalid Usage
 
 The tool shall exit with usage-error status when argument parsing fails
 and shall print usage information on CLI usage failure.
@@ -318,6 +353,50 @@ The badge shall be written even when the threshold is exceeded (exit code
 exit code. A confirmation and a Markdown snippet shall be printed to
 stderr, keeping stdout unchanged (including under `--format json`).
 
+### 9.5 Profile Report
+
+The `profile` command shall use **source instrumentation**: it creates a
+temporary copy of the project's `lib/` directory with every method body
+wrapped in a `Stopwatch`-based `try/finally` block, runs the test suite
+against the instrumented copy, and collects deterministic per-method timing
+data. The temporary directory (`.crap_profile_temp/`) shall be cleaned up
+automatically after the run.
+
+For pure-Dart projects the test runner shall use
+`dart test --compiler source` (bypassing the kernel cache that would load
+the original uninstrumented sources). For Flutter projects it shall use
+`flutter test`.
+
+For each profiled method, the tool shall report:
+
+- **total time** — total execution time across all calls (microseconds)
+- **calls** — number of invocations
+- **mean time** — average time per call (microseconds)
+- **max time** — slowest single call (microseconds)
+- **@60fps** — estimated per-frame cost at 60 fps (mean × 60, in
+  milliseconds), highlighting methods that are cheap per-call but costly
+  when called every frame
+
+Method attribution: timing data shall be matched to project methods by
+`ClassName.methodName` using the same method parsing as `analyze` (§7).
+Timing entries that do not match a project method shall be ignored.
+
+The console report shall list `TOTAL(ms)`, `%`, `CALLS`, `MEAN(µs)`,
+`MAX(µs)`, `@60fps(ms)`, `METHOD` and `FILE:LINE` columns sorted by total
+time descending, limited to the configured `top` count, followed by a
+summary line stating whether the threshold was exceeded and how many
+methods violated it.
+
+With `--format json`, stdout shall contain a single JSON document with:
+`command`, `totalMicros`, `thresholdMs` (when set), `passed`, and `methods`
+(each with `file`, `line`, `class`, `method`, `calls`, `totalMicros`,
+`minMicros`, `maxMicros`, `meanMicros`). The report shall mark diff mode
+with `diffMode`/`diffBase` fields as in §9.2.
+
+The run shall fail with threshold-failure status when at least one
+method's total time exceeds the configured (or `--threshold`) value in
+milliseconds.
+
 ## 10. Configuration
 
 ### 10.1 File Location and Defaults
@@ -336,7 +415,10 @@ usage-error status. The `sources` key shall be a list of non-empty
 strings. The `exclude` key shall be a list of glob patterns applied to
 every file selection mode. The `count_lambdas` keys (under `crap` and
 `gates.complexity`) shall be booleans controlling whether lambda branches
-count towards the enclosing method's complexity.
+count towards the enclosing method's complexity. The `profile` key shall
+configure the `profile` command (§4.6, §9.5) with `enabled` (bool,
+default true), `threshold_ms` (double, optional — omit to disable the
+threshold check) and `top` (int, default 20).
 
 ### 10.3 Gate Identifiers
 
@@ -438,7 +520,8 @@ shall be treated as `0.0`.
   failed.
 - `1` — CLI usage error, configuration error, hook/CI installation error,
   or a failed test run in `check --run-tests`.
-- `2` — CRAP threshold exceeded, or at least one quality gate failed.
+- `2` — CRAP threshold exceeded, at least one quality gate failed, or the
+  profile threshold was exceeded.
 
 ## 14. Hook and CI Installation
 

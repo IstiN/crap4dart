@@ -1,0 +1,380 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:path/path.dart' as p;
+
+import '../files/flutter_project.dart';
+import 'collector_template.dart';
+import 'source_instrumenter.dart';
+
+/// Per-method timing data collected from an instrumented test run.
+class MethodTiming {
+  /// Creates a [MethodTiming].
+  const MethodTiming({
+    required this.className,
+    required this.methodName,
+    required this.calls,
+    required this.totalMicros,
+    required this.minMicros,
+    required this.maxMicros,
+  });
+
+  /// Owning class name (or `(top-level)`).
+  final String className;
+
+  /// Method name.
+  final String methodName;
+
+  /// Number of times the method was called.
+  final int calls;
+
+  /// Total execution time in microseconds across all calls.
+  final int totalMicros;
+
+  /// Minimum single-call time in microseconds.
+  final int minMicros;
+
+  /// Maximum single-call time in microseconds.
+  final int maxMicros;
+
+  /// Mean execution time in microseconds.
+  double get meanMicros => calls > 0 ? totalMicros / calls : 0.0;
+
+  /// Total execution time in milliseconds.
+  double get totalMillis => totalMicros / 1000.0;
+
+  /// Mean execution time in microseconds (formatted).
+  double get meanMillis => meanMicros / 1000.0;
+}
+
+/// Merged timing result from an instrumented test run.
+class ProfileResult {
+  /// Creates a [ProfileResult].
+  const ProfileResult({required this.timings});
+
+  /// Per-method timing data, sorted by total time descending.
+  final List<MethodTiming> timings;
+}
+
+/// Signature of a process run — matches [Process.run] so tests can inject
+/// a fake.
+typedef ProcessRunner = Future<ProcessResult> Function(
+  String executable,
+  List<String> arguments, {
+  String? workingDirectory,
+  Map<String, String>? environment,
+});
+
+/// Test selection options forwarded to `dart test` / `flutter test`.
+class TestFilter {
+  /// Creates a [TestFilter].
+  const TestFilter({
+    this.name,
+    this.tags,
+    this.excludeTags,
+    this.paths = const [],
+  });
+
+  /// Run only tests whose name matches this substring or regex.
+  final String? name;
+
+  /// Run only tests with these tags.
+  final List<String>? tags;
+
+  /// Exclude tests with these tags.
+  final List<String>? excludeTags;
+
+  /// Explicit test file/directory paths.
+  final List<String> paths;
+}
+
+/// Runs the project's test suite against instrumented source code and
+/// collects per-method timing data.
+///
+/// Creates a temporary copy of the project with every method body wrapped
+/// in a `Stopwatch`-based `try/finally` block. Tests are run normally; the
+/// collector accumulates timing data and writes it to a JSON file.
+class ProfileRunner {
+  /// Creates a [ProfileRunner].
+  ///
+  /// [runner] defaults to [Process.run]; tests inject a fake.
+  const ProfileRunner({ProcessRunner? runner})
+      : _runner = runner ?? Process.run;
+
+  final ProcessRunner _runner;
+
+  /// Runs the tests of the project at [projectRoot] under instrumentation
+  /// and returns the timing result, or `null` on failure.
+  ///
+  /// [filter] controls which tests are run (by name, tags, or paths).
+  Future<ProfileResult?> run(
+    String projectRoot, {
+    TestFilter filter = const TestFilter(),
+  }) async {
+    Directory? tempDir;
+    final keepTemp = Platform.environment['CRAP_PROFILE_DEBUG'] != null;
+    try {
+      final packageName = _readPackageName(projectRoot);
+      if (packageName == null) {
+        stderr.writeln('Warning: could not read package name from pubspec.');
+        return null;
+      }
+
+      tempDir = await _createInstrumentedCopy(projectRoot, packageName);
+      _ensureGitignore(projectRoot);
+      final outputFile = File(p.join(tempDir.path, '.crap_profile.json'));
+
+      stderr.writeln('Running instrumented tests...');
+      final testArgs = _buildTestArgs(projectRoot, filter);
+      final result = await _runner(
+        isFlutterProject(projectRoot) ? 'flutter' : 'dart',
+        testArgs,
+        workingDirectory: tempDir.path,
+        environment: {
+          ...Platform.environment,
+          'CRAP_PROFILE_OUTPUT': outputFile.path,
+        },
+      );
+
+      _reportTestErrors(result);
+      return _readResult(outputFile);
+    } on Exception catch (e) {
+      stderr.writeln('Warning: profiling failed: $e');
+      return null;
+    } finally {
+      if (tempDir != null && !keepTemp) {
+        try {
+          tempDir.deleteSync(recursive: true);
+        } on Exception {
+          // Best effort cleanup.
+        }
+      }
+    }
+  }
+
+  /// Builds the `dart test` / `flutter test` argument list from [filter].
+  List<String> _buildTestArgs(String projectRoot, TestFilter filter) {
+    final isFlutter = isFlutterProject(projectRoot);
+    // --compiler source bypasses kernel caching that would use
+    // the original (non-instrumented) source.
+    final args =
+        isFlutter ? <String>['test'] : <String>['test', '--compiler', 'source'];
+
+    if (filter.name != null) {
+      args.addAll(['--name', filter.name!]);
+    }
+    if (filter.tags != null && filter.tags!.isNotEmpty) {
+      args.addAll(['--tags', filter.tags!.join(',')]);
+    }
+    if (filter.excludeTags != null && filter.excludeTags!.isNotEmpty) {
+      args.addAll(['-x', filter.excludeTags!.join(',')]);
+    }
+    // Explicit test paths go at the end.
+    args.addAll(filter.paths);
+    return args;
+  }
+
+  /// Reports test errors to stderr.
+  void _reportTestErrors(ProcessResult result) {
+    if (result.exitCode != 0) {
+      stderr.writeln('Warning: tests exited with code ${result.exitCode}.');
+      final err = '${result.stderr}'.trim();
+      if (err.isNotEmpty) {
+        stderr.writeln(err.split('\n').take(30).join('\n'));
+      }
+      final out = '${result.stdout}'.trim();
+      if (out.isNotEmpty) {
+        stderr.writeln(out.split('\n').take(30).join('\n'));
+      }
+    }
+  }
+
+  /// Reads and parses the profiling output file.
+  ProfileResult? _readResult(File outputFile) {
+    if (!outputFile.existsSync()) {
+      stderr.writeln('Warning: no profiling data was produced.');
+      return null;
+    }
+    final json =
+        jsonDecode(outputFile.readAsStringSync()) as Map<String, dynamic>;
+    final timings = <MethodTiming>[];
+    for (final entry in json.entries) {
+      final key = entry.key;
+      final stats = entry.value as Map<String, dynamic>;
+      final dotIndex = key.indexOf('.');
+      timings.add(MethodTiming(
+        className: dotIndex > 0 ? key.substring(0, dotIndex) : '(top-level)',
+        methodName: dotIndex > 0 ? key.substring(dotIndex + 1) : key,
+        calls: stats['calls'] as int? ?? 0,
+        totalMicros: stats['totalMicros'] as int? ?? 0,
+        minMicros: stats['minMicros'] as int? ?? 0,
+        maxMicros: stats['maxMicros'] as int? ?? 0,
+      ));
+    }
+    timings.sort((a, b) => b.totalMicros.compareTo(a.totalMicros));
+    return ProfileResult(timings: timings);
+  }
+
+  /// Creates a temporary copy of the project with instrumented `lib/`.
+  Future<Directory> _createInstrumentedCopy(
+    String projectRoot,
+    String packageName,
+  ) async {
+    // Create temp dir as a sibling of the project so workspace path
+    // dependencies resolve correctly.
+    final tempDir = Directory(
+      p.join(projectRoot, '.crap_profile_temp'),
+    );
+    if (tempDir.existsSync()) {
+      tempDir.deleteSync(recursive: true);
+    }
+    tempDir.createSync(recursive: true);
+    final instrumenter = SourceInstrumenter(packageName: packageName);
+
+    // Symlink everything except lib/, build/, .dart_tool/, and test/.
+    // test/ must be copied (not symlinked) because dart test resolves
+    // package: imports relative to the test file's real path, not the
+    // working directory.
+    for (final entity in Directory(projectRoot).listSync()) {
+      final name = p.basename(entity.path);
+      if (name == 'lib' ||
+          name == 'build' ||
+          name == '.dart_tool' ||
+          name == 'test') {
+        continue;
+      }
+      final target = p.join(tempDir.path, name);
+      try {
+        Link(target).createSync(entity.path, recursive: false);
+      } on FileSystemException {
+        _copyPath(entity.path, target);
+      }
+    }
+
+    // Copy test/ (must be real files, not symlink).
+    final testDir = Directory(p.join(projectRoot, 'test'));
+    if (testDir.existsSync()) {
+      _copyPath(testDir.path, p.join(tempDir.path, 'test'));
+    }
+
+    // Copy .dart_tool and fix package_config.json.
+    final dartToolSrc = Directory(p.join(projectRoot, '.dart_tool'));
+    final dartToolDest = Directory(p.join(tempDir.path, '.dart_tool'));
+    if (dartToolSrc.existsSync()) {
+      _copyDartTool(dartToolSrc, dartToolDest, tempDir.path, packageName);
+    }
+
+    // Create instrumented lib/.
+    final libDir = Directory(p.join(projectRoot, 'lib'));
+    final tempLib = Directory(p.join(tempDir.path, 'lib'));
+    tempLib.createSync(recursive: true);
+    if (libDir.existsSync()) {
+      _instrumentDir(libDir, tempLib, instrumenter, projectRoot);
+    }
+
+    // Write collector library.
+    final collectorFile = File(
+      p.join(tempDir.path, 'lib', '__crap_collector.dart'),
+    );
+    collectorFile.writeAsStringSync(collectorSource);
+
+    // .dart_tool is symlinked, so package resolution (including path
+    // dependencies) is inherited from the original project — no pub get
+    // needed.
+
+    return tempDir;
+  }
+
+  /// Recursively instruments all `.dart` files from [src] into [dest].
+  void _instrumentDir(
+    Directory src,
+    Directory dest,
+    SourceInstrumenter instrumenter,
+    String projectRoot,
+  ) {
+    for (final entity in src.listSync()) {
+      final relative = p.relative(entity.path, from: projectRoot);
+      final destPath =
+          p.join(dest.path, p.relative(entity.path, from: src.path));
+      if (entity is Directory) {
+        Directory(destPath).createSync(recursive: true);
+        _instrumentDir(entity, Directory(destPath), instrumenter, projectRoot);
+      } else if (entity is File && entity.path.endsWith('.dart')) {
+        final source = entity.readAsStringSync();
+        final instrumented =
+            instrumenter.instrument(source, filePath: relative);
+        File(destPath).writeAsStringSync(instrumented);
+      }
+    }
+  }
+
+  /// Recursively copies a path (file or directory).
+  void _copyPath(String src, String dest) {
+    final entity = FileSystemEntity.typeSync(src);
+    if (entity == FileSystemEntityType.directory) {
+      Directory(dest).createSync(recursive: true);
+      for (final e in Directory(src).listSync()) {
+        _copyPath(e.path, p.join(dest, p.basename(e.path)));
+      }
+    } else if (entity == FileSystemEntityType.file) {
+      File(src).copySync(dest);
+    }
+  }
+
+  /// Copies `.dart_tool/` and rewrites `package_config.json` so that
+  /// `package:<packageName>/` resolves to the instrumented temp `lib/`.
+  void _copyDartTool(
+    Directory src,
+    Directory dest,
+    String tempRoot,
+    String packageName,
+  ) {
+    _copyPath(src.path, dest.path);
+    final configFile = File(p.join(dest.path, 'package_config.json'));
+    if (!configFile.existsSync()) return;
+    // Parse JSON, rewrite the package entry, write back.
+    final json = jsonDecode(configFile.readAsStringSync());
+    final packages = json['packages'] as List<dynamic>?;
+    if (packages == null) return;
+    final tempRootUri = Uri.directory(tempRoot).toString();
+    for (final pkg in packages) {
+      if (pkg is Map<String, dynamic> && pkg['name'] == packageName) {
+        pkg['rootUri'] = tempRootUri;
+      }
+    }
+    configFile.writeAsStringSync(jsonEncode(json));
+  }
+
+  /// Ensures `.gitignore` contains entries for profiling artifacts.
+  void _ensureGitignore(String root) {
+    const entries = ['profile-reports/', '.crap_profile_temp/'];
+    final file = File(p.join(root, '.gitignore'));
+    var content = '';
+    if (file.existsSync()) {
+      content = file.readAsStringSync();
+    }
+    final missing = entries.where((e) => !content.contains(e)).toList();
+    if (missing.isEmpty) return;
+    final addition = StringBuffer();
+    if (!content.endsWith('\n') && content.isNotEmpty) {
+      addition.writeln();
+    }
+    addition.writeln('# crap4dart profiling');
+    for (final e in missing) {
+      addition.writeln(e);
+    }
+    file.writeAsStringSync('$content$addition', mode: FileMode.append);
+  }
+
+  /// Reads the package name from `pubspec.yaml`.
+  String? _readPackageName(String root) {
+    final pubspec = File(p.join(root, 'pubspec.yaml'));
+    if (!pubspec.existsSync()) return null;
+    final match = RegExp(
+      r'^name:\s*(.+)$',
+      multiLine: true,
+    ).firstMatch(pubspec.readAsStringSync());
+    return match?.group(1)?.trim();
+  }
+}

@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.3.0
+
+### Added
+
+- `profile` command — source-instrumentation-based per-method timing
+  profiler. Creates a temporary instrumented copy of `lib/`, runs the test
+  suite, and collects precise per-method timing (microseconds, not
+  statistical sampling). Reports TOTAL(ms), %, CALLS, MEAN(µs), MAX(µs) and
+  @60fps(ms) per method.
+- `--name`, `--tags`, `--exclude-tags` flags for filtering which tests the
+  profiler runs; positional `[paths...]` for explicit test file/directory
+  targets.
+- `@60fps(ms)` column in profile reports — estimates the per-frame cost of
+  a method called every frame at 60 fps (`MEAN × 60`), highlighting methods
+  that are cheap per-call but costly in a rebuild hot path.
+- `profile` config section (`enabled`, `threshold_ms`, `top`).
+- `skill` command — prints the crap4dart profiling skill content for AI
+  agents, or shows installation instructions (`crap4dart skill`,
+  `crap4dart skill --format install`).
+- Profiling skill at `.agents/skills/crap4dart-profiling/SKILL.md` —
+  teaches AI agents how to run and analyze profiling results.
+- Full profiling reports saved to `profile-reports/` directory
+  (`profile-report.txt` + `profile-report.json`), with automatic
+  `.gitignore` entries for `profile-reports/` and `.crap_profile_temp/`.
+
+### Changed
+
+- `profile` now uses source instrumentation (wrapping every method body in a
+  `Stopwatch` + `try/finally`) instead of VM service sampling. Timing is
+  deterministic and exact rather than statistical.
+
+### Removed
+
+- `vm_service` as a direct dependency (it was needed for the previous
+  VM-sampling approach; now only transitive).
+
 ## 0.2.1
 
 ### Changed

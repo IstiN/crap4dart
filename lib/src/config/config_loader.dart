@@ -75,7 +75,7 @@ class ConfigLoader {
     final root = _asMap(doc, path, '(root)');
     _checkKeys(
       root,
-      const {'crap', 'coverage', 'gates', 'sources', 'exclude'},
+      const {'crap', 'coverage', 'gates', 'profile', 'sources', 'exclude'},
       path,
       '',
     );
@@ -84,6 +84,7 @@ class ConfigLoader {
       crap: _readCrap(root['crap'], defaults.crap, path),
       coverage: _readCoverage(root['coverage'], defaults.coverage, path),
       gates: _readGates(root['gates'], defaults.gates, path),
+      profile: _readProfile(root['profile'], defaults.profile, path),
       sources: _readSources(root['sources'], defaults.sources, path),
       exclude: _strList(root, 'exclude', defaults.exclude, path, ''),
     );
@@ -142,6 +143,36 @@ class ConfigLoader {
       required: _bool(map, 'required', base.required, path, 'coverage'),
       branchCoverage:
           _bool(map, 'branch_coverage', base.branchCoverage, path, 'coverage'),
+    );
+  }
+
+  ProfileConfig _readProfile(Object? node, ProfileConfig base, String path) {
+    if (node == null) return base;
+    final map = _asMap(node, path, 'profile');
+    _checkKeys(
+      map,
+      const {'enabled', 'threshold_ms', 'top'},
+      path,
+      'profile',
+    );
+    final thresholdValue = map['threshold_ms'];
+    double? thresholdMs;
+    if (thresholdValue != null) {
+      thresholdMs = _num(
+        map,
+        'threshold_ms',
+        base.thresholdMs ?? 0,
+        path,
+        'profile',
+      );
+    }
+    final topRaw = map['top'];
+    return ProfileConfig(
+      enabled: _bool(map, 'enabled', base.enabled, path, 'profile'),
+      thresholdMs: thresholdMs,
+      top: topRaw == null
+          ? null
+          : _int(map, 'top', base.top ?? 20, path, 'profile'),
     );
   }
 

@@ -105,8 +105,57 @@ crap4dart install --hook pre-push    # different hook name
 crap4dart install --force            # merge into an existing foreign hook
 ```
 
-The `analyze`, `check` and `install` commands accept `--config <path>` to
-use a non-default config file.
+### profile
+
+Instruments every method in `lib/` with a `Stopwatch`, runs the test suite
+against the instrumented copy, and reports precise per-method timing.
+Unlike VM-sampling profilers, timing is deterministic and exact
+(microseconds, not statistical samples).
+
+```sh
+crap4dart profile                          # profile all sources, run all tests
+crap4dart profile test/collab/             # run only tests in this directory
+crap4dart profile --name "golden"          # run only tests matching a name
+crap4dart profile --tags "integration"     # run only tests with these tags
+crap4dart profile --exclude-tags "slow"    # exclude tagged tests
+crap4dart profile --threshold 10.0         # warn on methods slower than 10ms
+crap4dart profile --top 50                 # show top 50 slowest methods
+crap4dart profile --format json            # machine-readable output
+crap4dart profile --config my.yaml         # use a non-default config file
+crap4dart profile --diff                   # only methods touched since HEAD
+crap4dart profile --diff-base main         # only methods touched since main
+```
+
+Example console output:
+
+```
+Profile Report (142 methods, total 1234.56ms)
+
+  TOTAL(ms)  %      CALLS  MEAN(µs)  MAX(µs)  @60fps(ms)  METHOD                      FILE:LINE
+      45.20  3.7%    142   318.3     2890     19.10       CrapAnalyzer.analyzeMethod  lib/src/crap/crap_analyzer.dart:88
+      32.10  2.6%    500   64.2      410       3.85       MethodExtractor.extract     lib/src/analysis/method_extractor.dart:34
+      28.70  2.3%     88   326.1     2100     19.57       LcovParser.parseFile        lib/src/coverage/lcov_parser.dart:21
+
+Threshold: 10.00ms — 3 methods exceed
+```
+
+Columns:
+
+- **TOTAL(ms)** — total wall-clock time across all calls.
+- **%** — share of the total profiled time.
+- **CALLS** — number of invocations.
+- **MEAN(µs)** — average time per call (microseconds).
+- **MAX(µs)** — slowest single call (microseconds).
+- **@60fps(ms)** — estimated per-frame cost if the method were called every
+  frame at 60 fps (`MEAN × 60`). Highlights methods that are cheap per-call
+  but dangerous in a rebuild hot path.
+
+During profiling a temporary `.crap_profile_temp/` directory is created and
+cleaned up automatically. Set the `CRAP_PROFILE_DEBUG` environment variable
+to keep it for debugging.
+
+The `analyze`, `check`, `install` and `profile` commands accept
+`--config <path>` to use a non-default config file.
 
 ### Exit codes
 
@@ -114,7 +163,7 @@ use a non-default config file.
 | ---- | --------------------------------------------------- |
 | `0`  | Success (including empty selections and all-passed) |
 | `1`  | Usage or configuration error                        |
-| `2`  | CRAP threshold exceeded or a quality gate failed    |
+| `2`  | CRAP/profile threshold exceeded or a gate failed    |
 
 ## Diff mode (ratchet)
 
@@ -259,6 +308,16 @@ gates:
     # Glob patterns excluded from the gate.
     exclude:
       - 'test/**'
+
+# CPU profiling settings ("profile" command).
+profile:
+  # Enable profiling; when false, "profile" exits immediately.
+  enabled: true
+  # Warn on methods whose total time exceeds this value (milliseconds).
+  # Omit to disable the threshold check.
+  threshold_ms: 10.0
+  # Maximum number of methods to list (sorted by total time).
+  top: 20
 ```
 
 The config file is optional — without it, the defaults above apply. Partial
@@ -383,8 +442,8 @@ fresh.
 
 ## JSON output
 
-Both `analyze` and `check` support `--format json`. Stdout then contains
-only valid JSON (warnings still go to stderr), and exit codes are
+`analyze`, `check` and `profile` support `--format json`. Stdout then
+contains only valid JSON (warnings still go to stderr), and exit codes are
 unchanged, so CI can both parse the report and rely on the exit code.
 
 analyze:
@@ -419,6 +478,30 @@ check:
   "gates": [
     {"id": "loc", "status": "passed", "summary": "...", "violations": []},
     {"id": "golden", "status": "skipped", "reason": "not a Flutter project"}
+  ]
+}
+```
+
+profile:
+
+```json
+{
+  "command": "profile",
+  "totalMicros": 1234567,
+  "thresholdMs": 10.0,
+  "passed": false,
+  "methods": [
+    {
+      "file": "lib/src/crap/crap_analyzer.dart",
+      "line": 88,
+      "class": "CrapAnalyzer",
+      "method": "analyzeMethod",
+      "calls": 142,
+      "totalMicros": 45200,
+      "minMicros": 80,
+      "maxMicros": 2890,
+      "meanMicros": 318.3
+    }
   ]
 }
 ```

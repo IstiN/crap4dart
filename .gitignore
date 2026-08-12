@@ -16,3 +16,7 @@ build/
 
 # Pub
 pubspec.lock
+
+# Profiling (crap4dart)
+profile-reports/
+.crap_profile_temp/

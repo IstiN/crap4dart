@@ -1,7 +1,11 @@
+import '../report/table_formatter.dart';
 import 'crap_analyzer.dart';
 
 /// Default CRAP threshold (matches the Java reference implementation).
 const double defaultCrapThreshold = 8.0;
+
+/// Shared formatter: first 4 columns (CRAP, COV%, BR%, CC) are numeric.
+const _table = TableFormatter(numericColumnCount: 4);
 
 /// Renders CRAP analysis results as a console table.
 class CrapReport {
@@ -52,19 +56,9 @@ class CrapReport {
   /// [header] line (e.g. the diff-mode marker).
   String render({double threshold = defaultCrapThreshold, String? header}) {
     final rows = sorted.map(_rowFor).toList();
-    final widths = List.generate(headers.length, (i) => headers[i].length);
-    for (final row in rows) {
-      for (var i = 0; i < row.length; i++) {
-        if (row[i].length > widths[i]) widths[i] = row[i].length;
-      }
-    }
     final buffer = StringBuffer();
     if (header != null) buffer.writeln(header);
-    buffer.writeln(_formatRow(headers, widths));
-    buffer.writeln(widths.map((w) => '-' * w).join('  '));
-    for (final row in rows) {
-      buffer.writeln(_formatRow(row, widths));
-    }
+    buffer.write(_table.renderTable(headers, rows));
     buffer.writeln();
     final verdict = isThresholdExceeded(threshold)
         ? 'FAIL (threshold: ${_fmt(threshold)})'
@@ -81,17 +75,6 @@ class CrapReport {
         '${m.method.className}.${m.method.methodName}',
         '${m.method.filePath}:${m.method.startLine}',
       ];
-
-  String _formatRow(List<String> cells, List<int> widths) {
-    final padded = <String>[];
-    for (var i = 0; i < cells.length; i++) {
-      // Right-align numeric columns, left-align the rest.
-      padded.add(
-        i < 4 ? cells[i].padLeft(widths[i]) : cells[i].padRight(widths[i]),
-      );
-    }
-    return padded.join('  ');
-  }
 
   static String _percent(double? value) =>
       value == null ? 'N/A' : (value * 100).toStringAsFixed(1);

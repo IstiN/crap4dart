@@ -1,4 +1,5 @@
 @Timeout.factor(2)
+@Tags(['subprocess'])
 library;
 
 import 'dart:io';
