@@ -17,6 +17,7 @@ class GateContext {
     required this.config,
     required this.files,
     this.lcov,
+    this.partialSelection = false,
   });
 
   /// Absolute path of the project root.
@@ -30,6 +31,12 @@ class GateContext {
 
   /// Parsed LCOV coverage, or `null` when no coverage file was found.
   final List<FileCoverage>? lcov;
+
+  /// Whether [files] is a partial selection (`--changed`, `--staged` or
+  /// `--diff`) rather than the full source set. Whole-project gates
+  /// (unused_code, unused_files) skip themselves in partial runs: their
+  /// verdicts need every file's imports and references.
+  final bool partialSelection;
 
   final Map<String, ParsedUnit> _astCache = {};
   final Map<String, List<String>> _linesCache = {};

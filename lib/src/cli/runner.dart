@@ -50,7 +50,7 @@ Future<String> gitTopLevel(String dir) async {
 }
 
 /// Current crap4dart version.
-const String crap4dartVersion = '0.5.0';
+const String crap4dartVersion = '0.5.1';
 
 /// Command-line entry point of crap4dart.
 class Crap4DartRunner {
@@ -240,6 +240,7 @@ mixin CommandHelpers on Command<int> {
         List<String>? files,
         DiffLineMap? diffMap,
         String? diffBase,
+        bool partialSelection,
         int? exitCode,
       })> prepareRun(
     String projectRoot,
@@ -253,6 +254,7 @@ mixin CommandHelpers on Command<int> {
         files: null,
         diffMap: null,
         diffBase: null,
+        partialSelection: false,
         exitCode: ExitCodes.usageError
       );
     }
@@ -263,9 +265,11 @@ mixin CommandHelpers on Command<int> {
         files: null,
         diffMap: null,
         diffBase: null,
+        partialSelection: false,
         exitCode: ExitCodes.usageError
       );
     }
+    final partial = _isPartialSelection(diff.map);
     final files = const SourceFinder().filterByGlobs(
       projectRoot,
       diff.map != null
@@ -280,6 +284,7 @@ mixin CommandHelpers on Command<int> {
         files: null,
         diffMap: null,
         diffBase: null,
+        partialSelection: false,
         exitCode: ExitCodes.success
       );
     }
@@ -288,9 +293,18 @@ mixin CommandHelpers on Command<int> {
       files: files,
       diffMap: diff.map,
       diffBase: diff.base,
+      partialSelection: partial,
       exitCode: null,
     );
   }
+
+  /// Whether this run analyzes a subset of the project (diff, changed,
+  /// staged or explicit paths) instead of the full source set.
+  bool _isPartialSelection(DiffLineMap? diffMap) =>
+      diffMap != null ||
+      argResults!['changed'] as bool ||
+      stagedFlag ||
+      argResults!.rest.isNotEmpty;
 }
 
 /// The `analyze` command: computes CRAP scores for Dart source files.
@@ -588,6 +602,7 @@ class CheckCommand extends Command<int> with CommandHelpers {
       config: config,
       files: files,
       lcov: loadLcov(projectRoot, config),
+      partialSelection: prepared.partialSelection,
     );
     final runner = GateRunner();
     var result = await runner.run(

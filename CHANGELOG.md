@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.5.1
+
+### Fixed
+
+- `unused_code` and `unused_files` now skip themselves in partial
+  selection runs (`--changed`, `--staged`, `--diff`, explicit paths):
+  their verdicts need the full source set, and partial runs previously
+  produced false "never imported/referenced" positives.
+
 ## 0.5.0
 
 ### Added

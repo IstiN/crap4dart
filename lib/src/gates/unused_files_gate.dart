@@ -19,6 +19,12 @@ class UnusedFilesGate implements Gate {
 
   @override
   Future<GateResult> run(GateContext context) async {
+    if (context.partialSelection) {
+      return GateResult.skip(
+        'unused_files',
+        'not meaningful for a partial selection',
+      );
+    }
     final config = context.config.gates.unusedFiles;
     final imported = <String>{};
     final candidates = <String>[];

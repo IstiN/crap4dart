@@ -20,6 +20,12 @@ class UnusedCodeGate implements Gate {
 
   @override
   Future<GateResult> run(GateContext context) async {
+    if (context.partialSelection) {
+      return GateResult.skip(
+        'unused_code',
+        'not meaningful for a partial selection',
+      );
+    }
     final config = context.config.gates.unusedCode;
     final declarations = <_Declaration>[];
     final used = <String>{};
