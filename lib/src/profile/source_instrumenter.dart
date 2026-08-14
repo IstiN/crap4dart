@@ -31,6 +31,12 @@ class SourceInstrumenter {
   /// skipped silently.
   String instrument(String source, {String filePath = ''}) {
     final parsed = DartParser().parse(content: source, path: filePath);
+    // Parts cannot contain imports, so the collector import cannot be
+    // injected into a `part of` file — skip them entirely (their methods
+    // are simply not profiled) instead of producing uncompilable code.
+    if (parsed.unit.directives.any((d) => d is PartOfDirective)) {
+      return source;
+    }
     final extracted = MethodExtractor().extractWithNodes(
       parsed.unit,
       parsed.lineInfo,

@@ -40,7 +40,7 @@ class Foo {
       );
     });
 
-    test('inserts import after part-of directive', () {
+    test('skips part-of files entirely (parts cannot contain imports)', () {
       const source = '''
 part of 'myapp.dart';
 
@@ -53,8 +53,9 @@ class Foo {
       const instrumenter = SourceInstrumenter(packageName: 'myapp');
       final result = instrumenter.instrument(source);
 
-      expect(result.indexOf("part of 'myapp.dart';"),
-          lessThan(result.indexOf('__crap_collector')));
+      // Parts cannot contain imports; instrumenting them would produce
+      // uncompilable code, so the source must be returned unchanged.
+      expect(result, source);
     });
   });
 }

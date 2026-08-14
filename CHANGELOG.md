@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.5.2
+
+### Fixed
+
+- `profile`: `part of` files are now skipped instead of being instrumented
+  with an injected import — parts cannot contain directives, so the old
+  behavior produced uncompilable code and the profiled test run failed.
+
 ## 0.5.1
 
 ### Fixed
