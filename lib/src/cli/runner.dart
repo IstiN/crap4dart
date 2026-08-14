@@ -17,6 +17,7 @@ import '../gates/gate_context.dart';
 import '../gates/gate_runner.dart';
 import '../hooks/ci_installer.dart';
 import '../hooks/hook_installer.dart';
+import '../profile/profile_runner.dart';
 import '../report/badge_svg.dart';
 import '../report/json_reporter.dart';
 import 'exit_codes.dart';
@@ -48,7 +49,7 @@ Future<String> gitTopLevel(String dir) async {
 }
 
 /// Current crap4dart version.
-const String crap4dartVersion = '0.3.0';
+const String crap4dartVersion = '0.4.0';
 
 /// Command-line entry point of crap4dart.
 class Crap4DartRunner {
@@ -56,18 +57,25 @@ class Crap4DartRunner {
   ///
   /// [projectRoot] overrides the project root (default: the current
   /// working directory) — used by in-process invocations and tests.
-  Crap4DartRunner({String? projectRoot}) : _runner = _buildRunner(projectRoot);
+  Crap4DartRunner({String? projectRoot, ProfileRunner? profileRunner})
+      : _runner = _buildRunner(projectRoot, profileRunner);
 
   final CommandRunner<int> _runner;
 
-  static CommandRunner<int> _buildRunner(String? projectRoot) {
+  static CommandRunner<int> _buildRunner(
+    String? projectRoot,
+    ProfileRunner? profileRunner,
+  ) {
     final runner = CommandRunner<int>(
       'crap4dart',
       'CRAP metric analyzer for Dart and Flutter projects.',
     )
       ..addCommand(AnalyzeCommand(projectRoot: projectRoot))
       ..addCommand(CheckCommand(projectRoot: projectRoot))
-      ..addCommand(ProfileCommand(projectRoot: projectRoot))
+      ..addCommand(ProfileCommand(
+        projectRoot: projectRoot,
+        profileRunner: profileRunner ?? const ProfileRunner(),
+      ))
       ..addCommand(SkillCommand(projectRoot: projectRoot))
       ..addCommand(InitCommand(projectRoot: projectRoot))
       ..addCommand(InstallCommand(projectRoot: projectRoot));

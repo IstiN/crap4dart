@@ -4,6 +4,7 @@ import 'accessibility_gate.dart';
 import 'complexity_gate.dart';
 import 'coverage_gate.dart';
 import 'duplication_gate.dart';
+import 'file_naming_gate.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 import 'golden_gate.dart';
@@ -49,6 +50,7 @@ class GateRunner {
         const ComplexityGate(),
         const MethodSizeGate(),
         const DuplicationGate(),
+        const FileNamingGate(),
         const PublicDocsGate(),
         const HardcodedStringsGate(),
         const AccessibilityGate(),
@@ -111,6 +113,7 @@ class GateRunner {
         'complexity' => gates.complexity.enabled,
         'method_size' => gates.methodSize.enabled,
         'duplication' => gates.duplication.enabled,
+        'file_naming' => gates.fileNaming.enabled,
         'public_docs' => gates.publicDocs.enabled,
         'hardcoded_strings' => gates.hardcodedStrings.enabled,
         'accessibility' => gates.accessibility.enabled,

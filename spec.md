@@ -423,13 +423,14 @@ threshold check) and `top` (int, default 20).
 ### 10.3 Gate Identifiers
 
 Known gate ids: `loc`, `test_coverage`, `golden`, `hardcoded_strings`,
-`accessibility`, `complexity`, `method_size`, `public_docs`, `duplication`.
+`accessibility`, `complexity`, `method_size`, `public_docs`, `duplication`,
+`file_naming`.
 
 ## 11. Quality Gates
 
 Gates shall run in the fixed order: `loc`, `test_coverage`, `complexity`,
-`method_size`, `duplication`, `public_docs`, `hardcoded_strings`,
-`accessibility`, `golden`. A gate disabled in the config shall produce a
+`method_size`, `duplication`, `file_naming`, `public_docs`,
+`hardcoded_strings`, `accessibility`, `golden`. A gate disabled in the config shall produce a
 skipped result. The run shall fail when at least one gate fails; skipped
 gates shall not fail the run.
 
@@ -470,7 +471,21 @@ percentage of duplicated lines exceeds `threshold` (default 1.0). Files
 matching the gate's `exclude` list (default generated files and `test/**`)
 are skipped.
 
-### 11.6 public_docs
+### 11.6 file_naming
+
+Flags Dart files whose names indicate a mechanical split instead of a
+domain boundary. A file is flagged when its stem (name without the `.dart`
+extension), lower-cased, either ends in digits preceded by a letter or
+underscore (`jira_batch1`, `report2`, `day_1`, `configv3`) or equals a
+generic dumping-ground stem (`common`, `core`, `general`, `helper`,
+`helpers`, `misc`, `shared`, `stuff`, `temp`, `tmp`, `types`, `util`,
+`utils`, `utilities`, `utility`, `various`). Whole technical stems ending
+in digits (`base64`, `sha256`, `utf8`, `oauth2`, ...) are accepted by
+default; additional stems may be allowlisted via `allow` (matched
+case-insensitively against the whole stem). Files matching the gate's
+`exclude` list (default generated files and `test/**`) are skipped.
+
+### 11.7 public_docs
 
 Fails public declarations without dartdoc: classes, mixins, enums,
 extension types, named extensions, top-level functions and variables, and
@@ -478,7 +493,7 @@ public methods and fields. `@override` members, members of private
 containers, constructors and files under `exclude` (default `test/**`)
 shall be exempt.
 
-### 11.7 hardcoded_strings
+### 11.8 hardcoded_strings
 
 Skipped for non-Flutter projects. Flags string literals containing Latin
 or Cyrillic letters passed to `Text(...)` or to the parameters in
@@ -488,14 +503,14 @@ the previous line) and files containing `// l10n:ignore-file` within the
 first 5 lines shall be exempt. When ARB files exist under `lib/`,
 `l10n.<key>` references missing from `app_en.arb` shall be flagged.
 
-### 11.8 accessibility
+### 11.9 accessibility
 
 Skipped for non-Flutter projects. Requires `tooltip` on `IconButton`,
 `semanticLabel` on `Image`, and `semanticsLabel` or a wrapping
 `Semantics` widget on `GestureDetector`/`InkWell`, for the widget types
 in `require_label_for`.
 
-### 11.9 golden
+### 11.10 golden
 
 Skipped for non-Flutter projects and for projects without widgets.
 Widgets are public classes in `widget_dirs` extending `StatelessWidget`,

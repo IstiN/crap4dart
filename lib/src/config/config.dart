@@ -94,6 +94,7 @@ class GatesConfig {
     this.methodSize = const MethodSizeGateConfig(),
     this.publicDocs = const PublicDocsGateConfig(),
     this.duplication = const DuplicationGateConfig(),
+    this.fileNaming = const FileNamingGateConfig(),
     this.flutter = const FlutterGatesConfig(),
   });
 
@@ -114,6 +115,9 @@ class GatesConfig {
 
   /// Code duplication gate (`duplication`).
   final DuplicationGateConfig duplication;
+
+  /// File naming gate (`file_naming`).
+  final FileNamingGateConfig fileNaming;
 
   /// Flutter-specific gates grouped together.
   final FlutterGatesConfig flutter;
@@ -340,6 +344,82 @@ class PublicDocsGateConfig {
 
   /// Glob patterns excluded from the gate.
   final List<String> exclude;
+}
+
+/// File naming gate settings (`file_naming`).
+class FileNamingGateConfig {
+  /// Creates a [FileNamingGateConfig].
+  const FileNamingGateConfig({
+    this.enabled = true,
+    this.exclude = const [
+      '**.g.dart',
+      '**.freezed.dart',
+      '**.mocks.dart',
+      'test/**',
+    ],
+    this.allow = defaultAllowedStems,
+  });
+
+  /// Stems (file names without the `.dart` extension) accepted despite
+  /// ending in digits — technical terms where the digits carry meaning.
+  static const List<String> defaultAllowedStems = [
+    'aes128',
+    'aes192',
+    'aes256',
+    'arm32',
+    'arm64',
+    'base32',
+    'base64',
+    'crc8',
+    'crc16',
+    'crc32',
+    'f16',
+    'f32',
+    'f64',
+    'h264',
+    'h265',
+    'http2',
+    'http3',
+    'i18n',
+    'i2c',
+    'int8',
+    'int16',
+    'int32',
+    'int64',
+    'ipv4',
+    'ipv6',
+    'l10n',
+    'a11y',
+    'md5',
+    'oauth1',
+    'oauth2',
+    'sha1',
+    'sha256',
+    'sha384',
+    'sha512',
+    'uint8',
+    'uint16',
+    'uint32',
+    'uint64',
+    'utf8',
+    'utf16',
+    'utf32',
+    'w3c',
+    'webgl2',
+    'x509',
+    'x86',
+    'x64',
+  ];
+
+  /// Whether the gate is enabled.
+  final bool enabled;
+
+  /// Glob patterns excluded from the gate.
+  final List<String> exclude;
+
+  /// Extra file name stems (without extension) allowed to end in digits,
+  /// matched case-insensitively against the whole stem.
+  final List<String> allow;
 }
 
 /// CPU profiling settings (`profile` command).

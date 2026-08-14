@@ -119,6 +119,20 @@ gates:
       - '**.freezed.dart'
       - '**.mocks.dart'
       - 'test/**'
+  # Forbid mechanical file names produced by splitting code without a
+  # domain boundary: numeric suffixes (jira_batch1.dart) and generic
+  # dumping-ground names (utils.dart).
+  file_naming:
+    enabled: true
+    # Glob patterns excluded from the gate.
+    exclude:
+      - '**.g.dart'
+      - '**.freezed.dart'
+      - '**.mocks.dart'
+      - 'test/**'
+    # Extra whole-stem names allowed to end in digits (technical terms
+    # such as custom protocol versions).
+    allow: []
   # Require dartdoc comments on the public API.
   public_docs:
     enabled: true

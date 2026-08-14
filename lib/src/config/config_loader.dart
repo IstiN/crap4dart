@@ -42,6 +42,7 @@ class ConfigLoader {
     'method_size',
     'public_docs',
     'duplication',
+    'file_naming',
   };
 
   /// Loads the configuration for the project at [projectRoot].
@@ -195,6 +196,7 @@ class ConfigLoader {
       methodSize: _readMethodSize(map['method_size'], base.methodSize, path),
       publicDocs: _readPublicDocs(map['public_docs'], base.publicDocs, path),
       duplication: _readDuplication(map['duplication'], base.duplication, path),
+      fileNaming: _readFileNaming(map['file_naming'], base.fileNaming, path),
       flutter: FlutterGatesConfig(
         golden: _readGolden(map['golden'], base.flutter.golden, path),
         hardcodedStrings: _readHardcodedStrings(
@@ -384,6 +386,25 @@ class ConfigLoader {
         minTokens: _int(map, 'min_tokens', base.minTokens, path, ctx),
         minLines: _int(map, 'min_lines', base.minLines, path, ctx),
         exclude: _strList(map, 'exclude', base.exclude, path, ctx),
+      ),
+    );
+  }
+
+  FileNamingGateConfig _readFileNaming(
+    Object? node,
+    FileNamingGateConfig base,
+    String path,
+  ) {
+    return _readGateConfig(
+      node,
+      base,
+      path,
+      'gates.file_naming',
+      const {'enabled', 'exclude', 'allow'},
+      (map, base, path, ctx) => FileNamingGateConfig(
+        enabled: _bool(map, 'enabled', base.enabled, path, ctx),
+        exclude: _strList(map, 'exclude', base.exclude, path, ctx),
+        allow: _strList(map, 'allow', base.allow, path, ctx),
       ),
     );
   }

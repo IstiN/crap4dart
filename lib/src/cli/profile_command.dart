@@ -17,7 +17,8 @@ import 'runner.dart';
 /// code and reports per-method timing data.
 class ProfileCommand extends Command<int> with CommandHelpers {
   /// Creates a [ProfileCommand].
-  ProfileCommand({this.projectRoot}) {
+  ProfileCommand(
+      {this.projectRoot, this.profileRunner = const ProfileRunner()}) {
     argParser
       ..addFlag(
         'changed',
@@ -73,6 +74,10 @@ class ProfileCommand extends Command<int> with CommandHelpers {
   /// Project root override (default: the current working directory).
   final String? projectRoot;
 
+  /// Test runner used to execute the instrumented test suite; tests
+  /// inject a fake so no real `dart test` subprocess is spawned.
+  final ProfileRunner profileRunner;
+
   @override
   final String name = 'profile';
 
@@ -116,7 +121,7 @@ class ProfileCommand extends Command<int> with CommandHelpers {
       excludeTags: _csvToList(argResults!['exclude-tags'] as String?),
       paths: argResults!.rest,
     );
-    final result = await const ProfileRunner().run(root, filter: filter);
+    final result = await profileRunner.run(root, filter: filter);
     if (result == null) {
       stderr.writeln('Profiling did not produce any results.');
       return ExitCodes.usageError;

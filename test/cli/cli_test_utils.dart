@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:crap4dart/src/cli/runner.dart';
+import 'package:crap4dart/src/profile/profile_runner.dart';
 import 'package:path/path.dart' as p;
 
 /// Path to the crap4dart executable under test.
@@ -66,6 +67,66 @@ class _BufferStdout implements Stdout {
 
   @override
   void noSuchMethod(Invocation invocation) {}
+}
+
+/// Builds a project whose fake instrumented run reports `Foo.bar` timing.
+Directory createCliProfileProject() {
+  final root = createCliTestProject();
+  File('${root.path}/pubspec.yaml').writeAsStringSync('name: myapp\n');
+  Directory('${root.path}/lib').createSync();
+  File('${root.path}/lib/a.dart').writeAsStringSync('''
+class Foo {
+  void bar() {
+    print('x');
+  }
+}
+''');
+  return root;
+}
+
+/// Timing JSON of a single slow `Foo.bar` call (20 ms).
+const String slowTiming = '''
+{"Foo.bar": {"calls": 1, "totalMicros": 20000, "minMicros": 20000, "maxMicros": 20000}}
+''';
+
+/// A fake `dart test` that writes [slowTiming] to the output file.
+Future<ProcessResult> fakeSlowRunner(
+  String executable,
+  List<String> arguments, {
+  String? workingDirectory,
+  Map<String, String>? environment,
+}) async {
+  final output = environment!['CRAP_PROFILE_OUTPUT']!;
+  File(output).writeAsStringSync(slowTiming);
+  return ProcessResult(0, 0, 'ok', '');
+}
+
+/// Like [fakeSlowRunner], but records the `dart test` arguments.
+ProcessRunner capturingSlowRunner(List<List<String>> captured) =>
+    (exe, args, {workingDirectory, environment}) async {
+      captured.add(args);
+      final output = environment!['CRAP_PROFILE_OUTPUT']!;
+      File(output).writeAsStringSync(slowTiming);
+      return ProcessResult(0, 0, 'ok', '');
+    };
+
+/// Like [runCliInProcess] but injects a fake [ProfileRunner].
+Future<CliResult> runCliInProcessWithProfile(
+  Directory workDir,
+  List<String> args,
+  ProcessRunner processRunner,
+) async {
+  final out = StringBuffer();
+  final err = StringBuffer();
+  final code = await IOOverrides.runZoned(
+    () => Crap4DartRunner(
+      projectRoot: workDir.path,
+      profileRunner: ProfileRunner(runner: processRunner),
+    ).run(args),
+    stdout: () => _BufferStdout(out),
+    stderr: () => _BufferStdout(err),
+  );
+  return CliResult(code, out.toString(), err.toString());
 }
 
 /// LCOV fixture: `risky()` in lib/sample.dart fully uncovered.

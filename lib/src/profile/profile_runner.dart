@@ -230,20 +230,20 @@ class ProfileRunner {
       tempDir.deleteSync(recursive: true);
     }
     tempDir.createSync(recursive: true);
-    final instrumenter = SourceInstrumenter(packageName: packageName);
+    _symlinkTopLevelEntries(projectRoot, tempDir);
+    _copyTestDir(projectRoot, tempDir);
+    _copyDartToolFrom(projectRoot, tempDir, packageName);
+    _instrumentLibDir(projectRoot, tempDir, packageName);
+    return tempDir;
+  }
 
-    // Symlink everything except lib/, build/, .dart_tool/, and test/.
-    // test/ must be copied (not symlinked) because dart test resolves
-    // package: imports relative to the test file's real path, not the
-    // working directory.
+  /// Symlinks every top-level entry of the project into [tempDir],
+  /// except the directories that need real copies or instrumentation
+  /// (`lib/`, `build/`, `.dart_tool/`, `test/`).
+  void _symlinkTopLevelEntries(String projectRoot, Directory tempDir) {
     for (final entity in Directory(projectRoot).listSync()) {
       final name = p.basename(entity.path);
-      if (name == 'lib' ||
-          name == 'build' ||
-          name == '.dart_tool' ||
-          name == 'test') {
-        continue;
-      }
+      if (_isManagedCopy(name)) continue;
       final target = p.join(tempDir.path, name);
       try {
         Link(target).createSync(entity.path, recursive: false);
@@ -251,25 +251,52 @@ class ProfileRunner {
         _copyPath(entity.path, target);
       }
     }
+  }
 
-    // Copy test/ (must be real files, not symlink).
+  /// Whether the top-level entry [name] is copied or instrumented instead
+  /// of being symlinked into the temporary project.
+  bool _isManagedCopy(String name) =>
+      name == 'lib' ||
+      name == 'build' ||
+      name == '.dart_tool' ||
+      name == 'test';
+
+  /// Copies `test/` into [tempDir] — it must contain real files, not
+  /// symlinks, because `dart test` resolves `package:` imports relative
+  /// to the test file's real path, not to the working directory.
+  void _copyTestDir(String projectRoot, Directory tempDir) {
     final testDir = Directory(p.join(projectRoot, 'test'));
     if (testDir.existsSync()) {
       _copyPath(testDir.path, p.join(tempDir.path, 'test'));
     }
+  }
 
-    // Copy .dart_tool and fix package_config.json.
+  /// Copies `.dart_tool/` into [tempDir] and rewrites
+  /// `package_config.json` so [packageName] resolves to the temp copy.
+  void _copyDartToolFrom(
+    String projectRoot,
+    Directory tempDir,
+    String packageName,
+  ) {
     final dartToolSrc = Directory(p.join(projectRoot, '.dart_tool'));
     final dartToolDest = Directory(p.join(tempDir.path, '.dart_tool'));
     if (dartToolSrc.existsSync()) {
       _copyDartTool(dartToolSrc, dartToolDest, tempDir.path, packageName);
     }
+  }
 
-    // Create instrumented lib/.
+  /// Creates the instrumented `lib/` copy in [tempDir] and writes the
+  /// collector library alongside it.
+  void _instrumentLibDir(
+    String projectRoot,
+    Directory tempDir,
+    String packageName,
+  ) {
     final libDir = Directory(p.join(projectRoot, 'lib'));
     final tempLib = Directory(p.join(tempDir.path, 'lib'));
     tempLib.createSync(recursive: true);
     if (libDir.existsSync()) {
+      final instrumenter = SourceInstrumenter(packageName: packageName);
       _instrumentDir(libDir, tempLib, instrumenter, projectRoot);
     }
 
@@ -282,8 +309,6 @@ class ProfileRunner {
     // .dart_tool is symlinked, so package resolution (including path
     // dependencies) is inherited from the original project — no pub get
     // needed.
-
-    return tempDir;
   }
 
   /// Recursively instruments all `.dart` files from [src] into [dest].

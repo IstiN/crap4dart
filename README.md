@@ -28,9 +28,9 @@ crap4dart is a Dart port of the Java tool
 ## Features
 
 - **CRAP analysis** per method, combining complexity and LCOV coverage
-- **9 quality gates**: `loc`, `test_coverage`, `golden`,
+- **10 quality gates**: `loc`, `test_coverage`, `golden`,
   `hardcoded_strings`, `accessibility`, `complexity`, `method_size`,
-  `public_docs`, `duplication`
+  `public_docs`, `duplication`, `file_naming`
 - **Configuration** via `crap4dart.yaml` with strict validation
 - **Pre-commit hook** installation (`check --staged` on every commit)
 - **GitHub Actions workflow** template (`crap4dart install --ci`)
@@ -302,6 +302,17 @@ gates:
       - '**.freezed.dart'
       - '**.mocks.dart'
       - 'test/**'
+  # Forbid mechanical file names (numeric suffixes, generic names).
+  file_naming:
+    enabled: true
+    # Glob patterns excluded from the gate.
+    exclude:
+      - '**.g.dart'
+      - '**.freezed.dart'
+      - '**.mocks.dart'
+      - 'test/**'
+    # Extra whole-stem names allowed to end in digits (technical terms).
+    allow: []
   # Require dartdoc comments on the public API.
   public_docs:
     enabled: true
@@ -388,6 +399,14 @@ Each gate can be turned off with `enabled: false` in the config.
   (default 50) and `min_lines` lines (default 5) long. The gate fails a
   file when its duplicated line percentage exceeds `threshold` (default
   1.0). Generated files and `test/**` are excluded by default.
+- **file_naming** — forbids mechanical file names that indicate code was
+  split to dodge the `loc` gate instead of along domain boundaries:
+  numeric suffixes (`jira_batch1.dart`, `report2.dart`, `configv3.dart`)
+  and generic dumping-ground names (`utils.dart`, `helpers.dart`,
+  `misc.dart`, `common.dart`). Whole technical stems like `base64`,
+  `sha256` or `utf8` are allowed by default; add more via the `allow`
+  list (matched case-insensitively against the whole file name).
+  Generated files and `test/**` are excluded by default.
 - **public_docs** — requires dartdoc on the public API: classes, mixins,
   enums, extension types, named extensions, top-level functions and
   variables, public methods and fields. `@override` members and members of

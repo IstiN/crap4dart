@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.4.0
+
+### Fixed
+
+- `profile`: the collector import is now inserted after leading
+  `library`/`part of`/`part` directives instead of blindly prepending it,
+  which produced invalid Dart (compile error) on files starting with
+  `library;`.
+
+### Added
+
+- `file_naming` quality gate — flags mechanical file names that indicate
+  code was split to dodge the `loc` gate instead of along domain
+  boundaries: numeric suffixes (`jira_batch1.dart`, `report2.dart`) and
+  generic dumping-ground names (`utils.dart`, `helpers.dart`).
+  Configurable via `gates.file_naming` (`enabled`, `exclude`, `allow`);
+  technical stems such as `base64`/`sha256` are allowed by default.
+
 ## 0.3.0
 
 ### Added

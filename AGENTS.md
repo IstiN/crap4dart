@@ -9,9 +9,10 @@ Guidance for AI agents and contributors working on crap4dart.
 1. **CRAP metric analysis** (`analyze`) — `CRAP = CC²·(1−coverage)³ + CC`
    per method, combining AST-based cyclomatic complexity with LCOV coverage.
    Port of [crap4java](https://github.com/unclebob/crap4java).
-2. **Quality gates** (`check`) — 8 configurable gates: `loc`,
+2. **Quality gates** (`check`) — 10 configurable gates: `loc`,
    `test_coverage`, `golden`, `hardcoded_strings`, `accessibility`,
-   `complexity`, `method_size`, `public_docs`.
+   `complexity`, `method_size`, `public_docs`, `duplication`,
+   `file_naming`.
 3. **Integrations** — `init` (config scaffold), `install` (git hooks +
    GitHub Actions workflow), JSON output, diff mode (`--diff`/`--diff-base`).
 4. **CPU profiling** (`profile`) — instruments every method in `lib/` with
@@ -67,7 +68,7 @@ lib/src/config/              # crap4dart.yaml model, loader (strict), template
 lib/src/analysis/            # analyzer wrappers: parser, method extractor, CC
 lib/src/coverage/            # LCOV parser, per-method coverage, test runner
 lib/src/crap/                # CRAP formula, analyzer, console report
-lib/src/gates/               # Gate framework + 8 gates
+lib/src/gates/               # Gate framework + 10 gates
 lib/src/files/               # source finder, git changed files, diff parser
 lib/src/report/              # JSON reporter
 lib/src/profile/             # source-instrumentation profiler, per-method timing

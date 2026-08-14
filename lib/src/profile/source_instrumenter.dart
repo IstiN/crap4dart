@@ -82,10 +82,16 @@ class SourceInstrumenter {
           result.substring(ins.offset);
     }
 
-    // Prepend the collector import.
+    // Insert the collector import after any leading `library`/`part of`
+    // directive — Dart requires those to precede all other directives, so
+    // prepending blindly (as before) produced a compile error on files that
+    // start with `library;`.
     final importLine = "import 'package:$packageName/__crap_collector.dart';\n";
+    final importOffset = _importInsertionOffset(parsed.unit, source);
 
-    return '$importLine$result';
+    return result.substring(0, importOffset) +
+        importLine +
+        result.substring(importOffset);
   }
 
   /// Extracts the [BlockFunctionBody] from a method or function node.
@@ -102,4 +108,34 @@ class SourceInstrumenter {
 
   /// Builds the profiling key for a method: `ClassName.methodName`.
   String _methodKey(MethodInfo info) => '${info.className}.${info.methodName}';
+
+  /// Returns the offset at which the collector import should be inserted.
+  ///
+  /// Dart mandates that `library` (and `part of`) directives appear before
+  /// all other directives. The import is therefore placed immediately after
+  /// any such leading directive, or at the start of the file when none is
+  /// present. The offset is computed against the original [source]; it is
+  /// valid for the instrumented copy because method-body insertions never
+  /// touch the directive region at the top of the file.
+  int _importInsertionOffset(CompilationUnit unit, String source) {
+    var offset = 0;
+    for (final directive in unit.directives) {
+      if (directive is LibraryDirective ||
+          directive is PartOfDirective ||
+          directive is PartDirective) {
+        offset = _endOfLine(source, directive.end);
+      } else {
+        // Reached an import/export — stop so the collector import lands
+        // alongside (before) existing imports.
+        break;
+      }
+    }
+    return offset;
+  }
+
+  /// Advances [offset] to the start of the line following it.
+  int _endOfLine(String source, int offset) {
+    final nl = source.indexOf('\n', offset);
+    return nl == -1 ? source.length : nl + 1;
+  }
 }
