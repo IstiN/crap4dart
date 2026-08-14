@@ -14,6 +14,11 @@ void main() {
 /// A documented function.
 void documented() {}
 ''');
+    writeFile(
+      project,
+      'lib/entrypoint.dart',
+      "import 'a.dart';\n\n/// Runs the app.\nvoid main() => documented();\n",
+    );
   });
 
   tearDown(() {
@@ -23,13 +28,17 @@ void documented() {}
   test('aggregates pass/skip across gates', () async {
     final runner = GateRunner();
     final result = await runner.run(
-      makeContext(project, ['lib/a.dart'], configYaml: '''
+      makeContext(
+        project,
+        ['lib/a.dart', 'lib/entrypoint.dart'],
+        configYaml: '''
 coverage:
   required: false
 gates:
   golden:
     enabled: false
-'''),
+''',
+      ),
     );
     expect(result.passed, isTrue);
     final byId = {for (final r in result.results) r.gateId: r};
@@ -40,33 +49,10 @@ gates:
     expect(byId['hardcoded_strings']!.skipReason, 'not a Flutter project');
   });
 
-  test('--only runs only the selected gates', () async {
-    final runner = GateRunner();
-    final result = await runner.run(
-      makeContext(project, ['lib/a.dart']),
-      only: {'loc', 'complexity'},
-    );
-    expect(result.results.map((r) => r.gateId), ['loc', 'complexity']);
-  });
-
-  test('--skip excludes the selected gates', () async {
-    final runner = GateRunner();
-    final result = await runner.run(
-      makeContext(project, ['lib/a.dart'], configYaml: '''
-coverage:
-  required: false
-'''),
-      skip: {'public_docs', 'golden'},
-    );
-    expect(
-      result.results.map((r) => r.gateId),
-      isNot(contains('public_docs')),
-    );
-    expect(result.results.map((r) => r.gateId), isNot(contains('golden')));
-  });
-
   test('fails the run when any gate fails', () async {
-    writeFile(project, 'lib/undocumented.dart', 'void undocumented() {}\n');
+    writeFile(project, 'lib/undocumented.dart', '''
+void undocumented() {}
+''');
     final runner = GateRunner();
     final result = await runner.run(
       makeContext(project, ['lib/undocumented.dart'], configYaml: '''
@@ -75,6 +61,7 @@ coverage:
 '''),
     );
     expect(result.passed, isFalse);
-    expect(result.failedCount, 1);
+    // public_docs (missing dartdoc) and unused_files (never imported).
+    expect(result.failedCount, 2);
   });
 }

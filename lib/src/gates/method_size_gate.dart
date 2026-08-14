@@ -1,5 +1,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:glob/glob.dart';
 
 import '../analysis/dart_parser.dart';
 import 'gate.dart';
@@ -7,7 +8,8 @@ import 'gate_context.dart';
 
 /// The `method_size` gate: fails methods longer than
 /// `gates.method_size.max_lines` or with more than
-/// `gates.method_size.max_params` parameters.
+/// `gates.method_size.max_params` parameters. Per-path overrides may
+/// relax or tighten both limits via `entries`.
 ///
 /// Constructors are checked only for parameter count; top-level functions
 /// are checked like methods.
@@ -21,28 +23,60 @@ class MethodSizeGate implements Gate {
   @override
   Future<GateResult> run(GateContext context) async {
     final config = context.config.gates.methodSize;
+    final globs = [
+      for (final entry in config.entries)
+        for (final path in entry.paths)
+          (
+            glob: Glob(path),
+            maxLines: entry.maxLines,
+            maxParams: entry.maxParams
+          ),
+    ];
     final violations = <GateViolation>[];
     var checked = 0;
     for (final file in context.files) {
+      final relative = context.relativePath(file);
+      final limits =
+          _limitsFor(relative, config.maxLines, config.maxParams, globs);
       final parsed = context.parsed(file);
-      final visitor = _SizeVisitor(
-        context.relativePath(file),
-        parsed,
-        config.maxLines,
-        config.maxParams,
-      );
+      final visitor =
+          _SizeVisitor(relative, parsed, limits.maxLines, limits.maxParams);
       parsed.unit.accept(visitor);
       checked += visitor.checked;
       violations.addAll(visitor.violations);
     }
     final summary = violations.isEmpty
-        ? '$checked methods within ${config.maxLines} lines/'
-            '${config.maxParams} params'
+        ? '$checked methods within their size limits'
         : '${violations.length} violations in $checked methods over '
-            '${config.maxLines} lines/${config.maxParams} params';
+            'their size limits';
     return violations.isEmpty
         ? GateResult.pass(id, summary: summary)
         : GateResult.fail(id, violations, summary: summary);
+  }
+
+  /// The effective limits for [relative]: the first matching entry
+  /// (unset thresholds fall back to the gate defaults), or the defaults.
+  ({int maxLines, int maxParams}) _limitsFor(
+    String relative,
+    int defaultLines,
+    int defaultParams,
+    List<
+            ({
+              Glob glob,
+              int? maxLines,
+              int? maxParams,
+            })>
+        globs,
+  ) {
+    for (final entry in globs) {
+      if (entry.glob.matches(relative)) {
+        return (
+          maxLines: entry.maxLines ?? defaultLines,
+          maxParams: entry.maxParams ?? defaultParams,
+        );
+      }
+    }
+    return (maxLines: defaultLines, maxParams: defaultParams);
   }
 }
 

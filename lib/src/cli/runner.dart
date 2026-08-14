@@ -13,6 +13,7 @@ import '../crap/crap_report.dart';
 import '../files/changed_files.dart';
 import '../files/diff_parser.dart';
 import '../files/source_finder.dart';
+import '../gates/baseline.dart';
 import '../gates/gate_context.dart';
 import '../gates/gate_runner.dart';
 import '../hooks/ci_installer.dart';
@@ -49,7 +50,7 @@ Future<String> gitTopLevel(String dir) async {
 }
 
 /// Current crap4dart version.
-const String crap4dartVersion = '0.4.0';
+const String crap4dartVersion = '0.5.0';
 
 /// Command-line entry point of crap4dart.
 class Crap4DartRunner {
@@ -537,6 +538,17 @@ class CheckCommand extends Command<int> with CommandHelpers {
       ..addOption(
         'diff-base',
         help: 'Like --diff, but diffs against the given git ref.',
+      )
+      ..addFlag(
+        'save-baseline',
+        negatable: false,
+        help: "Record current violations to $baselineFileName "
+            '(future runs fail only on new violations).',
+      )
+      ..addFlag(
+        'baseline',
+        negatable: false,
+        help: 'Fail only on violations not recorded in the baseline file.',
       );
   }
 
@@ -578,12 +590,28 @@ class CheckCommand extends Command<int> with CommandHelpers {
       lcov: loadLcov(projectRoot, config),
     );
     final runner = GateRunner();
-    final result = await runner.run(
+    var result = await runner.run(
       context,
       only: only,
       skip: skip,
       diff: prepared.diffMap,
     );
+    if (argResults!['save-baseline'] as bool) {
+      final count = writeBaseline(projectRoot, result.results);
+      stderr.writeln(
+        'Baseline saved: $count violation(s) recorded in '
+        '$baselineFileName',
+      );
+      _printResult(runner, result);
+      return ExitCodes.success;
+    }
+    if (argResults!['baseline'] as bool) {
+      final baseline = Baseline.load(projectRoot);
+      result = GateRunResult([
+        for (final gateResult in result.results)
+          applyBaseline(gateResult.gateId, gateResult, baseline),
+      ], diffMode: result.diffMode);
+    }
     _printResult(runner, result);
     return result.passed ? ExitCodes.success : ExitCodes.thresholdExceeded;
   }

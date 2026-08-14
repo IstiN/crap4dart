@@ -38,6 +38,11 @@ gates:
     enabled: true
     max_lines: 80
     max_params: 8
+    # Dogfooding `entries`: GatesConfig aggregates 16 gate configs, so
+    # its constructor legitimately needs more params than a method.
+    entries:
+      - max_params: 20
+        paths: ['lib/src/config/config.dart']
   public_docs:
     enabled: true
     exclude:

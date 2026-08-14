@@ -2,6 +2,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analysis/dart_parser.dart';
+import 'file_visitor.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
@@ -22,16 +23,15 @@ class PublicDocsGate implements Gate {
   @override
   Future<GateResult> run(GateContext context) async {
     final config = context.config.gates.publicDocs;
-    final violations = <GateViolation>[];
-    var checked = 0;
-    for (final file in context.files) {
-      if (context.matchesAnyGlob(file, config.exclude)) continue;
-      final parsed = context.parsed(file);
-      final visitor = _DocsVisitor(context.relativePath(file), parsed);
-      parsed.unit.accept(visitor);
-      checked += visitor.checked;
-      violations.addAll(visitor.violations);
-    }
+    final (checked, violations) = visitGateFiles(
+      context,
+      config.exclude,
+      (relative, parsed) {
+        final visitor = _DocsVisitor(relative, parsed);
+        parsed.unit.accept(visitor);
+        return (visitor.checked, visitor.violations);
+      },
+    );
     final summary = violations.isEmpty
         ? '$checked public declarations documented'
         : '${violations.length}/$checked public declarations missing dartdoc';

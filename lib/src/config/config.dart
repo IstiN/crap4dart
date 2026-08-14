@@ -1,6 +1,28 @@
 /// Typed model of the `crap4dart.yaml` configuration file.
 library;
 
+part 'gate_configs.dart';
+part 'threshold_entries.dart';
+
+/// Severity of a gate violation.
+///
+/// `error` violations fail the run (exit code 2); `warning` violations
+/// are reported but do not fail it.
+enum GateSeverity {
+  /// Violations fail the run.
+  error,
+
+  /// Violations are reported but do not fail the run.
+  warning;
+
+  /// Parses a config string ('error' or 'warning').
+  static GateSeverity parse(String value) => switch (value) {
+        'error' => GateSeverity.error,
+        'warning' => GateSeverity.warning,
+        _ => throw ArgumentError('unknown gate severity "$value"'),
+      };
+}
+
 /// Root configuration of crap4dart.
 class Crap4DartConfig {
   /// Creates a [Crap4DartConfig].
@@ -92,6 +114,12 @@ class GatesConfig {
     this.testCoverage = const TestCoverageGateConfig(),
     this.complexity = const ComplexityGateConfig(),
     this.methodSize = const MethodSizeGateConfig(),
+    this.nesting = const NestingGateConfig(),
+    this.classSize = const ClassSizeGateConfig(),
+    this.weightOfClass = const WeightOfClassGateConfig(),
+    this.unusedCode = const UnusedCodeGateConfig(),
+    this.unusedFiles = const UnusedFilesGateConfig(),
+    this.bannedImports = const BannedImportsGateConfig(),
     this.publicDocs = const PublicDocsGateConfig(),
     this.duplication = const DuplicationGateConfig(),
     this.fileNaming = const FileNamingGateConfig(),
@@ -109,6 +137,24 @@ class GatesConfig {
 
   /// Method size gate (`method_size`).
   final MethodSizeGateConfig methodSize;
+
+  /// Maximum nesting level gate (`nesting`).
+  final NestingGateConfig nesting;
+
+  /// Class size gate (`class_size`).
+  final ClassSizeGateConfig classSize;
+
+  /// Weight of class gate (`weight_of_class`).
+  final WeightOfClassGateConfig weightOfClass;
+
+  /// Unused private code gate (`unused_code`).
+  final UnusedCodeGateConfig unusedCode;
+
+  /// Unused files gate (`unused_files`).
+  final UnusedFilesGateConfig unusedFiles;
+
+  /// Banned imports gate (`banned_imports`).
+  final BannedImportsGateConfig bannedImports;
 
   /// Public API documentation gate (`public_docs`).
   final PublicDocsGateConfig publicDocs;
@@ -149,277 +195,6 @@ class FlutterGatesConfig {
 
   /// Accessibility gate (`accessibility`).
   final AccessibilityGateConfig accessibility;
-}
-
-/// Code duplication gate settings (`duplication`).
-class DuplicationGateConfig {
-  /// Creates a [DuplicationGateConfig].
-  const DuplicationGateConfig({
-    this.enabled = true,
-    this.threshold = 1.0,
-    this.minTokens = 50,
-    this.minLines = 5,
-    this.exclude = const [
-      '**.g.dart',
-      '**.freezed.dart',
-      '**.mocks.dart',
-      'test/**',
-    ],
-  });
-
-  /// Whether the gate is enabled.
-  final bool enabled;
-
-  /// Maximum allowed duplicated line percentage per file.
-  final double threshold;
-
-  /// Minimum number of tokens in a block to be considered for duplication.
-  final int minTokens;
-
-  /// Minimum number of lines in a block to be considered for duplication.
-  final int minLines;
-
-  /// Glob patterns excluded from the gate.
-  final List<String> exclude;
-}
-
-/// File size gate settings (`loc`).
-class LocGateConfig {
-  /// Creates a [LocGateConfig].
-  const LocGateConfig({
-    this.enabled = true,
-    this.maxLines = 800,
-    this.exclude = const ['**.g.dart', '**.freezed.dart', '**.mocks.dart'],
-  });
-
-  /// Whether the gate is enabled.
-  final bool enabled;
-
-  /// Maximum lines per file.
-  final int maxLines;
-
-  /// Glob patterns excluded from the gate.
-  final List<String> exclude;
-}
-
-/// Minimum test coverage gate settings (`test_coverage`).
-class TestCoverageGateConfig {
-  /// Creates a [TestCoverageGateConfig].
-  const TestCoverageGateConfig({
-    this.enabled = true,
-    this.minPercent = 80.0,
-    this.perFile = false,
-    this.dirs = const ['lib'],
-  });
-
-  /// Whether the gate is enabled.
-  final bool enabled;
-
-  /// Minimum required coverage percent.
-  final double minPercent;
-
-  /// Whether the minimum applies per file instead of to the project total.
-  final bool perFile;
-
-  /// Directories whose files count towards the coverage aggregate
-  /// (matched as LCOV path prefixes).
-  final List<String> dirs;
-}
-
-/// Golden test coverage gate settings (`golden`).
-class GoldenGateConfig {
-  /// Creates a [GoldenGateConfig].
-  const GoldenGateConfig({
-    this.enabled = true,
-    this.minWidgetCoverage = 80.0,
-    this.widgetDirs = const ['lib'],
-    this.testDirs = const ['test'],
-    this.excludeWidgets = const [],
-  });
-
-  /// Whether the gate is enabled.
-  final bool enabled;
-
-  /// Minimum percentage of widgets with a matching golden test.
-  final double minWidgetCoverage;
-
-  /// Directories scanned for widgets.
-  final List<String> widgetDirs;
-
-  /// Directories scanned for golden tests.
-  final List<String> testDirs;
-
-  /// Widget class names excluded from the gate.
-  final List<String> excludeWidgets;
-}
-
-/// Hardcoded strings gate settings (`hardcoded_strings`).
-class HardcodedStringsGateConfig {
-  /// Creates a [HardcodedStringsGateConfig].
-  const HardcodedStringsGateConfig({
-    this.enabled = true,
-    this.ignoreMarker = 'l10n:ignore',
-    this.checkParams = const ['labelText', 'hintText', 'helperText', 'tooltip'],
-  });
-
-  /// Whether the gate is enabled.
-  final bool enabled;
-
-  /// Comment marker that suppresses the gate on a line.
-  final String ignoreMarker;
-
-  /// Widget parameter names that must not contain hardcoded strings.
-  final List<String> checkParams;
-}
-
-/// Accessibility gate settings (`accessibility`).
-class AccessibilityGateConfig {
-  /// Creates an [AccessibilityGateConfig].
-  const AccessibilityGateConfig({
-    this.enabled = true,
-    this.requireLabelFor = const [
-      'IconButton',
-      'Image',
-      'GestureDetector',
-      'InkWell',
-    ],
-  });
-
-  /// Whether the gate is enabled.
-  final bool enabled;
-
-  /// Widget types that must provide a semantics label.
-  final List<String> requireLabelFor;
-}
-
-/// Cyclomatic complexity gate settings (`complexity`).
-class ComplexityGateConfig {
-  /// Creates a [ComplexityGateConfig].
-  const ComplexityGateConfig({
-    this.enabled = true,
-    this.maxComplexity = 10,
-    this.countLambdas = true,
-  });
-
-  /// Whether the gate is enabled.
-  final bool enabled;
-
-  /// Maximum allowed cyclomatic complexity per method.
-  final int maxComplexity;
-
-  /// Whether branches inside lambdas count towards the enclosing method's
-  /// cyclomatic complexity in this gate.
-  final bool countLambdas;
-}
-
-/// Method size gate settings (`method_size`).
-class MethodSizeGateConfig {
-  /// Creates a [MethodSizeGateConfig].
-  const MethodSizeGateConfig({
-    this.enabled = true,
-    this.maxLines = 60,
-    this.maxParams = 6,
-  });
-
-  /// Whether the gate is enabled.
-  final bool enabled;
-
-  /// Maximum lines per method body.
-  final int maxLines;
-
-  /// Maximum number of parameters per method.
-  final int maxParams;
-}
-
-/// Public API documentation gate settings (`public_docs`).
-class PublicDocsGateConfig {
-  /// Creates a [PublicDocsGateConfig].
-  const PublicDocsGateConfig({
-    this.enabled = true,
-    this.exclude = const ['test/**'],
-  });
-
-  /// Whether the gate is enabled.
-  final bool enabled;
-
-  /// Glob patterns excluded from the gate.
-  final List<String> exclude;
-}
-
-/// File naming gate settings (`file_naming`).
-class FileNamingGateConfig {
-  /// Creates a [FileNamingGateConfig].
-  const FileNamingGateConfig({
-    this.enabled = true,
-    this.exclude = const [
-      '**.g.dart',
-      '**.freezed.dart',
-      '**.mocks.dart',
-      'test/**',
-    ],
-    this.allow = defaultAllowedStems,
-  });
-
-  /// Stems (file names without the `.dart` extension) accepted despite
-  /// ending in digits — technical terms where the digits carry meaning.
-  static const List<String> defaultAllowedStems = [
-    'aes128',
-    'aes192',
-    'aes256',
-    'arm32',
-    'arm64',
-    'base32',
-    'base64',
-    'crc8',
-    'crc16',
-    'crc32',
-    'f16',
-    'f32',
-    'f64',
-    'h264',
-    'h265',
-    'http2',
-    'http3',
-    'i18n',
-    'i2c',
-    'int8',
-    'int16',
-    'int32',
-    'int64',
-    'ipv4',
-    'ipv6',
-    'l10n',
-    'a11y',
-    'md5',
-    'oauth1',
-    'oauth2',
-    'sha1',
-    'sha256',
-    'sha384',
-    'sha512',
-    'uint8',
-    'uint16',
-    'uint32',
-    'uint64',
-    'utf8',
-    'utf16',
-    'utf32',
-    'w3c',
-    'webgl2',
-    'x509',
-    'x86',
-    'x64',
-  ];
-
-  /// Whether the gate is enabled.
-  final bool enabled;
-
-  /// Glob patterns excluded from the gate.
-  final List<String> exclude;
-
-  /// Extra file name stems (without extension) allowed to end in digits,
-  /// matched case-insensitively against the whole stem.
-  final List<String> allow;
 }
 
 /// CPU profiling settings (`profile` command).

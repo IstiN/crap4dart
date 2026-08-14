@@ -423,16 +423,37 @@ threshold check) and `top` (int, default 20).
 ### 10.3 Gate Identifiers
 
 Known gate ids: `loc`, `test_coverage`, `golden`, `hardcoded_strings`,
-`accessibility`, `complexity`, `method_size`, `public_docs`, `duplication`,
-`file_naming`.
+`accessibility`, `complexity`, `method_size`, `nesting`, `class_size`,
+`weight_of_class`, `unused_code`, `unused_files`, `banned_imports`,
+`public_docs`, `duplication`, `file_naming`.
 
 ## 11. Quality Gates
 
-Gates shall run in the fixed order: `loc`, `test_coverage`, `complexity`,
-`method_size`, `duplication`, `file_naming`, `public_docs`,
-`hardcoded_strings`, `accessibility`, `golden`. A gate disabled in the config shall produce a
-skipped result. The run shall fail when at least one gate fails; skipped
-gates shall not fail the run.
+Gates shall run in the fixed order: `loc`, `test_coverage`,
+`complexity`, `method_size`, `nesting`, `class_size`, `duplication`,
+`file_naming`, `unused_code`, `unused_files`, `banned_imports`,
+`public_docs`, `hardcoded_strings`, `accessibility`, `golden`,
+`weight_of_class`. A gate disabled in the config shall produce a
+skipped result. The run shall fail when at least one gate fails;
+skipped gates shall not fail the run.
+
+### 11.0 Framework
+
+Every gate accepts `enabled` (bool), `severity` (`error` | `warning`,
+default `error`) and `ignorable` (bool, default `false`). A `warning`
+gate's violations shall be reported (marked `[WARN]` in the console
+output) but shall not fail the run. `// crap:ignore` on the violation
+line or the line above, and `// crap:ignore-file` within the first 5
+lines of a file, shall suppress violations of a gate only when that
+gate sets `ignorable: true`; by default suppression comments have no
+effect.
+
+The `loc`, `complexity` and `method_size` gates accept `entries`: a
+list of `{threshold(s), paths}` overrides where the first entry whose
+`paths` glob matches the file replaces the default threshold(s) for
+that file. Unset `method_size` entry thresholds keep the gate defaults.
+Entries must set at least one threshold; `paths` must be a non-empty
+glob list.
 
 ### 11.1 loc
 
@@ -460,7 +481,55 @@ Fails methods longer than `max_lines` (default 60) or with more than
 `max_params` parameters (default 6). Constructors shall be checked only
 for parameter count.
 
-### 11.5 duplication
+### 11.5 nesting
+
+Fails methods whose maximum block nesting level exceeds `max_nesting`
+(default 5). The method body block counts as level 1; every nested
+block or control-flow statement (`if`, `for`, `while`, `do`, `switch`,
+`try`/`catch`) adds one.
+
+### 11.6 class_size
+
+Fails classes with more than `max_methods` (default 25) concrete
+methods or a weighted-methods-per-class sum (total cyclomatic
+complexity over all methods) above `max_wmc` (default 80). Top-level
+functions are not attributed to any class.
+
+### 11.7 weight_of_class
+
+Skipped unless enabled (default disabled). Fails public classes whose
+ratio of public instance fields to public instance members exceeds
+`max_weight` (default 0.33). Static members are not counted; classes
+without public fields are never flagged. Honors `exclude` globs.
+
+### 11.8 unused_code
+
+Flags private declarations never referenced by any simple identifier in
+the analyzed sources: top-level `_functions`, `_classes`, and private
+members (`_fields`, `_methods`) of public classes. References are
+counted lexically on unresolved ASTs. Files matching the gate's
+`exclude` list (default generated files and `bin/**`) are ignored
+entirely — both their declarations and their references.
+
+### 11.9 unused_files
+
+Flags files under `dirs` (default `lib`) that are never imported by any
+analyzed file. A file containing a top-level `main` function and
+`part of` files are never reported. Imports resolve to project-relative
+paths: relative URIs against the importing file's directory,
+`package:<self>/...` against `lib/`; external packages never count.
+Files matching the gate's `exclude` list (default generated files) are
+skipped.
+
+### 11.10 banned_imports
+
+Enforces architectural rules `{from, forbid, message}`. For every file
+matching the rule's `from` glob, each import whose URI — or, for
+relative and `package:<self>` imports, its resolved project-relative
+path — matches any `forbid` glob is a violation. The optional
+`message` is appended to the violation. With no rules the gate passes.
+
+### 11.11 duplication
 
 Detects exact copy-paste duplicates across Dart source files. Each file is
 tokenized with `package:analyzer` (comments and synthetic tokens are
@@ -471,7 +540,7 @@ percentage of duplicated lines exceeds `threshold` (default 1.0). Files
 matching the gate's `exclude` list (default generated files and `test/**`)
 are skipped.
 
-### 11.6 file_naming
+### 11.12 file_naming
 
 Flags Dart files whose names indicate a mechanical split instead of a
 domain boundary. A file is flagged when its stem (name without the `.dart`
@@ -485,7 +554,7 @@ default; additional stems may be allowlisted via `allow` (matched
 case-insensitively against the whole stem). Files matching the gate's
 `exclude` list (default generated files and `test/**`) are skipped.
 
-### 11.7 public_docs
+### 11.13 public_docs
 
 Fails public declarations without dartdoc: classes, mixins, enums,
 extension types, named extensions, top-level functions and variables, and
@@ -493,7 +562,7 @@ public methods and fields. `@override` members, members of private
 containers, constructors and files under `exclude` (default `test/**`)
 shall be exempt.
 
-### 11.8 hardcoded_strings
+### 11.14 hardcoded_strings
 
 Skipped for non-Flutter projects. Flags string literals containing Latin
 or Cyrillic letters passed to `Text(...)` or to the parameters in
@@ -503,14 +572,14 @@ the previous line) and files containing `// l10n:ignore-file` within the
 first 5 lines shall be exempt. When ARB files exist under `lib/`,
 `l10n.<key>` references missing from `app_en.arb` shall be flagged.
 
-### 11.9 accessibility
+### 11.15 accessibility
 
 Skipped for non-Flutter projects. Requires `tooltip` on `IconButton`,
 `semanticLabel` on `Image`, and `semanticsLabel` or a wrapping
 `Semantics` widget on `GestureDetector`/`InkWell`, for the widget types
 in `require_label_for`.
 
-### 11.10 golden
+### 11.16 golden
 
 Skipped for non-Flutter projects and for projects without widgets.
 Widgets are public classes in `widget_dirs` extending `StatelessWidget`,
@@ -520,7 +589,17 @@ invokes `matchesGoldenFile` and references the widget by type or imports
 the widget's file. The gate fails when coverage is below
 `min_widget_coverage` (default 80.0).
 
-## 12. Threshold
+## 12. Baseline
+
+`check --save-baseline` shall run all enabled gates and write every
+current violation to `.crap-baseline.json` keyed by gate id, file,
+line and message; the command exits 0. `check --baseline` shall strip
+violations covered by the baseline file before deciding the run
+outcome: a gate fails only when it has at least one violation not in
+the baseline. A missing baseline file is not an error and leaves the
+run unchanged.
+
+## 13. Threshold
 
 The default CRAP threshold shall be `8.0`, overridable in the config and
 via `--threshold`. When the maximum numeric CRAP value exceeds the

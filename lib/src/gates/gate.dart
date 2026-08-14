@@ -29,6 +29,7 @@ class GateResult {
     this.summary,
     this.skipped = false,
     this.skipReason,
+    this.warning = false,
   });
 
   /// A passing result with an optional [summary].
@@ -56,10 +57,26 @@ class GateResult {
         skipReason: reason,
       );
 
+  /// A downgraded result: violations are kept and reported, but the run
+  /// is not failed (severity `warning`).
+  factory GateResult.warn(
+    String gateId,
+    List<GateViolation> violations, {
+    String? summary,
+  }) =>
+      GateResult(
+        gateId: gateId,
+        passed: true,
+        violations: violations,
+        summary: summary,
+        warning: true,
+      );
+
   /// Identifier of the gate that produced this result.
   final String gateId;
 
-  /// Whether the gate passed (skipped results count as passed).
+  /// Whether the gate passed (skipped and warning results count as
+  /// passed for the run outcome).
   final bool passed;
 
   /// Reported violations; empty when [passed] is true.
@@ -73,6 +90,10 @@ class GateResult {
 
   /// Reason for skipping, when [skipped] is true.
   final String? skipReason;
+
+  /// Whether violations were downgraded to warnings (severity
+  /// `warning`): reported but not failing the run.
+  final bool warning;
 }
 
 /// A quality gate: a single check over the project sources.

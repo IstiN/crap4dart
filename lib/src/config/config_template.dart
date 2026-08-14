@@ -1,4 +1,11 @@
 /// Template written by `crap4dart init`.
+///
+/// Every gate supports two common keys (shown here once):
+/// - `severity: error | warning` — warning gates report violations but
+///   do not fail the run (default: error).
+/// - `ignorable: true` — opt in to `// crap:ignore` line comments and
+///   `// crap:ignore-file` markers suppressing violations of this gate.
+///   OFF by default: suppression must be explicitly allowed.
 const String defaultConfigTemplate = '''
 # crap4dart configuration.
 # See https://github.com/IstiN/crap4dart for details.
@@ -53,6 +60,11 @@ gates:
     enabled: true
     # Maximum lines per file.
     max_lines: 800
+    # Per-path overrides: the first entry whose paths glob matches the
+    # file replaces max_lines for that file.
+    entries: []
+      # - max_lines: 2000
+      #   paths: ['lib/legacy/**']
     # Glob patterns excluded from the gate.
     exclude:
       - '**.g.dart'
@@ -95,6 +107,8 @@ gates:
     enabled: true
     # Maximum allowed cyclomatic complexity.
     max_complexity: 10
+    # Per-path overrides of max_complexity.
+    entries: []
     # Count branches inside lambdas towards the enclosing method.
     # count_lambdas: true
   # Limit method size and signature length.
@@ -104,6 +118,66 @@ gates:
     max_lines: 60
     # Maximum number of parameters per method.
     max_params: 6
+    # Per-path overrides; unset limits keep the gate defaults.
+    entries: []
+  # Limit maximum block nesting level per method (catches complexity
+  # gate dodging via deeply nested early-return chains).
+  nesting:
+    enabled: true
+    # Maximum number of nested blocks in a method body.
+    max_nesting: 5
+  # Limit class size: method count and weighted methods per class
+  # (WMC = sum of cyclomatic complexities). Catches god-classes that
+  # pass the per-method complexity gate.
+  class_size:
+    enabled: true
+    # Maximum concrete methods per class.
+    max_methods: 25
+    # Maximum WMC per class.
+    max_wmc: 80
+  # Fail classes that reveal more data than behavior (public fields /
+  # public members > max_weight). Off by default: data/model classes
+  # are legitimate.
+  weight_of_class:
+    enabled: false
+    # Maximum allowed data-to-members ratio (0.0 - 1.0).
+    max_weight: 0.33
+    # Glob patterns excluded from the gate.
+    exclude:
+      - '**.g.dart'
+      - '**.freezed.dart'
+      - '**.mocks.dart'
+  # Flag private declarations never referenced in the analyzed sources
+  # (dead methods, fields, classes AI agents tend to leave behind).
+  unused_code:
+    enabled: true
+    # Glob patterns whose files are ignored entirely (declarations and
+    # references).
+    exclude:
+      - '**.g.dart'
+      - '**.freezed.dart'
+      - '**.mocks.dart'
+      - 'bin/**'
+  # Flag files under `dirs` that are never imported by any analyzed
+  # file (orphans of refactoring). Files with main() and part-of
+  # files are never reported.
+  unused_files:
+    enabled: true
+    # Directories checked for orphan files.
+    dirs: [lib]
+    # Glob patterns excluded from the gate.
+    exclude:
+      - '**.g.dart'
+      - '**.freezed.dart'
+      - '**.mocks.dart'
+  # Enforce architectural boundaries: forbid imports matching `forbid`
+  # globs in files matching `from`. With no rules the gate passes.
+  banned_imports:
+    enabled: true
+    rules: []
+      # - from: 'lib/ui/**'
+      #   forbid: ['**/data/**', 'dart:io']
+      #   message: UI must not touch data or IO
   # Detect duplicated code blocks.
   duplication:
     enabled: true
@@ -119,9 +193,7 @@ gates:
       - '**.freezed.dart'
       - '**.mocks.dart'
       - 'test/**'
-  # Forbid mechanical file names produced by splitting code without a
-  # domain boundary: numeric suffixes (jira_batch1.dart) and generic
-  # dumping-ground names (utils.dart).
+  # Forbid mechanical file names (numeric suffixes, generic names).
   file_naming:
     enabled: true
     # Glob patterns excluded from the gate.
@@ -130,8 +202,7 @@ gates:
       - '**.freezed.dart'
       - '**.mocks.dart'
       - 'test/**'
-    # Extra whole-stem names allowed to end in digits (technical terms
-    # such as custom protocol versions).
+    # Extra whole-stem names allowed to end in digits (technical terms).
     allow: []
   # Require dartdoc comments on the public API.
   public_docs:

@@ -28,9 +28,13 @@ crap4dart is a Dart port of the Java tool
 ## Features
 
 - **CRAP analysis** per method, combining complexity and LCOV coverage
-- **10 quality gates**: `loc`, `test_coverage`, `golden`,
+- **16 quality gates**: `loc`, `test_coverage`, `golden`,
   `hardcoded_strings`, `accessibility`, `complexity`, `method_size`,
-  `public_docs`, `duplication`, `file_naming`
+  `nesting`, `class_size`, `weight_of_class`, `unused_code`,
+  `unused_files`, `banned_imports`, `public_docs`, `duplication`,
+  `file_naming`
+- **Gate framework**: per-path thresholds (`entries`), warning
+  severity, baseline mode, opt-in ignore markers
 - **Configuration** via `crap4dart.yaml` with strict validation
 - **Pre-commit hook** installation (`check --staged` on every commit)
 - **GitHub Actions workflow** template (`crap4dart install --ci`)
@@ -366,7 +370,30 @@ you add `test` there as well). This repository dogfoods exactly this setup.
 
 ## Quality gates
 
-Each gate can be turned off with `enabled: false` in the config.
+Each gate can be turned off with `enabled: false` in the config. Every
+gate also accepts two framework keys:
+
+- `severity: error | warning` — a `warning` gate reports its violations
+  (marked `[WARN]`) but does not fail the run. Useful for adopting a
+  gate on a legacy codebase.
+- `ignorable: true` — opts this gate into `// crap:ignore` line
+  comments and `// crap:ignore-file` file markers. **Off by default**:
+  suppression is never allowed unless you explicitly enable it.
+
+`loc`, `complexity` and `method_size` support per-path threshold
+overrides via `entries` (the first entry whose `paths` glob matches the
+file wins):
+
+```yaml
+gates:
+  loc:
+    max_lines: 800
+    entries:
+      - max_lines: 2000        # legacy code gets a breather
+        paths: ['lib/legacy/**']
+      - max_lines: 400         # new code is held to a higher standard
+        paths: ['lib/src/**']
+```
 
 - **loc** — fails files longer than `max_lines` (default 800), honoring the
   `exclude` globs (generated files are excluded by default).
@@ -394,6 +421,19 @@ Each gate can be turned off with `enabled: false` in the config.
 - **method_size** — fails methods longer than `max_lines` (default 60) or
   with more than `max_params` parameters (default 6). Constructors are
   checked only for parameter count.
+- **nesting** — fails methods whose maximum block nesting level exceeds
+  `max_nesting` (default 5). The method body counts as level 1; every
+  nested block or control-flow statement adds one. Catches complexity
+  dodging via deeply nested early-return chains.
+- **class_size** — fails classes with more than `max_methods` (default
+  25) concrete methods or a weighted-methods sum (WMC, total cyclomatic
+  complexity of all methods) above `max_wmc` (default 80). Catches
+  god-classes assembled from many small methods that each pass the
+  `complexity` gate.
+- **weight_of_class** — fails classes whose ratio of public instance
+  fields to public instance members exceeds `max_weight` (default 0.33):
+  classes revealing more data than behavior. Disabled by default —
+  data/model classes are legitimate.
 - **duplication** — detects exact copy-paste token blocks across Dart
   source files. A block counts when it is at least `min_tokens` tokens
   (default 50) and `min_lines` lines (default 5) long. The gate fails a
@@ -412,6 +452,33 @@ Each gate can be turned off with `enabled: false` in the config.
   variables, public methods and fields. `@override` members and members of
   private classes are exempt; files under `exclude` (default `test/**`)
   are skipped.
+- **unused_code** — flags private declarations (`_functions`, `_classes`,
+  private class members) never referenced in the analyzed sources. Dead
+  code is a typical leftover of AI-assisted refactoring. References are
+  counted on unresolved ASTs (lexical identifiers).
+- **unused_files** — flags files under `dirs` (default `[lib]`) that are
+  never imported by any analyzed file. Files with a `main()` and
+  `part of` files are never reported.
+- **banned_imports** — enforces architectural boundaries with rules of
+  `{from, forbid, message}`: imports matching a `forbid` glob are banned
+  in files matching `from` (e.g. `lib/ui/**` must not import
+  `**/data/**` or `dart:io`). Import URIs and their project-relative
+  resolved paths are both matched. With no rules the gate passes.
+
+## Baseline
+
+On a legacy codebase a new gate can fail on hundreds of pre-existing
+violations. Instead of lowering thresholds, record them once and fail
+only on new ones:
+
+```sh
+crap4dart check --save-baseline   # record current violations to .crap-baseline.json
+crap4dart check --baseline        # pass unless NEW violations appear
+```
+
+The baseline keys violations by gate + file + line + message; a
+violation only fails the run when it is not covered by the baseline.
+Re-run `--save-baseline` after cleanup to ratchet it down.
 
 ## Pre-commit hook
 

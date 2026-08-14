@@ -178,6 +178,9 @@ void writeCleanProject(Directory root) {
 /// A documented function.
 void documented() {}
 ''');
+  File(p.join(root.path, 'bin', 'main.dart')).createSync(recursive: true);
+  File(p.join(root.path, 'bin', 'main.dart')).writeAsStringSync(
+      "import '../lib/a.dart';\n\n/// Runs the app.\nvoid main() => documented();\n");
   File(p.join(root.path, 'crap4dart.yaml')).writeAsStringSync('''
 coverage:
   required: false

@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.5.0
+
+### Added
+
+- Gate framework: `severity: error | warning` per gate — warning gates
+  report violations (`[WARN]`) without failing the run.
+- Gate framework: `ignorable: true` opts a gate into `// crap:ignore`
+  line comments and `// crap:ignore-file` file markers. Off by
+  default — suppression is never allowed unless explicitly enabled.
+- Gate framework: per-path threshold overrides (`entries`) for `loc`,
+  `complexity` and `method_size` — relax or tighten thresholds per
+  directory.
+- Baseline mode: `check --save-baseline` records current violations to
+  `.crap-baseline.json`; `check --baseline` fails only on violations
+  not in the baseline.
+- `nesting` gate — maximum block nesting level per method (default 5).
+- `class_size` gate — methods-per-class (default 25) and
+  weighted-methods-per-class (default 80) limits; catches god-classes.
+- `weight_of_class` gate — flags classes revealing more data than
+  behavior (default 0.33, disabled by default).
+- `unused_code` gate — flags never-referenced private declarations.
+- `unused_files` gate — flags never-imported files under `lib`.
+- `banned_imports` gate — architectural import rules
+  (`from`/`forbid`/`message`).
+
 ## 0.4.0
 
 ### Fixed
