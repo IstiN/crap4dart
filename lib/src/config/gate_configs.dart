@@ -415,6 +415,50 @@ class UnusedFilesGateConfig {
   final List<String> exclude;
 }
 
+/// Magic constants gate settings (`magic_constants`).
+class MagicConstantsGateConfig {
+  /// Creates a [MagicConstantsGateConfig].
+  const MagicConstantsGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.flagHexColors = true,
+    this.minDuplicates = 3,
+    this.minLength = 4,
+    this.exclude = const [
+      '**.g.dart',
+      '**.freezed.dart',
+      '**.mocks.dart',
+      'test/**',
+    ],
+  });
+
+  /// Whether the gate is enabled.
+  final bool enabled;
+
+  /// Whether violations fail the run or are reported as warnings.
+  final GateSeverity severity;
+
+  /// Whether `// crap:ignore` comments may suppress violations of this
+  /// gate. Disabled by default — suppression must be opted into.
+  final bool ignorable;
+
+  /// Whether hardcoded hex color literals (`0xAARRGGBB`, `0xRRGGBB`)
+  /// outside named constant declarations are flagged.
+  final bool flagHexColors;
+
+  /// How many times the same numeric or string literal must repeat in
+  /// a file before every occurrence is flagged.
+  final int minDuplicates;
+
+  /// Minimum length of a string literal to be considered for the
+  /// duplicate check.
+  final int minLength;
+
+  /// Glob patterns excluded from the gate.
+  final List<String> exclude;
+}
+
 /// File naming gate settings (`file_naming`).
 class FileNamingGateConfig {
   /// Creates a [FileNamingGateConfig].

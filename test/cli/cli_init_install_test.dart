@@ -52,7 +52,7 @@ void main() {
       expect(result.stdout, contains('Installed CI workflow'));
       final hook = File(p.join(tempDir.path, '.git/hooks/pre-commit'));
       expect(hook.existsSync(), isTrue);
-      expect(hook.readAsStringSync(), contains('check --staged'));
+      expect(hook.readAsStringSync(), contains('check --staged --baseline'));
       expect(
         File(p.join(tempDir.path, '.github/workflows/quality.yml'))
             .existsSync(),

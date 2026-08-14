@@ -123,6 +123,7 @@ class GatesConfig {
     this.publicDocs = const PublicDocsGateConfig(),
     this.duplication = const DuplicationGateConfig(),
     this.fileNaming = const FileNamingGateConfig(),
+    this.magicConstants = const MagicConstantsGateConfig(),
     this.flutter = const FlutterGatesConfig(),
   });
 
@@ -164,6 +165,9 @@ class GatesConfig {
 
   /// File naming gate (`file_naming`).
   final FileNamingGateConfig fileNaming;
+
+  /// Magic constants gate (`magic_constants`).
+  final MagicConstantsGateConfig magicConstants;
 
   /// Flutter-specific gates grouped together.
   final FlutterGatesConfig flutter;

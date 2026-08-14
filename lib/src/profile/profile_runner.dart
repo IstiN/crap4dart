@@ -123,18 +123,16 @@ class ProfileRunner {
 
       tempDir = await _createInstrumentedCopy(projectRoot, packageName);
       _ensureGitignore(projectRoot);
+      if (!await _prepareWorkspaceTemp(projectRoot, tempDir)) return null;
       final outputFile = File(p.join(tempDir.path, '.crap_profile.json'));
 
       stderr.writeln('Running instrumented tests...');
       final testArgs = _buildTestArgs(projectRoot, filter);
-      final result = await _runner(
-        isFlutterProject(projectRoot) ? 'flutter' : 'dart',
+      final result = await _runTests(
+        projectRoot,
+        tempDir,
         testArgs,
-        workingDirectory: tempDir.path,
-        environment: {
-          ...Platform.environment,
-          'CRAP_PROFILE_OUTPUT': outputFile.path,
-        },
+        outputFile,
       );
 
       _reportTestErrors(result);
@@ -151,6 +149,35 @@ class ProfileRunner {
         }
       }
     }
+  }
+
+  /// Runs `pub get` in [tempDir] for workspace members; a no-op for
+  /// regular projects. Returns whether the project is ready.
+  Future<bool> _prepareWorkspaceTemp(
+    String projectRoot,
+    Directory tempDir,
+  ) async {
+    if (!_isWorkspaceMember(projectRoot)) return true;
+    return _runPubGet(projectRoot, tempDir);
+  }
+
+  /// Runs the (instrumented) test suite of [tempDir], writing timings
+  /// to [outputFile].
+  Future<ProcessResult> _runTests(
+    String projectRoot,
+    Directory tempDir,
+    List<String> testArgs,
+    File outputFile,
+  ) {
+    return _runner(
+      isFlutterProject(projectRoot) ? 'flutter' : 'dart',
+      testArgs,
+      workingDirectory: tempDir.path,
+      environment: {
+        ...Platform.environment,
+        'CRAP_PROFILE_OUTPUT': outputFile.path,
+      },
+    );
   }
 
   /// Builds the `dart test` / `flutter test` argument list from [filter].
@@ -230,9 +257,20 @@ class ProfileRunner {
       tempDir.deleteSync(recursive: true);
     }
     tempDir.createSync(recursive: true);
-    _symlinkTopLevelEntries(projectRoot, tempDir);
+    final workspaceMember = _isWorkspaceMember(projectRoot);
+    _symlinkTopLevelEntries(projectRoot, tempDir, skipPubspec: workspaceMember);
+    if (workspaceMember) {
+      // A workspace member's pubspec (`resolution: workspace`) cannot be
+      // resolved from the temp dir — no workspace root lists it. Write a
+      // standalone pubspec instead; `pub get` runs in `run` afterwards.
+      _writeStandalonePubspec(projectRoot, tempDir);
+    }
     _copyTestDir(projectRoot, tempDir);
-    _copyDartToolFrom(projectRoot, tempDir, packageName);
+    if (!workspaceMember) {
+      // Workspace members keep package resolution in the workspace root's
+      // .dart_tool, not their own — `pub get` in the temp dir rebuilds it.
+      _copyDartToolFrom(projectRoot, tempDir, packageName);
+    }
     _instrumentLibDir(projectRoot, tempDir, packageName);
     return tempDir;
   }
@@ -240,10 +278,18 @@ class ProfileRunner {
   /// Symlinks every top-level entry of the project into [tempDir],
   /// except the directories that need real copies or instrumentation
   /// (`lib/`, `build/`, `.dart_tool/`, `test/`).
-  void _symlinkTopLevelEntries(String projectRoot, Directory tempDir) {
+  ///
+  /// When [skipPubspec] is set (workspace member), `pubspec.yaml` is written
+  /// as a standalone rewrite instead of a symlink.
+  void _symlinkTopLevelEntries(
+    String projectRoot,
+    Directory tempDir, {
+    bool skipPubspec = false,
+  }) {
     for (final entity in Directory(projectRoot).listSync()) {
       final name = p.basename(entity.path);
       if (_isManagedCopy(name)) continue;
+      if (skipPubspec && name == 'pubspec.yaml') continue;
       final target = p.join(tempDir.path, name);
       try {
         Link(target).createSync(entity.path, recursive: false);
@@ -401,5 +447,59 @@ class ProfileRunner {
       multiLine: true,
     ).firstMatch(pubspec.readAsStringSync());
     return match?.group(1)?.trim();
+  }
+
+  /// Whether the pubspec at [root] declares `resolution: workspace` — i.e.
+  /// the package is a workspace member whose resolution lives in a parent
+  /// workspace pubspec that does not list the profiling temp dir.
+  bool _isWorkspaceMember(String root) {
+    final pubspec = File(p.join(root, 'pubspec.yaml'));
+    if (!pubspec.existsSync()) return false;
+    return RegExp(
+      r'^resolution:\s*workspace\s*$',
+      multiLine: true,
+    ).hasMatch(pubspec.readAsStringSync());
+  }
+
+  /// Writes a standalone `pubspec.yaml` for the temp copy of a workspace
+  /// member: strips the `resolution: workspace` marker (the temp dir belongs
+  /// to no workspace) and absolutizes relative `path:` dependencies (from
+  /// one level deeper they would resolve to the wrong directory).
+  void _writeStandalonePubspec(String projectRoot, Directory tempDir) {
+    final src = File(p.join(projectRoot, 'pubspec.yaml'));
+    final absRoot = p.absolute(projectRoot);
+    final rewritten = StringBuffer();
+    for (final line in src.readAsLinesSync()) {
+      if (RegExp(r'^resolution:\s*workspace\s*$').hasMatch(line)) continue;
+      final dep = RegExp(r'^(\s*path:\s*)(\.\.?[/\\].*)$').firstMatch(line);
+      if (dep != null) {
+        final abs = p.normalize(p.join(absRoot, dep.group(2)!));
+        rewritten.writeln('${dep.group(1)}$abs');
+        continue;
+      }
+      rewritten.writeln(line);
+    }
+    File(p.join(tempDir.path, 'pubspec.yaml'))
+        .writeAsStringSync(rewritten.toString());
+  }
+
+  /// Resolves dependencies in the temp copy of a workspace member. The
+  /// copied `.dart_tool` bookkeeping belongs to the original package, so the
+  /// temp dir needs its own resolution before the tests can run.
+  Future<bool> _runPubGet(String projectRoot, Directory tempDir) async {
+    final result = await _runner(
+      isFlutterProject(projectRoot) ? 'flutter' : 'dart',
+      ['pub', 'get'],
+      workingDirectory: tempDir.path,
+    );
+    if (result.exitCode != 0) {
+      stderr.writeln('Warning: pub get failed in profile temp dir.');
+      final err = '${result.stderr}'.trim();
+      if (err.isNotEmpty) {
+        stderr.writeln(err.split('\n').take(10).join('\n'));
+      }
+      return false;
+    }
+    return true;
   }
 }

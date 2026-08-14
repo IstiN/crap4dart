@@ -28,11 +28,11 @@ crap4dart is a Dart port of the Java tool
 ## Features
 
 - **CRAP analysis** per method, combining complexity and LCOV coverage
-- **16 quality gates**: `loc`, `test_coverage`, `golden`,
+- **17 quality gates**: `loc`, `test_coverage`, `golden`,
   `hardcoded_strings`, `accessibility`, `complexity`, `method_size`,
   `nesting`, `class_size`, `weight_of_class`, `unused_code`,
   `unused_files`, `banned_imports`, `public_docs`, `duplication`,
-  `file_naming`
+  `file_naming`, `magic_constants`
 - **Gate framework**: per-path thresholds (`entries`), warning
   severity, baseline mode, opt-in ignore markers
 - **Configuration** via `crap4dart.yaml` with strict validation
@@ -447,6 +447,13 @@ gates:
   `sha256` or `utf8` are allowed by default; add more via the `allow`
   list (matched case-insensitively against the whole file name).
   Generated files and `test/**` are excluded by default.
+- **magic_constants** — flags magic literals: hex color values
+  (`0xFFFF5733`, `0x00AAFF`) used outside `const` declarations, and any
+  numeric or string literal repeating at least `min_duplicates`
+  (default 3) times in one file — every occurrence is reported with a
+  nudge to extract a named constant. `flag_hex_colors` can disable the
+  color check; strings shorter than `min_length` (default 4) are
+  ignored. Generated files and `test/**` are excluded by default.
 - **public_docs** — requires dartdoc on the public API: classes, mixins,
   enums, extension types, named extensions, top-level functions and
   variables, public methods and fields. `@override` members and members of

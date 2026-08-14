@@ -204,6 +204,22 @@ gates:
       - 'test/**'
     # Extra whole-stem names allowed to end in digits (technical terms).
     allow: []
+  # Flag magic constants: hex colors outside const declarations and
+  # literals (numbers, strings) repeating many times in one file.
+  magic_constants:
+    enabled: true
+    # Flag hex color literals (0xRRGGBB / 0xAARRGGBB) outside constants.
+    flag_hex_colors: true
+    # How many repeats of the same literal in a file trigger a violation.
+    min_duplicates: 3
+    # Minimum length of a string literal to be considered.
+    min_length: 4
+    # Glob patterns excluded from the gate.
+    exclude:
+      - '**.g.dart'
+      - '**.freezed.dart'
+      - '**.mocks.dart'
+      - 'test/**'
   # Require dartdoc comments on the public API.
   public_docs:
     enabled: true

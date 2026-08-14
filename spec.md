@@ -425,15 +425,15 @@ threshold check) and `top` (int, default 20).
 Known gate ids: `loc`, `test_coverage`, `golden`, `hardcoded_strings`,
 `accessibility`, `complexity`, `method_size`, `nesting`, `class_size`,
 `weight_of_class`, `unused_code`, `unused_files`, `banned_imports`,
-`public_docs`, `duplication`, `file_naming`.
+`public_docs`, `duplication`, `file_naming`, `magic_constants`.
 
 ## 11. Quality Gates
 
 Gates shall run in the fixed order: `loc`, `test_coverage`,
 `complexity`, `method_size`, `nesting`, `class_size`, `duplication`,
-`file_naming`, `unused_code`, `unused_files`, `banned_imports`,
-`public_docs`, `hardcoded_strings`, `accessibility`, `golden`,
-`weight_of_class`. A gate disabled in the config shall produce a
+`file_naming`, `magic_constants`, `unused_code`, `unused_files`,
+`banned_imports`, `public_docs`, `hardcoded_strings`, `accessibility`,
+`golden`, `weight_of_class`. A gate disabled in the config shall produce a
 skipped result. The run shall fail when at least one gate fails;
 skipped gates shall not fail the run.
 
@@ -554,7 +554,20 @@ default; additional stems may be allowlisted via `allow` (matched
 case-insensitively against the whole stem). Files matching the gate's
 `exclude` list (default generated files and `test/**`) are skipped.
 
-### 11.13 public_docs
+### 11.13 magic_constants
+
+Flags magic literals in Dart files. Two checks: (a) hex color integer
+literals (`0xRRGGBB` / `0xAARRGGBB`) outside named constant
+declarations — lines that initialize a `const` variable (including
+constructor/method call arguments in the initializer) are exempt;
+(b) numeric or string literals (including adjacent strings) whose value
+repeats at least `min_duplicates` (default 3) times in one file — every
+occurrence is reported. String literals shorter than `min_length`
+(default 4) are ignored. `flag_hex_colors: false` disables check (a).
+Files matching the gate's `exclude` list (default generated files and
+`test/**`) are skipped.
+
+### 11.14 public_docs
 
 Fails public declarations without dartdoc: classes, mixins, enums,
 extension types, named extensions, top-level functions and variables, and
@@ -562,7 +575,7 @@ public methods and fields. `@override` members, members of private
 containers, constructors and files under `exclude` (default `test/**`)
 shall be exempt.
 
-### 11.14 hardcoded_strings
+### 11.15 hardcoded_strings
 
 Skipped for non-Flutter projects. Flags string literals containing Latin
 or Cyrillic letters passed to `Text(...)` or to the parameters in
@@ -572,14 +585,14 @@ the previous line) and files containing `// l10n:ignore-file` within the
 first 5 lines shall be exempt. When ARB files exist under `lib/`,
 `l10n.<key>` references missing from `app_en.arb` shall be flagged.
 
-### 11.15 accessibility
+### 11.16 accessibility
 
 Skipped for non-Flutter projects. Requires `tooltip` on `IconButton`,
 `semanticLabel` on `Image`, and `semanticsLabel` or a wrapping
 `Semantics` widget on `GestureDetector`/`InkWell`, for the widget types
 in `require_label_for`.
 
-### 11.16 golden
+### 11.17 golden
 
 Skipped for non-Flutter projects and for projects without widgets.
 Widgets are public classes in `widget_dirs` extending `StatelessWidget`,

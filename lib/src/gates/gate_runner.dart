@@ -13,6 +13,7 @@ import 'golden_gate.dart';
 import 'hardcoded_strings_gate.dart';
 import 'ignore_filter.dart';
 import 'loc_gate.dart';
+import 'magic_constants_gate.dart';
 import 'method_size_gate.dart';
 import 'nesting_gate.dart';
 import 'public_docs_gate.dart';
@@ -60,6 +61,7 @@ class GateRunner {
         const ClassSizeGate(),
         const DuplicationGate(),
         const FileNamingGate(),
+        const MagicConstantsGate(),
         const UnusedCodeGate(),
         const UnusedFilesGate(),
         const BannedImportsGate(),
@@ -171,6 +173,7 @@ class GateRunner {
         'banned_imports' => gates.bannedImports.enabled,
         'duplication' => gates.duplication.enabled,
         'file_naming' => gates.fileNaming.enabled,
+        'magic_constants' => gates.magicConstants.enabled,
         'public_docs' => gates.publicDocs.enabled,
         'hardcoded_strings' => gates.hardcodedStrings.enabled,
         'accessibility' => gates.accessibility.enabled,
@@ -191,6 +194,7 @@ class GateRunner {
         'banned_imports' => gates.bannedImports.ignorable,
         'duplication' => gates.duplication.ignorable,
         'file_naming' => gates.fileNaming.ignorable,
+        'magic_constants' => gates.magicConstants.ignorable,
         'public_docs' => gates.publicDocs.ignorable,
         'hardcoded_strings' => gates.hardcodedStrings.ignorable,
         'accessibility' => gates.accessibility.ignorable,
@@ -211,6 +215,7 @@ class GateRunner {
         'banned_imports' => gates.bannedImports.severity,
         'duplication' => gates.duplication.severity,
         'file_naming' => gates.fileNaming.severity,
+        'magic_constants' => gates.magicConstants.severity,
         'public_docs' => gates.publicDocs.severity,
         'hardcoded_strings' => gates.hardcodedStrings.severity,
         'accessibility' => gates.accessibility.severity,

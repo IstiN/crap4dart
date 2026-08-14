@@ -29,7 +29,9 @@ class HookInstaller {
 
   /// Installs a git hook named [hookName] into [projectRoot].
   ///
-  /// The hook runs `crap4dart check --staged`. When [runTests] is true, the
+  /// The hook runs `crap4dart check --staged --baseline` so that
+  /// violations recorded in a committed baseline do not block commits;
+  /// only new violations do. When [runTests] is true, the
   /// test suite with coverage runs first (`flutter test --coverage` for
   /// Flutter projects, `dart test --coverage` otherwise).
   ///
@@ -106,7 +108,7 @@ class HookInstaller {
       );
     }
     buffer
-      ..writeln('\$CRAP4DART check --staged')
+      ..writeln('\$CRAP4DART check --staged --baseline')
       ..writeln(endMarker);
     return buffer.toString();
   }

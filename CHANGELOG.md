@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.6.0
+
+### Added
+
+- `magic_constants` quality gate — flags magic literals: hex color
+  values (`0xFFFF5733`) outside `const` declarations and numeric or
+  string literals repeating `min_duplicates` (default 3) times in one
+  file. Configurable via `gates.magic_constants` (`enabled`,
+  `severity`, `ignorable`, `flag_hex_colors`, `min_duplicates`,
+  `min_length`, `exclude`).
+
+## 0.5.3
+
+### Fixed
+
+- `profile`: pub workspace members (`resolution: workspace`) can now be
+  profiled. The temp copy gets a standalone `pubspec.yaml` (workspace marker
+  stripped, relative `path:` dependencies absolutized) and runs
+  `pub get` before the instrumented tests, instead of failing with
+  "found no workspace root including it".
+
 ## 0.5.2
 
 ### Fixed

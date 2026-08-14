@@ -52,6 +52,7 @@ class ConfigLoader {
     'public_docs',
     'duplication',
     'file_naming',
+    'magic_constants',
   };
 
   /// Loads the configuration for the project at [projectRoot].
@@ -242,6 +243,8 @@ class ConfigLoader {
           map['duplication'], base.duplication, path),
       fileNaming: _GateConfigReaders.readFileNaming(
           map['file_naming'], base.fileNaming, path),
+      magicConstants: _GateConfigReaders.readMagicConstants(
+          map['magic_constants'], base.magicConstants, path),
       flutter: FlutterGatesConfig(
         golden: _GateConfigReaders.readGolden(
             map['golden'], base.flutter.golden, path),

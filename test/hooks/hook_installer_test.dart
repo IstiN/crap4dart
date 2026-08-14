@@ -24,7 +24,7 @@ void main() {
       expect(content, startsWith('#!/bin/sh'));
       expect(content, contains(HookInstaller.beginMarker));
       expect(content, contains('command -v crap4dart'));
-      expect(content, contains('check --staged'));
+      expect(content, contains('check --staged --baseline'));
       expect(content, contains('dart run bin/crap4dart.dart'));
       expect(content, isNot(contains('test --coverage')));
     });

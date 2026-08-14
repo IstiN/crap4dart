@@ -578,4 +578,42 @@ class _GateConfigReaders {
       },
     );
   }
+
+  static MagicConstantsGateConfig readMagicConstants(
+    Object? node,
+    MagicConstantsGateConfig base,
+    String path,
+  ) {
+    return _ConfigScalars.readGateConfig(
+      node,
+      base,
+      path,
+      'gates.magic_constants',
+      const {
+        'enabled',
+        'severity',
+        'ignorable',
+        'flag_hex_colors',
+        'min_duplicates',
+        'min_length',
+        'exclude',
+      },
+      (map, base, path, ctx) {
+        final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
+        return MagicConstantsGateConfig(
+          enabled: flags.enabled,
+          severity: flags.severity,
+          ignorable: flags.ignorable,
+          flagHexColors: _ConfigScalars.readBool(
+              map, 'flag_hex_colors', base.flagHexColors, path, ctx),
+          minDuplicates: _ConfigScalars.readInt(
+              map, 'min_duplicates', base.minDuplicates, path, ctx),
+          minLength: _ConfigScalars.readInt(
+              map, 'min_length', base.minLength, path, ctx),
+          exclude:
+              _ConfigScalars.strList(map, 'exclude', base.exclude, path, ctx),
+        );
+      },
+    );
+  }
 }

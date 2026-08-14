@@ -3,7 +3,7 @@ description: >-
   CRAP metric analyzer and configurable quality gates for Dart and Flutter
   projects. Combines cyclomatic complexity with test coverage, enforces
   file size, golden test, l10n, accessibility and API documentation gates.
-version: 0.5.2
+version: 0.6.0
 repository: https://github.com/IstiN/crap4dart
 issue_tracker: https://github.com/IstiN/crap4dart/issues
 topics:
