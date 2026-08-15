@@ -9,12 +9,13 @@ Guidance for AI agents and contributors working on crap4dart.
 1. **CRAP metric analysis** (`analyze`) — `CRAP = CC²·(1−coverage)³ + CC`
    per method, combining AST-based cyclomatic complexity with LCOV coverage.
    Port of [crap4java](https://github.com/unclebob/crap4java).
-2. **Quality gates** (`check`) — 20 configurable gates: `loc`,
+2. **Quality gates** (`check`) — 21 configurable gates: `loc`,
    `test_coverage`, `golden`, `hardcoded_strings`, `accessibility`,
    `complexity`, `method_size`, `nesting`, `class_size`,
    `weight_of_class`, `unused_code`, `unused_files`, `banned_imports`,
    `public_docs`, `duplication`, `file_naming`, `magic_constants`,
-   `broken_goldens`, `test_assertions`, `folder_structure`.
+   `broken_goldens`, `test_assertions`, `folder_structure`,
+   `external` (Checkstyle-XML tool wrapper: detekt/ktlint/swiftlint).
 3. **Gate framework** — per-gate `severity: error|warning`, opt-in
    `ignorable` (ignore comments are OFF by default), per-path
    thresholds (`entries`), baseline mode
@@ -74,7 +75,7 @@ lib/src/config/              # crap4dart.yaml model, loader (strict), template
 lib/src/analysis/            # analyzer wrappers: parser, method extractor, CC
 lib/src/coverage/            # LCOV parser, per-method coverage, test runner
 lib/src/crap/                # CRAP formula, analyzer, console report
-lib/src/gates/               # Gate framework + 20 gates
+lib/src/gates/               # Gate framework + 21 gates
 lib/src/files/               # source finder, git changed files, diff parser
 lib/src/report/              # JSON reporter
 lib/src/profile/             # source-instrumentation profiler, per-method timing

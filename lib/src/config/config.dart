@@ -127,6 +127,7 @@ class GatesConfig {
     this.brokenGoldens = const BrokenGoldensGateConfig(),
     this.testAssertions = const TestAssertionsGateConfig(),
     this.folderStructure = const FolderStructureGateConfig(),
+    this.external = const ExternalGateConfig(),
     this.flutter = const FlutterGatesConfig(),
   });
 
@@ -180,6 +181,9 @@ class GatesConfig {
 
   /// Folder structure gate (`folder_structure`).
   final FolderStructureGateConfig folderStructure;
+
+  /// External tools gate (`external`).
+  final ExternalGateConfig external;
 
   /// Flutter-specific gates grouped together.
   final FlutterGatesConfig flutter;

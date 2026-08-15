@@ -426,14 +426,15 @@ Known gate ids: `loc`, `test_coverage`, `golden`, `hardcoded_strings`,
 `accessibility`, `complexity`, `method_size`, `nesting`, `class_size`,
 `weight_of_class`, `unused_code`, `unused_files`, `banned_imports`,
 `public_docs`, `duplication`, `file_naming`, `magic_constants`,
-`broken_goldens`, `test_assertions`, `folder_structure`.
+`broken_goldens`, `test_assertions`, `folder_structure`, `external`.
 
 ## 11. Quality Gates
 
 Gates shall run in the fixed order: `loc`, `test_coverage`,
 `complexity`, `method_size`, `nesting`, `class_size`, `duplication`,
 `file_naming`, `magic_constants`, `broken_goldens`, `test_assertions`,
-`folder_structure`, `unused_code`, `unused_files`, `banned_imports`,
+`folder_structure`, `external`, `unused_code`, `unused_files`,
+`banned_imports`,
 `public_docs`, `hardcoded_strings`, `accessibility`, `golden`,
 `weight_of_class`. A gate disabled in the config shall produce a
 skipped result. The run shall fail when at least one gate fails;
@@ -597,7 +598,19 @@ sprawl that should be organized into feature packages. Only direct
 children count; files in subdirectories are the organized form. Files
 matching `exclude` (default none) are not counted.
 
-### 11.17 public_docs
+### 11.17 external
+
+Wraps external static-analysis tools. Each rule `{id, executable,
+arguments, report?}` runs `executable arguments...` in the project
+root; `{report}` in the arguments is replaced with the report path
+(a temp file when `report` is unset, appended to the arguments if no
+argument references it). After the run the Checkstyle XML report is
+parsed: each `<file><error line message source>` becomes a violation
+(file paths are made project-relative when possible). A tool that
+exits non-zero without producing a report is itself a violation.
+With no rules the gate passes.
+
+### 11.18 public_docs
 
 Fails public declarations without dartdoc: classes, mixins, enums,
 extension types, named extensions, top-level functions and variables, and
@@ -605,7 +618,7 @@ public methods and fields. `@override` members, members of private
 containers, constructors and files under `exclude` (default `test/**`)
 shall be exempt.
 
-### 11.18 hardcoded_strings
+### 11.19 hardcoded_strings
 
 Skipped for non-Flutter projects. Flags string literals containing Latin
 or Cyrillic letters passed to `Text(...)` or to the parameters in
@@ -615,14 +628,14 @@ the previous line) and files containing `// l10n:ignore-file` within the
 first 5 lines shall be exempt. When ARB files exist under `lib/`,
 `l10n.<key>` references missing from `app_en.arb` shall be flagged.
 
-### 11.19 accessibility
+### 11.20 accessibility
 
 Skipped for non-Flutter projects. Requires `tooltip` on `IconButton`,
 `semanticLabel` on `Image`, and `semanticsLabel` or a wrapping
 `Semantics` widget on `GestureDetector`/`InkWell`, for the widget types
 in `require_label_for`.
 
-### 11.20 golden
+### 11.21 golden
 
 Skipped for non-Flutter projects and for projects without widgets.
 Widgets are public classes in `widget_dirs` extending `StatelessWidget`,

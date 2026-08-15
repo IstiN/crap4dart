@@ -28,12 +28,12 @@ crap4dart is a Dart port of the Java tool
 ## Features
 
 - **CRAP analysis** per method, combining complexity and LCOV coverage
-- **20 quality gates**: `loc`, `test_coverage`, `golden`,
+- **21 quality gate**: `loc`, `test_coverage`, `golden`,
   `hardcoded_strings`, `accessibility`, `complexity`, `method_size`,
   `nesting`, `class_size`, `weight_of_class`, `unused_code`,
   `unused_files`, `banned_imports`, `public_docs`, `duplication`,
   `file_naming`, `magic_constants`, `broken_goldens`, `test_assertions`,
-  `folder_structure`
+  `folder_structure`, `external`
 - **Gate framework**: per-path thresholds (`entries`), warning
   severity, baseline mode, opt-in ignore markers
 - **Configuration** via `crap4dart.yaml` with strict validation
@@ -462,6 +462,14 @@ gates:
   `max_loose_files` (default 0) `.dart` files directly, instead of
   organizing code into feature packages (the flat-file sprawl agents
   leave behind: `lib/src/a.dart`, `lib/src/b.dart`, ...).
+- **external** — wraps external static-analysis tools (detekt for
+  Kotlin, ktlint, swiftlint, anything emitting a Checkstyle XML
+  report) as rules `{id, executable, arguments}`; `{report}` in the
+  arguments is replaced with the report path, and every finding
+  becomes a standard violation — severity, baseline, ignore markers
+  and diff mode work on top of the wrapped tool. With no rules the
+  gate passes. This is how Kotlin/Swift code in a Flutter monorepo
+  joins the same `crap4dart check` run.
 - **magic_constants** — flags magic literals: hex color values
   (`0xFFFF5733`, `0x00AAFF`) used outside `const` declarations, and any
   numeric or string literal repeating at least `min_duplicates`

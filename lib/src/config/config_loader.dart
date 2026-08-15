@@ -66,6 +66,7 @@ class ConfigLoader {
     'broken_goldens',
     'test_assertions',
     'folder_structure',
+    'external',
   };
 
   /// Loads the configuration for the project at [projectRoot].
@@ -272,6 +273,8 @@ class ConfigLoader {
           map['test_assertions'], base.testAssertions, path),
       folderStructure: _ExtendedGateConfigReaders.readFolderStructure(
           map['folder_structure'], base.folderStructure, path),
+      external: _ExtendedGateConfigReaders.readExternal(
+          map['external'], base.external, path),
       flutter: FlutterGatesConfig(
         golden: _GateConfigReaders.readGolden(
             map['golden'], base.flutter.golden, path),

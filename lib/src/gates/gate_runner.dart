@@ -7,6 +7,7 @@ import 'class_size_gate.dart';
 import 'complexity_gate.dart';
 import 'coverage_gate.dart';
 import 'duplication_gate.dart';
+import 'external_gate.dart';
 import 'file_naming_gate.dart';
 import 'folder_structure_gate.dart';
 import 'gate.dart';
@@ -41,6 +42,7 @@ const String _magicConstantsId = 'magic_constants';
 const String _brokenGoldensId = 'broken_goldens';
 const String _testAssertionsId = 'test_assertions';
 const String _folderStructureId = 'folder_structure';
+const String _externalId = 'external';
 const String _publicDocsId = 'public_docs';
 const String _hardcodedStringsId = 'hardcoded_strings';
 const String _accessibilityId = 'accessibility';
@@ -90,9 +92,11 @@ class GateRunner {
         const BrokenGoldensGate(),
         const TestAssertionsGate(),
         const FolderStructureGate(),
+        const ExternalGate(),
         const BrokenGoldensGate(),
         const TestAssertionsGate(),
         const FolderStructureGate(),
+        const ExternalGate(),
         const UnusedCodeGate(),
         const UnusedFilesGate(),
         const BannedImportsGate(),
@@ -208,6 +212,7 @@ class GateRunner {
         _brokenGoldensId => gates.brokenGoldens.enabled,
         _testAssertionsId => gates.testAssertions.enabled,
         _folderStructureId => gates.folderStructure.enabled,
+        _externalId => gates.external.enabled,
         _publicDocsId => gates.publicDocs.enabled,
         _hardcodedStringsId => gates.hardcodedStrings.enabled,
         _accessibilityId => gates.accessibility.enabled,
@@ -232,6 +237,7 @@ class GateRunner {
         _brokenGoldensId => gates.brokenGoldens.ignorable,
         _testAssertionsId => gates.testAssertions.ignorable,
         _folderStructureId => gates.folderStructure.ignorable,
+        _externalId => gates.external.ignorable,
         _publicDocsId => gates.publicDocs.ignorable,
         _hardcodedStringsId => gates.hardcodedStrings.ignorable,
         _accessibilityId => gates.accessibility.ignorable,
@@ -256,6 +262,7 @@ class GateRunner {
         _brokenGoldensId => gates.brokenGoldens.severity,
         _testAssertionsId => gates.testAssertions.severity,
         _folderStructureId => gates.folderStructure.severity,
+        _externalId => gates.external.severity,
         _publicDocsId => gates.publicDocs.severity,
         _hardcodedStringsId => gates.hardcodedStrings.severity,
         _accessibilityId => gates.accessibility.severity,

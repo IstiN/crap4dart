@@ -562,6 +562,57 @@ class MagicConstantsGateConfig {
   final List<String> exclude;
 }
 
+/// One external-tool rule of the `external` gate.
+class ExternalToolRule {
+  /// Creates an [ExternalToolRule].
+  const ExternalToolRule({
+    required this.id,
+    required this.executable,
+    required this.arguments,
+    this.reportPath,
+  });
+
+  /// Rule id used in violations (`external.<id>` in the output).
+  final String id;
+
+  /// Executable to run (resolved on PATH).
+  final String executable;
+
+  /// Arguments passed to the executable. The placeholder `{report}` is
+  /// replaced with the temporary report path when [reportPath] is set.
+  final List<String> arguments;
+
+  /// Path of the Checkstyle XML report to parse after the run. When
+  /// `null`, `{report}` defaults to a temp file appended to
+  /// [arguments] is not used and the tool's own configured output
+  /// location is read.
+  final String? reportPath;
+}
+
+/// External tools gate settings (`external`).
+class ExternalGateConfig {
+  /// Creates an [ExternalGateConfig].
+  const ExternalGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.rules = const [],
+  });
+
+  /// Whether the gate is enabled. With no rules the gate passes.
+  final bool enabled;
+
+  /// Whether violations fail the run or are reported as warnings.
+  final GateSeverity severity;
+
+  /// Whether `// crap:ignore` comments may suppress violations of this
+  /// gate. Disabled by default — suppression must be opted into.
+  final bool ignorable;
+
+  /// External tools to run; each produces a Checkstyle XML report.
+  final List<ExternalToolRule> rules;
+}
+
 /// File naming gate settings (`file_naming`).
 class FileNamingGateConfig {
   /// Creates a [FileNamingGateConfig].

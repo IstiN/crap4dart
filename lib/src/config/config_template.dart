@@ -249,6 +249,18 @@ gates:
     max_loose_files: 0
     # Glob patterns excluded from the gate.
     exclude: []
+  # Wrap external static-analysis tools (detekt, ktlint, swiftlint,
+  # ...) producing a Checkstyle XML report; their findings become
+  # standard violations (severity/baseline/diff mode apply).
+  external:
+    enabled: true
+    rules: []
+      # - id: detekt
+      #   executable: detekt
+      #   arguments: ['--report', 'checkstyle:{report}', 'android/']
+      # - id: swiftlint
+      #   executable: swiftlint
+      #   arguments: ['lint', '--reporter', 'checkstyle', '>'] # see docs
   # Require dartdoc comments on the public API.
   public_docs:
     enabled: true
