@@ -108,19 +108,11 @@ class _MagicLiteralsVisitor extends RecursiveAstVisitor<void> {
     node.initializer?.accept(this);
   }
 
-  /// Records the lines of a constant initializer as hex-color-exempt.
+  /// Records the lines of a constant initializer as exempt: everything
+  /// inside a const declaration (set/list/map elements, nested literals) is
+  /// by definition a named constant already.
   void _markConstantLines(Expression initializer) {
-    constantLines.add(_line(initializer));
-    if (initializer is InstanceCreationExpression) {
-      for (final argument in initializer.argumentList.arguments) {
-        constantLines.add(_line(argument));
-      }
-    }
-    if (initializer is MethodInvocation) {
-      for (final argument in initializer.argumentList.arguments) {
-        constantLines.add(_line(argument));
-      }
-    }
+    _LineMarker(constantLines, _line).mark(initializer);
   }
 
   @override
@@ -171,4 +163,15 @@ class _MagicLiteralsVisitor extends RecursiveAstVisitor<void> {
   }
 
   int _line(AstNode node) => _lineInfo.getLocation(node.offset).lineNumber;
+}
+
+/// Marks every line reachable from a const initializer.
+class _LineMarker extends RecursiveAstVisitor<void> {
+  _LineMarker(this.lines, this.lineTo);
+  final Set<int> lines;
+  final int Function(AstNode) lineTo;
+  void mark(AstNode node) {
+    lines.add(lineTo(node));
+    node.visitChildren(this);
+  }
 }
