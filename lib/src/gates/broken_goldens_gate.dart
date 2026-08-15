@@ -211,10 +211,20 @@ class _PixelStats {
     final r = pixel.r.toInt();
     final g = pixel.g.toInt();
     final b = pixel.b.toInt();
+    final kind = _stripeKind(r, g, b);
+    if (kind != _noneCode) return kind;
+    // RenderErrorBox background: dark red (#900000 at 94% opacity).
+    return _isErrorRed(r, g, b) ? _redCode : _noneCode;
+  }
+
+  /// The stripe classification: yellow, black or none.
+  static int _stripeKind(int r, int g, int b) {
     if (r > 200 && g > 180 && b < 90) return _yellowCode;
     if (r < 60 && g < 60 && b < 60) return _blackCode;
-    // RenderErrorBox background: dark red (#900000 at 94% opacity).
-    if (r > 100 && r < 200 && g < 40 && b < 40) return _redCode;
     return _noneCode;
   }
+
+  /// Whether RGB matches the error-screen background.
+  static bool _isErrorRed(int r, int g, int b) =>
+      r > 100 && r < 200 && g < 40 && b < 40;
 }
