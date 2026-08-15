@@ -64,14 +64,17 @@ class MagicConstantsGate implements Gate {
       }
     }
     for (final entry in visitor.counts.entries) {
-      if (entry.value.length < config.minDuplicates) continue;
-      for (final occurrence in entry.value) {
+      final occurrences = entry.value
+          .where((o) => !visitor.constantLines.contains(o.line))
+          .toList();
+      if (occurrences.length < config.minDuplicates) continue;
+      for (final occurrence in occurrences) {
         violations.add(
           GateViolation(
             file: relative,
             line: occurrence.line,
             message: 'literal ${entry.key} repeats '
-                '${entry.value.length} times — extract a named constant',
+                '${occurrences.length} times — extract a named constant',
           ),
         );
       }
