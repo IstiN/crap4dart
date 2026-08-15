@@ -145,6 +145,8 @@ class _MagicLiteralsVisitor extends RecursiveAstVisitor<void> {
     var parent = node.parent;
     while (parent != null) {
       if (parent is MapLiteralEntry && parent.key == child) return true;
+      // `expr['name']` — a protocol field access, not a constant.
+      if (parent is IndexExpression && parent.index == child) return true;
       if (parent is InterpolationElement || parent is ArgumentList) break;
       child = parent;
       parent = parent.parent;
