@@ -143,6 +143,7 @@ class _MagicLiteralsVisitor extends RecursiveAstVisitor<void> {
       // `expr['name']` — a protocol field access, not a constant.
       if (parent is IndexExpression && parent.index == child) return true;
       // Switch-case labels match protocol values, not constants.
+      if (parent is CaseClause) return true;
       if (parent is SwitchPatternCase || parent is SwitchCase) return true;
       if (parent is InterpolationElement || parent is ArgumentList) break;
       child = parent;
