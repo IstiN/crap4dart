@@ -98,7 +98,6 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
         true;
     if (isPrivate && !inPrivateContainer) {
       _declare(name, node);
-      references.remove(name);
     }
     node.accept(_RefVisitor(references));
   }

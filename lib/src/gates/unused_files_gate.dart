@@ -51,7 +51,11 @@ class UnusedFilesGate implements Gate {
         : GateResult.fail(id, violations, summary: summary);
   }
 
-  /// Project-relative paths imported by [relative]'s unit.
+  /// Project-relative paths imported or exported by [relative]'s unit.
+  ///
+  /// A package's public entry library typically reaches its implementation
+  /// files only through `export` directives — those count as usage just as
+  /// much as imports.
   Set<String> _importedTargets(
     ParsedUnit parsed,
     String relative,
@@ -59,9 +63,11 @@ class UnusedFilesGate implements Gate {
   ) {
     final targets = <String>{};
     for (final directive in parsed.unit.directives) {
-      if (directive is! ImportDirective) continue;
-      final target =
-          _resolveImport(directive.uri.stringValue, relative, context);
+      String? uri;
+      if (directive is ImportDirective) uri = directive.uri.stringValue;
+      if (directive is ExportDirective) uri = directive.uri.stringValue;
+      if (uri == null) continue;
+      final target = _resolveImport(uri, relative, context);
       if (target != null) targets.add(target);
     }
     return targets;

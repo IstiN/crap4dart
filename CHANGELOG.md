@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.7.1
+
+### Fixed
+
+- `unused_files`: `export` directives now count as file usage — a package's
+  public entry library reaches implementation files through exports, which
+  the import-only graph missed, flagging every exported file as unused.
+- `unused_code`: declaring a private method no longer removes its name from
+  the reference set — cross-class private access within the same library
+  (`host.controller._method()`) was reported as never referenced.
+
 ## 0.7.0
 
 ### Added
