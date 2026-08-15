@@ -5,6 +5,9 @@ import 'package:image/image.dart' as img;
 import 'gate.dart';
 import 'gate_context.dart';
 
+/// The stripe classification of a pixel in the overflow pattern.
+enum _StripeKind { none, yellow, black }
+
 /// The `broken_goldens` gate: scans golden PNG files for rendered
 /// Flutter error artifacts — yellow/black overflow stripes and the red
 /// build-error screen (dark red background with yellow text).
@@ -87,61 +90,90 @@ class BrokenGoldensGate implements Gate {
 
   /// Whether the image contains a run of alternating yellow/black
   /// pixels at least [minStripeRun] long (horizontal or vertical).
+  ///
+  /// Flutter's overflow stripes are a diagonal checkerboard: any row or
+  /// column crossing them shows STRICT yellow/black alternation. Plain
+  /// "yellow and black pixels in a line" is not enough — dark UIs with
+  /// yellow text produce long mixed runs and would false-positive.
   bool _hasOverflowStripes(img.Image image, int minStripeRun) {
     for (var y = 0; y < image.height; y++) {
-      if (_stripeRunInRow(image, y, minStripeRun)) return true;
+      if (_alternatingRun(
+          image.width, minStripeRun, (i) => image.getPixel(i, y))) {
+        return true;
+      }
     }
     for (var x = 0; x < image.width; x++) {
-      if (_stripeRunInColumn(image, x, minStripeRun)) return true;
+      if (_alternatingRun(
+          image.height, minStripeRun, (i) => image.getPixel(x, i))) {
+        return true;
+      }
     }
     return false;
   }
 
-  bool _stripeRunInRow(img.Image image, int y, int minRun) {
+  /// Whether the pixel line of [length] sampled by [pixelAt] contains
+  /// a stripe run: a mix of yellow and black pixels, long enough, with
+  /// real alternation (>= 4 color transitions) and a yellow share of
+  /// at least a third — dark UIs with sparse yellow text never qualify.
+  bool _alternatingRun(
+    int length,
+    int minRun,
+    img.Pixel Function(int i) pixelAt,
+  ) {
     var run = 0;
-    var alternating = false;
-    var lastWasStripe = false;
-    for (var x = 0; x < image.width; x++) {
-      final isStripe = _isStripePixel(image.getPixel(x, y));
-      if (isStripe) {
-        run++;
-        // Alternation is implied by the checkerboard pattern; we just
-        // need enough stripe-colored pixels in a line.
-        lastWasStripe = true;
-      } else {
-        if (lastWasStripe && run < minRun) run = 0;
-        lastWasStripe = false;
-      }
-      if (run >= minRun) {
-        alternating = true;
-        break;
-      }
-    }
-    return alternating;
-  }
-
-  bool _stripeRunInColumn(img.Image image, int x, int minRun) {
-    var run = 0;
-    for (var y = 0; y < image.height; y++) {
-      if (_isStripePixel(image.getPixel(x, y))) {
-        run++;
-        if (run >= minRun) return true;
-      } else {
+    var transitions = 0;
+    var last = _StripeKind.none;
+    var yellows = 0;
+    for (var i = 0; i < length; i++) {
+      final kind = _stripeKind(pixelAt(i));
+      if (kind == _StripeKind.none) {
+        if (_qualifies(run, transitions, yellows, minRun)) return true;
         run = 0;
+        transitions = 0;
+        yellows = 0;
+        last = _StripeKind.none;
+        continue;
       }
+      if (kind != last) {
+        transitions++;
+        last = kind;
+      }
+      run++;
+      if (kind == _StripeKind.yellow) yellows++;
+      if (_qualifies(run, transitions, yellows, minRun)) return true;
     }
     return false;
   }
 
-  /// Whether the pixel is the yellow (or black) of an overflow stripe,
-  /// matched with tolerance: yellow is high R+G, low B.
-  bool _isStripePixel(img.Pixel pixel) {
+  /// Whether an accumulated run counts as a stripe: long enough, has
+  /// alternated at least 4 times (>= 2 full color cycles) and yellow
+  /// makes up at least a third of it (sparse text on black never does).
+  bool _qualifies(int run, int transitions, int yellows, int minRun) =>
+      run >= minRun && transitions >= 4 && yellows * 3 >= run;
+
+  /// The stripe classification of [pixel]: yellow, black or neither.
+  _StripeKind _stripeKind(img.Pixel pixel) {
+    if (_isYellow(pixel)) return _StripeKind.yellow;
+    if (_isBlack(pixel)) return _StripeKind.black;
+    return _StripeKind.none;
+  }
+
+  /// Whether the pixel is the yellow of an overflow stripe, matched
+  /// with tolerance: high R+G, low B.
+  bool _isYellow(img.Pixel pixel) {
     final r = pixel.r.toInt();
     final g = pixel.g.toInt();
     final b = pixel.b.toInt();
-    final isYellow = r > 200 && g > 180 && b < 90;
-    final isBlack = r < 60 && g < 60 && b < 60;
-    return isYellow || isBlack;
+    return r > 200 && g > 180 && b < 90;
+  }
+
+  /// Whether the pixel is stripe black (not just any dark UI pixel —
+  /// the threshold is deliberately strict).
+  bool _isBlack(img.Pixel pixel) {
+    final r = pixel.r.toInt();
+    final g = pixel.g.toInt();
+    final b = pixel.b.toInt();
+    return r < 60 && g < 60 && b < 60;
   }
 
   /// Whether ≥ [errorThreshold] of the image is the dark-red

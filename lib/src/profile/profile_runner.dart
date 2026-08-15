@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import '../files/flutter_project.dart';
 import 'collector_template.dart';
 import 'source_instrumenter.dart';
+import 'workspace_pubspec.dart';
 
 /// Directories and files the profiler works with.
 const String _testDirName = 'test';
@@ -269,7 +270,7 @@ class ProfileRunner {
       // A workspace member's pubspec (`resolution: workspace`) cannot be
       // resolved from the temp dir — no workspace root lists it. Write a
       // standalone pubspec instead; `pub get` runs in `run` afterwards.
-      _writeStandalonePubspec(projectRoot, tempDir);
+      WorkspacePubspec(projectRoot).writeStandalone(tempDir);
     }
     _copyTestDir(projectRoot, tempDir);
     if (!workspaceMember) {
@@ -465,28 +466,6 @@ class ProfileRunner {
       r'^resolution:\s*workspace\s*$',
       multiLine: true,
     ).hasMatch(pubspec.readAsStringSync());
-  }
-
-  /// Writes a standalone `pubspec.yaml` for the temp copy of a workspace
-  /// member: strips the `resolution: workspace` marker (the temp dir belongs
-  /// to no workspace) and absolutizes relative `path:` dependencies (from
-  /// one level deeper they would resolve to the wrong directory).
-  void _writeStandalonePubspec(String projectRoot, Directory tempDir) {
-    final src = File(p.join(projectRoot, _pubspecFileName));
-    final absRoot = p.absolute(projectRoot);
-    final rewritten = StringBuffer();
-    for (final line in src.readAsLinesSync()) {
-      if (RegExp(r'^resolution:\s*workspace\s*$').hasMatch(line)) continue;
-      final dep = RegExp(r'^(\s*path:\s*)(\.\.?[/\\].*)$').firstMatch(line);
-      if (dep != null) {
-        final abs = p.normalize(p.join(absRoot, dep.group(2)!));
-        rewritten.writeln('${dep.group(1)}$abs');
-        continue;
-      }
-      rewritten.writeln(line);
-    }
-    File(p.join(tempDir.path, _pubspecFileName))
-        .writeAsStringSync(rewritten.toString());
   }
 
   /// Resolves dependencies in the temp copy of a workspace member. The

@@ -139,17 +139,24 @@ class _MagicLiteralsVisitor extends RecursiveAstVisitor<void> {
     var child = node;
     var parent = node.parent;
     while (parent != null) {
-      if (parent is MapLiteralEntry && parent.key == child) return true;
-      // `expr['name']` — a protocol field access, not a constant.
-      if (parent is IndexExpression && parent.index == child) return true;
-      // Switch-case labels match protocol values, not constants.
-      if (parent is CaseClause) return true;
-      if (parent is SwitchPatternCase || parent is SwitchCase) return true;
+      if (_parentMarksAsIdentifier(parent, child)) return true;
       if (parent is InterpolationElement || parent is ArgumentList) break;
       child = parent;
       parent = parent.parent;
     }
     return false;
+  }
+
+  /// Whether [parent] using [child] in that position makes the
+  /// literal a protocol identifier rather than a magic constant.
+  bool _parentMarksAsIdentifier(AstNode parent, AstNode child) {
+    if (parent is MapLiteralEntry && parent.key == child) return true;
+    // `expr['name']` — a protocol field access, not a constant.
+    if (parent is IndexExpression && parent.index == child) return true;
+    // Switch-case labels (incl. switch expressions) match protocol
+    // values, not constants.
+    if (parent is CaseClause) return true;
+    return parent is SwitchPatternCase || parent is SwitchCase;
   }
 
   @override

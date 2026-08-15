@@ -2,13 +2,59 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.8.5
+
+### Fixed
+
+- `broken_goldens`: overflow-stripe detection now requires real
+  yellow/black alternation (>= 4 transitions, yellow >= 1/3 of the
+  run) instead of "yellow and black pixels in a line" — dark terminal
+  UIs with sparse yellow text (TUI screenshots) no longer
+  false-positive.
+- Internal: workspace profile pubspec rewriting extracted into
+  `WorkspacePubspec` (ProfileRunner back under the WMC limit); stripe
+  detector row/column scans deduplicated.
+
+## 0.8.4
+
+### Fixed
+
+- `magic_constants`: all literals inside `const` declarations are
+  exempt (map keys and collections included) — only non-const usages
+  can be magic.
+
+## 0.8.3
+
+### Fixed
+
+- `magic_constants`: string literals used as index expressions
+  (`map['key']`) are no longer flagged — protocol identifiers, not
+  constants.
+
+## 0.8.2
+
+### Fixed
+
+- Rebase artifact cleanup; republished after the 0.8.0 release series.
+
 ## 0.7.2
 
 ### Fixed
 
-- `magic_constants`: string literals used as map keys are no longer flagged —
-  they are protocol identifiers (JSON field names, channel names), not
-  constants; extracting them added pure noise.
+- `magic_constants`: string literals used as map keys are no longer
+  flagged — they are protocol identifiers (JSON field names, channel
+  names), not constants; extracting them added pure noise.
+
+## 0.8.0
+
+### Added
+
+- `external` quality gate — wraps external static-analysis tools
+  (detekt, ktlint, swiftlint, ...) emitting a Checkstyle XML report
+  as rules `{id, executable, arguments}`; findings become standard
+  violations with severity, baseline and diff mode support. This
+  brings Kotlin/Swift code in Flutter monorepos into the same
+  `crap4dart check` run (new `package:xml` dependency).
 
 ## 0.7.1
 
