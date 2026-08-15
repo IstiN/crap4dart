@@ -2,17 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.7.2
 
-## 0.8.0
+### Fixed
 
-### Added
-
-- `external` quality gate — wraps external static-analysis tools
-  (detekt, ktlint, swiftlint, ...) emitting a Checkstyle XML report
-  as rules `{id, executable, arguments}`; findings become standard
-  violations with severity, baseline and diff mode support. This
-  brings Kotlin/Swift code in Flutter monorepos into the same
-  `crap4dart check` run (new `package:xml` dependency).
+- `magic_constants`: string literals used as map keys are no longer flagged —
+  they are protocol identifiers (JSON field names, channel names), not
+  constants; extracting them added pure noise.
 
 ## 0.7.1
 
@@ -24,7 +20,7 @@ All notable changes to this project will be documented in this file.
 - `unused_code`: declaring a private method no longer removes its name from
   the reference set — cross-class private access within the same library
   (`host.controller._method()`) was reported as never referenced.
-=======
+
 ## 0.7.0
 
 ### Added

@@ -134,7 +134,22 @@ class _MagicLiteralsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
+    // Strings used as map keys are protocol identifiers (JSON field names,
+    // channel names), not magic constants — extracting them adds noise.
+    if (_isMapKey(node)) return;
     _count(node.value, node);
+  }
+
+  bool _isMapKey(AstNode node) {
+    var child = node;
+    var parent = node.parent;
+    while (parent != null) {
+      if (parent is MapLiteralEntry && parent.key == child) return true;
+      if (parent is InterpolationElement || parent is ArgumentList) break;
+      child = parent;
+      parent = parent.parent;
+    }
+    return false;
   }
 
   @override

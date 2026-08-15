@@ -69,4 +69,14 @@ final x = 3.14;
     final result = await gate.run(makeContext(project, ['lib/ok.dart']));
     expect(result.passed, isTrue, reason: '${result.violations}');
   });
+
+  test('map-key strings are not flagged as constants', () async {
+    writeFile(project, 'lib/keys.dart', '''
+final a = {'blur': 1};
+final b = {'blur': 2};
+final c = {'blur': 3};
+''');
+    final result = await gate.run(makeContext(project, ['lib/keys.dart']));
+    expect(result.passed, isTrue, reason: '${result.violations}');
+  });
 }
