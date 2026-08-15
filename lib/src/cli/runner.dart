@@ -50,7 +50,7 @@ Future<String> gitTopLevel(String dir) async {
 }
 
 /// Current crap4dart version.
-const String crap4dartVersion = '0.6.1';
+const String crap4dartVersion = '0.7.0';
 
 /// Shared CLI flag names used by multiple commands.
 const String _configFlag = 'config';

@@ -37,6 +37,8 @@ coverage:
 gates:
   golden:
     enabled: false
+  folder_structure:
+    max_loose_files: 5
 ''',
       ),
     );
@@ -58,6 +60,9 @@ void undocumented() {}
       makeContext(project, ['lib/undocumented.dart'], configYaml: '''
 coverage:
   required: false
+gates:
+  folder_structure:
+    max_loose_files: 5
 '''),
     );
     expect(result.passed, isFalse);

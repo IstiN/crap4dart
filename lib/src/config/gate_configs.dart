@@ -423,6 +423,101 @@ class UnusedFilesGateConfig {
   final List<String> exclude;
 }
 
+/// Broken goldens gate settings (`broken_goldens`).
+class BrokenGoldensGateConfig {
+  /// Creates a [BrokenGoldensGateConfig].
+  const BrokenGoldensGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.dirs = const ['test'],
+    this.minStripeRun = 8,
+    this.exclude = const [],
+  });
+
+  /// Whether the gate is enabled.
+  final bool enabled;
+
+  /// Whether violations fail the run or are reported as warnings.
+  final GateSeverity severity;
+
+  /// Whether `// crap:ignore` comments may suppress violations of this
+  /// gate. Disabled by default — suppression must be opted into.
+  final bool ignorable;
+
+  /// Directories recursively scanned for golden PNG files.
+  final List<String> dirs;
+
+  /// Minimum number of alternating yellow/black pixels that counts as
+  /// an overflow stripe pattern.
+  final int minStripeRun;
+
+  /// Glob patterns excluded from the gate.
+  final List<String> exclude;
+}
+
+/// Test assertions gate settings (`test_assertions`).
+class TestAssertionsGateConfig {
+  /// Creates a [TestAssertionsGateConfig].
+  const TestAssertionsGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.minAssertions = 1,
+    this.exclude = const [],
+  });
+
+  /// Whether the gate is enabled.
+  final bool enabled;
+
+  /// Whether violations fail the run or are reported as warnings.
+  final GateSeverity severity;
+
+  /// Whether `// crap:ignore` comments may suppress violations of this
+  /// gate. Disabled by default — suppression must be opted into.
+  final bool ignorable;
+
+  /// Minimum number of assertion calls a `test()`/`testWidgets()` body
+  /// must contain.
+  final int minAssertions;
+
+  /// Glob patterns excluded from the gate.
+  final List<String> exclude;
+}
+
+/// Folder structure gate settings (`folder_structure`).
+class FolderStructureGateConfig {
+  /// Creates a [FolderStructureGateConfig].
+  const FolderStructureGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.dirs = const ['lib'],
+    this.maxLooseFiles = 0,
+    this.exclude = const [],
+  });
+
+  /// Whether the gate is enabled.
+  final bool enabled;
+
+  /// Whether violations fail the run or are reported as warnings.
+  final GateSeverity severity;
+
+  /// Whether `// crap:ignore` comments may suppress violations of this
+  /// gate. Disabled by default — suppression must be opted into.
+  final bool ignorable;
+
+  /// Directories checked for loose-file sprawl.
+  final List<String> dirs;
+
+  /// Maximum number of `.dart` files allowed directly in each listed
+  /// directory before the sprawl is flagged.
+  final int maxLooseFiles;
+
+  /// Glob patterns excluded from the gate.
+  final List<String> exclude;
+}
+
 /// Magic constants gate settings (`magic_constants`).
 class MagicConstantsGateConfig {
   /// Creates a [MagicConstantsGateConfig].

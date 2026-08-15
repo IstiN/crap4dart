@@ -2,11 +2,13 @@ import '../config/config.dart';
 import '../files/diff_parser.dart';
 import 'accessibility_gate.dart';
 import 'banned_imports_gate.dart';
+import 'broken_goldens_gate.dart';
 import 'class_size_gate.dart';
 import 'complexity_gate.dart';
 import 'coverage_gate.dart';
 import 'duplication_gate.dart';
 import 'file_naming_gate.dart';
+import 'folder_structure_gate.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 import 'golden_gate.dart';
@@ -17,6 +19,7 @@ import 'magic_constants_gate.dart';
 import 'method_size_gate.dart';
 import 'nesting_gate.dart';
 import 'public_docs_gate.dart';
+import 'test_assertions_gate.dart';
 import 'unused_code_gate.dart';
 import 'unused_files_gate.dart';
 import 'weight_of_class_gate.dart';
@@ -35,6 +38,9 @@ const String _bannedImportsId = 'banned_imports';
 const String _duplicationId = 'duplication';
 const String _fileNamingId = 'file_naming';
 const String _magicConstantsId = 'magic_constants';
+const String _brokenGoldensId = 'broken_goldens';
+const String _testAssertionsId = 'test_assertions';
+const String _folderStructureId = 'folder_structure';
 const String _publicDocsId = 'public_docs';
 const String _hardcodedStringsId = 'hardcoded_strings';
 const String _accessibilityId = 'accessibility';
@@ -81,6 +87,12 @@ class GateRunner {
         const DuplicationGate(),
         const FileNamingGate(),
         const MagicConstantsGate(),
+        const BrokenGoldensGate(),
+        const TestAssertionsGate(),
+        const FolderStructureGate(),
+        const BrokenGoldensGate(),
+        const TestAssertionsGate(),
+        const FolderStructureGate(),
         const UnusedCodeGate(),
         const UnusedFilesGate(),
         const BannedImportsGate(),
@@ -193,6 +205,9 @@ class GateRunner {
         _duplicationId => gates.duplication.enabled,
         _fileNamingId => gates.fileNaming.enabled,
         _magicConstantsId => gates.magicConstants.enabled,
+        _brokenGoldensId => gates.brokenGoldens.enabled,
+        _testAssertionsId => gates.testAssertions.enabled,
+        _folderStructureId => gates.folderStructure.enabled,
         _publicDocsId => gates.publicDocs.enabled,
         _hardcodedStringsId => gates.hardcodedStrings.enabled,
         _accessibilityId => gates.accessibility.enabled,
@@ -214,6 +229,9 @@ class GateRunner {
         _duplicationId => gates.duplication.ignorable,
         _fileNamingId => gates.fileNaming.ignorable,
         _magicConstantsId => gates.magicConstants.ignorable,
+        _brokenGoldensId => gates.brokenGoldens.ignorable,
+        _testAssertionsId => gates.testAssertions.ignorable,
+        _folderStructureId => gates.folderStructure.ignorable,
         _publicDocsId => gates.publicDocs.ignorable,
         _hardcodedStringsId => gates.hardcodedStrings.ignorable,
         _accessibilityId => gates.accessibility.ignorable,
@@ -235,6 +253,9 @@ class GateRunner {
         _duplicationId => gates.duplication.severity,
         _fileNamingId => gates.fileNaming.severity,
         _magicConstantsId => gates.magicConstants.severity,
+        _brokenGoldensId => gates.brokenGoldens.severity,
+        _testAssertionsId => gates.testAssertions.severity,
+        _folderStructureId => gates.folderStructure.severity,
         _publicDocsId => gates.publicDocs.severity,
         _hardcodedStringsId => gates.hardcodedStrings.severity,
         _accessibilityId => gates.accessibility.severity,

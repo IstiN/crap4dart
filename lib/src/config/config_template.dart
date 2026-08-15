@@ -220,6 +220,35 @@ gates:
       - '**.freezed.dart'
       - '**.mocks.dart'
       - 'test/**'
+  # Scan golden PNG files for rendered error artifacts: overflow
+  # stripes (yellow/black) and build-error screens (dark red). Golden
+  # tests do not fail on these — the broken frame gets captured.
+  broken_goldens:
+    enabled: true
+    # Directories recursively scanned for golden PNGs.
+    dirs: [test]
+    # Minimum alternating yellow/black pixels counting as a stripe.
+    min_stripe_run: 8
+    # Glob patterns excluded from the gate.
+    exclude: []
+  # Fail tests whose bodies contain no assertion calls (expect, fail,
+  # throwsA, ...) — they verify nothing.
+  test_assertions:
+    enabled: true
+    # Minimum assertion calls per test()/testWidgets() body.
+    min_assertions: 1
+    # Glob patterns excluded from the gate.
+    exclude: []
+  # Flag directories with loose .dart files instead of organized
+  # feature packages (flat-file sprawl).
+  folder_structure:
+    enabled: true
+    # Directories checked for loose-file sprawl.
+    dirs: [lib]
+    # Max .dart files directly inside each directory.
+    max_loose_files: 0
+    # Glob patterns excluded from the gate.
+    exclude: []
   # Require dartdoc comments on the public API.
   public_docs:
     enabled: true

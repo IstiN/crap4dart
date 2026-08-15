@@ -47,3 +47,13 @@ gates:
     enabled: true
     exclude:
       - 'test/**'
+  broken_goldens:
+    enabled: true
+    dirs: [test]
+  test_assertions:
+    enabled: true
+    exclude:
+      - 'test/**'
+  folder_structure:
+    enabled: true
+    dirs: [lib/src]

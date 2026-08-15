@@ -28,11 +28,12 @@ crap4dart is a Dart port of the Java tool
 ## Features
 
 - **CRAP analysis** per method, combining complexity and LCOV coverage
-- **17 quality gates**: `loc`, `test_coverage`, `golden`,
+- **20 quality gates**: `loc`, `test_coverage`, `golden`,
   `hardcoded_strings`, `accessibility`, `complexity`, `method_size`,
   `nesting`, `class_size`, `weight_of_class`, `unused_code`,
   `unused_files`, `banned_imports`, `public_docs`, `duplication`,
-  `file_naming`, `magic_constants`
+  `file_naming`, `magic_constants`, `broken_goldens`, `test_assertions`,
+  `folder_structure`
 - **Gate framework**: per-path thresholds (`entries`), warning
   severity, baseline mode, opt-in ignore markers
 - **Configuration** via `crap4dart.yaml` with strict validation
@@ -447,6 +448,20 @@ gates:
   `sha256` or `utf8` are allowed by default; add more via the `allow`
   list (matched case-insensitively against the whole file name).
   Generated files and `test/**` are excluded by default.
+- **broken_goldens** — scans golden PNG files under `dirs` (default
+  `test`) for rendered error artifacts: overflow stripes (the yellow/
+  black RenderFlex pattern) and build-error screens (the dark-red
+  `ErrorWidget` background). Golden tests do not fail on these — the
+  broken frame gets captured (often permanently, via
+  `--update-goldens`), so the pixels are the only witness.
+- **test_assertions** — fails `test()`/`testWidgets()` bodies with
+  fewer than `min_assertions` (default 1) assertion calls (`expect`,
+  `expectLater`, `fail`, `throwsA`, ...). A test without assertions
+  runs green and verifies nothing — a typical AI placeholder.
+- **folder_structure** — flags directories accumulating more than
+  `max_loose_files` (default 0) `.dart` files directly, instead of
+  organizing code into feature packages (the flat-file sprawl agents
+  leave behind: `lib/src/a.dart`, `lib/src/b.dart`, ...).
 - **magic_constants** — flags magic literals: hex color values
   (`0xFFFF5733`, `0x00AAFF`) used outside `const` declarations, and any
   numeric or string literal repeating at least `min_duplicates`

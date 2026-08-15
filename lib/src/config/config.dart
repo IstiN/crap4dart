@@ -124,6 +124,9 @@ class GatesConfig {
     this.duplication = const DuplicationGateConfig(),
     this.fileNaming = const FileNamingGateConfig(),
     this.magicConstants = const MagicConstantsGateConfig(),
+    this.brokenGoldens = const BrokenGoldensGateConfig(),
+    this.testAssertions = const TestAssertionsGateConfig(),
+    this.folderStructure = const FolderStructureGateConfig(),
     this.flutter = const FlutterGatesConfig(),
   });
 
@@ -168,6 +171,15 @@ class GatesConfig {
 
   /// Magic constants gate (`magic_constants`).
   final MagicConstantsGateConfig magicConstants;
+
+  /// Broken goldens gate (`broken_goldens`).
+  final BrokenGoldensGateConfig brokenGoldens;
+
+  /// Test assertions gate (`test_assertions`).
+  final TestAssertionsGateConfig testAssertions;
+
+  /// Folder structure gate (`folder_structure`).
+  final FolderStructureGateConfig folderStructure;
 
   /// Flutter-specific gates grouped together.
   final FlutterGatesConfig flutter;

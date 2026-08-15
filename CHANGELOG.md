@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.7.0
+
+### Added
+
+- `broken_goldens` quality gate — scans golden PNG files for rendered
+  Flutter error artifacts: overflow stripes (yellow/black) and
+  build-error screens (dark red). Golden tests do not fail on these;
+  the pixels are the only witness (new `package:image` dependency).
+- `test_assertions` quality gate — fails tests without assertion calls
+  (`min_assertions`, default 1).
+- `folder_structure` quality gate — flags directories with more than
+  `max_loose_files` (default 0) loose `.dart` files instead of
+  organized feature packages.
+
 ## 0.6.1
 
 ### Changed

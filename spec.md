@@ -425,15 +425,17 @@ threshold check) and `top` (int, default 20).
 Known gate ids: `loc`, `test_coverage`, `golden`, `hardcoded_strings`,
 `accessibility`, `complexity`, `method_size`, `nesting`, `class_size`,
 `weight_of_class`, `unused_code`, `unused_files`, `banned_imports`,
-`public_docs`, `duplication`, `file_naming`, `magic_constants`.
+`public_docs`, `duplication`, `file_naming`, `magic_constants`,
+`broken_goldens`, `test_assertions`, `folder_structure`.
 
 ## 11. Quality Gates
 
 Gates shall run in the fixed order: `loc`, `test_coverage`,
 `complexity`, `method_size`, `nesting`, `class_size`, `duplication`,
-`file_naming`, `magic_constants`, `unused_code`, `unused_files`,
-`banned_imports`, `public_docs`, `hardcoded_strings`, `accessibility`,
-`golden`, `weight_of_class`. A gate disabled in the config shall produce a
+`file_naming`, `magic_constants`, `broken_goldens`, `test_assertions`,
+`folder_structure`, `unused_code`, `unused_files`, `banned_imports`,
+`public_docs`, `hardcoded_strings`, `accessibility`, `golden`,
+`weight_of_class`. A gate disabled in the config shall produce a
 skipped result. The run shall fail when at least one gate fails;
 skipped gates shall not fail the run.
 
@@ -567,7 +569,35 @@ occurrence is reported. String literals shorter than `min_length`
 Files matching the gate's `exclude` list (default generated files and
 `test/**`) are skipped.
 
-### 11.14 public_docs
+### 11.14 broken_goldens
+
+Scans golden PNG files under `dirs` (default `test`, recursively) for
+rendered Flutter error artifacts. Two detectors: (a) overflow stripes —
+a run of at least `min_stripe_run` (default 8) yellow-or-black stripe
+pixels in a row or column; (b) build-error screens — at least 15% of
+the image being the dark-red ErrorWidget background. Non-PNG files are
+ignored; files matching `exclude` (default none) are skipped. Golden
+tests themselves do not fail on these errors — the snapshot silently
+records the broken frame.
+
+### 11.15 test_assertions
+
+Fails `test()`/`testWidgets()` bodies containing fewer than
+`min_assertions` (default 1) assertion calls. Counted invocations:
+`expect`, `expectLater`, `expectIdentical`, `expectInOrder`, `fail`,
+`throwsA`, `verify`, `matchesGoldenFile`. Tests inside nested `group()`
+bodies are checked individually. Files matching `exclude` (default
+none) are skipped.
+
+### 11.16 folder_structure
+
+Flags configured `dirs` (default `lib`) containing more than
+`max_loose_files` (default 0) `.dart` files directly — a flat-file
+sprawl that should be organized into feature packages. Only direct
+children count; files in subdirectories are the organized form. Files
+matching `exclude` (default none) are not counted.
+
+### 11.17 public_docs
 
 Fails public declarations without dartdoc: classes, mixins, enums,
 extension types, named extensions, top-level functions and variables, and
@@ -575,7 +605,7 @@ public methods and fields. `@override` members, members of private
 containers, constructors and files under `exclude` (default `test/**`)
 shall be exempt.
 
-### 11.15 hardcoded_strings
+### 11.18 hardcoded_strings
 
 Skipped for non-Flutter projects. Flags string literals containing Latin
 or Cyrillic letters passed to `Text(...)` or to the parameters in
@@ -585,14 +615,14 @@ the previous line) and files containing `// l10n:ignore-file` within the
 first 5 lines shall be exempt. When ARB files exist under `lib/`,
 `l10n.<key>` references missing from `app_en.arb` shall be flagged.
 
-### 11.16 accessibility
+### 11.19 accessibility
 
 Skipped for non-Flutter projects. Requires `tooltip` on `IconButton`,
 `semanticLabel` on `Image`, and `semanticsLabel` or a wrapping
 `Semantics` widget on `GestureDetector`/`InkWell`, for the widget types
 in `require_label_for`.
 
-### 11.17 golden
+### 11.20 golden
 
 Skipped for non-Flutter projects and for projects without widgets.
 Widgets are public classes in `widget_dirs` extending `StatelessWidget`,

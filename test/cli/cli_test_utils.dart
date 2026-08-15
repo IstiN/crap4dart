@@ -173,17 +173,22 @@ int risky(int x) {
 
 /// Writes a minimal project that passes all enabled gates.
 void writeCleanProject(Directory root) {
-  Directory(p.join(root.path, 'lib')).createSync();
-  File(p.join(root.path, 'lib', 'a.dart')).writeAsStringSync('''
+  Directory(p.join(root.path, 'lib', 'src')).createSync(recursive: true);
+  File(p.join(root.path, 'lib', 'src', 'a.dart')).writeAsStringSync('''
 /// A documented function.
 void documented() {}
 ''');
   File(p.join(root.path, 'bin', 'main.dart')).createSync(recursive: true);
-  File(p.join(root.path, 'bin', 'main.dart')).writeAsStringSync(
-      "import '../lib/a.dart';\n\n/// Runs the app.\nvoid main() => documented();\n");
+  File(p.join(root.path, 'bin', 'main.dart'))
+      .writeAsStringSync("import '../lib/src/a.dart';\n\n/// Runs the app.\n"
+          'void main() => documented();\n');
   File(p.join(root.path, 'crap4dart.yaml')).writeAsStringSync('''
 coverage:
   required: false
+gates:
+  folder_structure:
+    dirs: [lib/src]
+    max_loose_files: 2
 ''');
 }
 

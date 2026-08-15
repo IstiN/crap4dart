@@ -7,6 +7,7 @@ import 'config.dart';
 
 part 'config_scalars.dart';
 part 'gate_config_readers.dart';
+part 'gate_config_readers_extra.dart';
 
 /// Top-level and section keys of `crap4dart.yaml`.
 const String _crapKey = 'crap';
@@ -62,6 +63,9 @@ class ConfigLoader {
     'duplication',
     'file_naming',
     'magic_constants',
+    'broken_goldens',
+    'test_assertions',
+    'folder_structure',
   };
 
   /// Loads the configuration for the project at [projectRoot].
@@ -262,6 +266,12 @@ class ConfigLoader {
           map['file_naming'], base.fileNaming, path),
       magicConstants: _GateConfigReaders.readMagicConstants(
           map['magic_constants'], base.magicConstants, path),
+      brokenGoldens: _ExtendedGateConfigReaders.readBrokenGoldens(
+          map['broken_goldens'], base.brokenGoldens, path),
+      testAssertions: _ExtendedGateConfigReaders.readTestAssertions(
+          map['test_assertions'], base.testAssertions, path),
+      folderStructure: _ExtendedGateConfigReaders.readFolderStructure(
+          map['folder_structure'], base.folderStructure, path),
       flutter: FlutterGatesConfig(
         golden: _GateConfigReaders.readGolden(
             map['golden'], base.flutter.golden, path),

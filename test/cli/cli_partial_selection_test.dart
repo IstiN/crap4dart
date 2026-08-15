@@ -40,7 +40,7 @@ void main() {
     writeCleanProject(root);
     final result = await runCliInProcess(root, [
       'check',
-      '${root.path}/lib/a.dart',
+      '${root.path}/lib/src/a.dart',
     ]);
     expect(result.exitCode, ExitCodes.success, reason: result.stdout);
     expect(result.stdout, contains('[SKIP] unused_files'));
