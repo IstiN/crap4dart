@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
 
@@ -6,7 +7,13 @@ import 'gate.dart';
 import 'gate_context.dart';
 
 /// The stripe classification of a pixel in the overflow pattern.
-enum _StripeKind { none, yellow, black }
+
+/// Stripe pixel classification codes used by [BrokenGoldensGate] and
+/// its [_PixelStats]: 0 none, 1 yellow, 2 black.
+const int _noneCode = 0;
+const int _yellowCode = 1;
+const int _redCode = 3;
+const int _blackCode = 2;
 
 /// The `broken_goldens` gate: scans golden PNG files for rendered
 /// Flutter error artifacts — yellow/black overflow stripes and the red
@@ -77,11 +84,13 @@ class BrokenGoldensGate implements Gate {
   String? _analyze(File file, int minStripeRun) {
     final image = img.decodeImage(file.readAsBytesSync());
     if (image == null) return null;
-    if (_hasOverflowStripes(image, minStripeRun)) {
+    // One pixel classification pass feeds both detectors.
+    final stats = _PixelStats.of(image);
+    if (stats.hasYellow && _hasOverflowStripes(stats, image, minStripeRun)) {
       return 'overflow stripes (yellow/black) rendered in the golden — '
           'the widget overflows and the snapshot recorded it';
     }
-    if (_hasErrorScreen(image)) {
+    if (stats.redFraction >= 0.15) {
       return 'build-error screen (dark red) rendered in the golden — '
           'the widget tree threw during the snapshot';
     }
@@ -95,43 +104,48 @@ class BrokenGoldensGate implements Gate {
   /// column crossing them shows STRICT yellow/black alternation. Plain
   /// "yellow and black pixels in a line" is not enough — dark UIs with
   /// yellow text produce long mixed runs and would false-positive.
-  bool _hasOverflowStripes(img.Image image, int minStripeRun) {
-    for (var y = 0; y < image.height; y++) {
-      if (_alternatingRun(
-          image.width, minStripeRun, (i) => image.getPixel(i, y))) {
+  bool _hasOverflowStripes(
+    _PixelStats stats,
+    img.Image image,
+    int minStripeRun,
+  ) {
+    final kinds = stats.kinds;
+    final width = image.width;
+    final height = image.height;
+    for (var y = 0; y < height; y++) {
+      if (_alternatingRun(width, minStripeRun, (i) => kinds[y * width + i])) {
         return true;
       }
     }
-    for (var x = 0; x < image.width; x++) {
-      if (_alternatingRun(
-          image.height, minStripeRun, (i) => image.getPixel(x, i))) {
+    for (var x = 0; x < width; x++) {
+      if (_alternatingRun(height, minStripeRun, (i) => kinds[i * width + x])) {
         return true;
       }
     }
     return false;
   }
 
-  /// Whether the pixel line of [length] sampled by [pixelAt] contains
+  /// Whether the pixel line of [length] sampled by [kindAt] contains
   /// a stripe run: a mix of yellow and black pixels, long enough, with
   /// real alternation (>= 4 color transitions) and a yellow share of
   /// at least a third — dark UIs with sparse yellow text never qualify.
   bool _alternatingRun(
     int length,
     int minRun,
-    img.Pixel Function(int i) pixelAt,
+    int Function(int i) kindAt,
   ) {
     var run = 0;
     var transitions = 0;
-    var last = _StripeKind.none;
+    var last = _noneCode;
     var yellows = 0;
     for (var i = 0; i < length; i++) {
-      final kind = _stripeKind(pixelAt(i));
-      if (kind == _StripeKind.none) {
+      final kind = kindAt(i);
+      if (kind == _noneCode) {
         if (_qualifies(run, transitions, yellows, minRun)) return true;
         run = 0;
         transitions = 0;
         yellows = 0;
-        last = _StripeKind.none;
+        last = _noneCode;
         continue;
       }
       if (kind != last) {
@@ -139,7 +153,7 @@ class BrokenGoldensGate implements Gate {
         last = kind;
       }
       run++;
-      if (kind == _StripeKind.yellow) yellows++;
+      if (kind == _yellowCode) yellows++;
       if (_qualifies(run, transitions, yellows, minRun)) return true;
     }
     return false;
@@ -151,45 +165,56 @@ class BrokenGoldensGate implements Gate {
   bool _qualifies(int run, int transitions, int yellows, int minRun) =>
       run >= minRun && transitions >= 4 && yellows * 3 >= run;
 
-  /// The stripe classification of [pixel]: yellow, black or neither.
-  _StripeKind _stripeKind(img.Pixel pixel) {
-    if (_isYellow(pixel)) return _StripeKind.yellow;
-    if (_isBlack(pixel)) return _StripeKind.black;
-    return _StripeKind.none;
-  }
-
-  /// Whether the pixel is the yellow of an overflow stripe, matched
-  /// with tolerance: high R+G, low B.
-  bool _isYellow(img.Pixel pixel) {
-    final r = pixel.r.toInt();
-    final g = pixel.g.toInt();
-    final b = pixel.b.toInt();
-    return r > 200 && g > 180 && b < 90;
-  }
-
-  /// Whether the pixel is stripe black (not just any dark UI pixel —
-  /// the threshold is deliberately strict).
-  bool _isBlack(img.Pixel pixel) {
-    final r = pixel.r.toInt();
-    final g = pixel.g.toInt();
-    final b = pixel.b.toInt();
-    return r < 60 && g < 60 && b < 60;
-  }
-
   /// Whether ≥ [errorThreshold] of the image is the dark-red
-  /// ErrorWidget background (R high-ish, G/B very low).
-  bool _hasErrorScreen(img.Image image) {
-    const errorThreshold = 0.15;
+  /// ErrorWidget background — tracked by [_PixelStats] in the same
+  /// single pixel pass as the stripe classification.
+}
+
+/// Single-pass pixel statistics feeding both golden detectors.
+class _PixelStats {
+  _PixelStats(this.kinds, this.hasYellow, this.redFraction);
+
+  /// Stripe classification code per pixel (see
+  /// [BrokenGoldensGate._stripeKindOf]).
+  final Uint8List kinds;
+
+  /// Whether any pixel is stripe yellow (stripes are impossible
+  /// without it — skips the row/column scan for most images).
+  final bool hasYellow;
+
+  /// Share of pixels matching the dark-red error background.
+  final double redFraction;
+
+  /// Classifies every pixel of [image] once.
+  static _PixelStats of(img.Image image) {
+    final kinds = Uint8List(image.width * image.height);
+    var hasYellow = false;
     var red = 0;
-    var total = 0;
+    var i = 0;
     for (final pixel in image) {
-      total++;
-      final r = pixel.r.toInt();
-      final g = pixel.g.toInt();
-      final b = pixel.b.toInt();
-      // RenderErrorBox background: dark red (#900000 at 94% opacity).
-      if (r > 100 && r < 200 && g < 40 && b < 40) red++;
+      final kind = _classify(pixel);
+      if (kind == _yellowCode) hasYellow = true;
+      if (kind == _redCode) red++;
+      kinds[i++] = kind;
     }
-    return total > 0 && red / total >= errorThreshold;
+    final total = kinds.length;
+    return _PixelStats(
+      kinds,
+      hasYellow,
+      total > 0 ? red / total : 0.0,
+    );
+  }
+
+  /// The classification of one pixel: none, stripe yellow, stripe
+  /// black or error-screen red.
+  static int _classify(img.Pixel pixel) {
+    final r = pixel.r.toInt();
+    final g = pixel.g.toInt();
+    final b = pixel.b.toInt();
+    if (r > 200 && g > 180 && b < 90) return _yellowCode;
+    if (r < 60 && g < 60 && b < 60) return _blackCode;
+    // RenderErrorBox background: dark red (#900000 at 94% opacity).
+    if (r > 100 && r < 200 && g < 40 && b < 40) return _redCode;
+    return _noneCode;
   }
 }

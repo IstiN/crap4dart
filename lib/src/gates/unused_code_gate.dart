@@ -90,16 +90,15 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     final name = node.name.lexeme;
     final isPrivate = name.startsWith('_');
-    final inPrivateContainer = node
-            .thisOrAncestorOfType<ClassDeclaration>()
-            ?.name
-            .lexeme
-            .startsWith('_') ??
-        true;
-    if (isPrivate && !inPrivateContainer) {
+    final enclosingClass = node.thisOrAncestorOfType<ClassDeclaration>();
+    if (isPrivate && !(enclosingClass?.name.lexeme.startsWith('_') ?? true)) {
       _declare(name, node);
     }
-    node.accept(_RefVisitor(references));
+    // Methods outside a class declaration (mixins, extensions, enums)
+    // have no enclosing class-level reference pass — collect here.
+    if (enclosingClass == null) {
+      node.accept(_RefVisitor(references));
+    }
   }
 
   @override
@@ -117,7 +116,7 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
         }
       }
     }
-    node.accept(_RefVisitor(references));
+    // References are collected by the enclosing class-level visit.
   }
 
   @override

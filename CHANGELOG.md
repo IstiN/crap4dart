@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.8.6
+
+### Changed
+
+- Performance: `broken_goldens` pixel scanning rewritten as a single
+  classification pass (`_PixelStats`) with an early exit when no
+  stripe-yellow pixels exist — instrumented profiling showed the gate
+  at 96% of total CPU time (1.68 billion per-pixel calls); the full
+  check run is now ~80x faster on golden-heavy suites.
+- Performance: compiled globs are cached per pattern in
+  `GateContext.matchesAnyGlob` (was re-parsed for every file x
+  pattern across all gates).
+- `unused_code`: removed a double AST traversal for class members.
+
+### Fixed
+
+- `unused_code`: references made from mixin/extension/enum method
+  bodies are counted again (a class-level-only reference pass missed
+  them, false-positive "never referenced" on top-level helpers called
+  from mixins).
+
 ## 0.8.5
 
 ### Fixed

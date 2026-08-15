@@ -102,12 +102,19 @@ class GateContext {
   /// `flutter` package).
   bool get isFlutterProject => isFlutterProjectAt(projectRoot);
 
+  final Map<String, Glob> _globCache = {};
+
   /// Whether any of [patterns] (globs) matches [path], which is first made
-  /// relative to [projectRoot].
+  /// relative to [projectRoot]. Compiled globs are cached per pattern —
+  /// this runs for every file in every gate.
   bool matchesAnyGlob(String path, List<String> patterns) {
     final relative = relativePath(path);
-    return patterns.any((pattern) => Glob(pattern).matches(relative));
+    return patterns.any((pattern) => _glob(pattern).matches(relative));
   }
+
+  /// The compiled glob for [pattern], parsed at most once.
+  Glob _glob(String pattern) =>
+      _globCache.putIfAbsent(pattern, () => Glob(pattern));
 
   /// Whether the pubspec at [root] declares a `flutter` dependency.
   static bool isFlutterProjectAt(String root) =>
