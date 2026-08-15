@@ -35,8 +35,9 @@ class CrapCollector {
     s.totalMicros += micros;
     if (micros < s.minMicros) s.minMicros = micros;
     if (micros > s.maxMicros) s.maxMicros = micros;
-    // Flush every 25 calls to balance I/O overhead vs data retention.
-    if (++_callCount % 25 == 0) _flush();
+    // Flush frequently (flutter_test forbids pending timers after
+    // widget teardown, so a periodic Timer cannot be kept alive).
+    if (++_callCount % 5 == 0) _flush();
   }
 
   void _flush() {

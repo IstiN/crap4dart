@@ -7,6 +7,7 @@ import '../analysis/dart_parser.dart';
 import '../analysis/method_extractor.dart';
 import '../config/config.dart';
 import '../files/diff_parser.dart';
+import '../files/source_finder.dart';
 import '../profile/profile_runner.dart';
 import '../profile/profile_reporter.dart';
 import '../report/json_reporter.dart';
@@ -115,7 +116,6 @@ class ProfileCommand extends Command<int> with CommandHelpers {
       config: config,
     );
     if (prepared.exitCode != null) return prepared.exitCode!;
-    final files = prepared.files!;
 
     // Run instrumented tests.
     final filter = TestFilter(
@@ -130,8 +130,19 @@ class ProfileCommand extends Command<int> with CommandHelpers {
       return ExitCodes.usageError;
     }
 
-    // Parse source files for MethodInfo (for file:line attribution).
-    final methods = _extractMethods(files);
+    // Parse the FULL source set for method attribution — profiling one
+    // test path must not shrink the attribution index (timings come
+    // from all instrumented lib/ methods, test files declare none of
+    // them).
+    final sourceFiles =
+        const SourceFinder().findDefaultSources(root, roots: config.sources);
+    final methods = _extractMethods(
+      const SourceFinder().filterByGlobs(
+        root,
+        sourceFiles,
+        config.exclude,
+      ),
+    );
     final profiles =
         const ProfileAttributor().attribute(result.timings, methods);
     final filtered = _filterByDiff(profiles, prepared.diffMap);

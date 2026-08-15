@@ -133,7 +133,7 @@ class ProfileRunner {
       final outputFile = File(p.join(tempDir.path, '.crap_profile.json'));
 
       stderr.writeln('Running instrumented tests...');
-      final testArgs = _buildTestArgs(projectRoot, filter);
+      final testArgs = _buildTestArgs(projectRoot, tempDir, filter);
       final result = await _runTests(
         projectRoot,
         tempDir,
@@ -187,7 +187,15 @@ class ProfileRunner {
   }
 
   /// Builds the `dart test` / `flutter test` argument list from [filter].
-  List<String> _buildTestArgs(String projectRoot, TestFilter filter) {
+  ///
+  /// Explicit paths are remapped from the original project into the
+  /// temp copy — otherwise the runner would execute the ORIGINAL,
+  /// non-instrumented test files.
+  List<String> _buildTestArgs(
+    String projectRoot,
+    Directory tempDir,
+    TestFilter filter,
+  ) {
     final isFlutter = isFlutterProject(projectRoot);
     // --compiler source bypasses kernel caching that would use
     // the original (non-instrumented) source.
@@ -204,9 +212,30 @@ class ProfileRunner {
     if (filter.excludeTags != null && filter.excludeTags!.isNotEmpty) {
       args.addAll(['-x', filter.excludeTags!.join(',')]);
     }
-    // Explicit test paths go at the end.
-    args.addAll(filter.paths);
+    // Explicit test paths go at the end, remapped into the temp copy.
+    args.addAll(_remapPaths(projectRoot, tempDir, filter.paths));
     return args;
+  }
+
+  /// [paths] made relative to [tempDir] (project-relative paths stay
+  /// unchanged; absolute original-project paths become temp-relative).
+  List<String> _remapPaths(
+    String projectRoot,
+    Directory tempDir,
+    List<String> paths,
+  ) =>
+      [
+        for (final path in paths) _remapPath(projectRoot, tempDir.path, path),
+      ];
+
+  String _remapPath(String projectRoot, String tempRoot, String path) {
+    if (p.isAbsolute(path)) {
+      if (p.isWithin(projectRoot, path)) {
+        return p.join(tempRoot, p.relative(path, from: projectRoot));
+      }
+      return path;
+    }
+    return path;
   }
 
   /// Reports test errors to stderr.
