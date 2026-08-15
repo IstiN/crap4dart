@@ -50,11 +50,7 @@ Future<String> gitTopLevel(String dir) async {
 }
 
 /// Current crap4dart version.
-<<<<<<< HEAD
-const String crap4dartVersion = '0.8.1';
-=======
-const String crap4dartVersion = '0.8.1';
->>>>>>> 75e4165 (fix(gates): magic_constants skips map-key strings (0.7.2))
+const String crap4dartVersion = '0.8.2';
 
 /// Shared CLI flag names used by multiple commands.
 const String _configFlag = 'config';
