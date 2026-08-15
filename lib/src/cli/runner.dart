@@ -50,7 +50,26 @@ Future<String> gitTopLevel(String dir) async {
 }
 
 /// Current crap4dart version.
-const String crap4dartVersion = '0.6.0';
+const String crap4dartVersion = '0.6.1';
+
+/// Shared CLI flag names used by multiple commands.
+const String _configFlag = 'config';
+const String _changedFlag = 'changed';
+const String _runTestsFlag = 'run-tests';
+const String _formatFlag = 'format';
+const String _forceFlag = 'force';
+const String _diffBaseFlag = 'diff-base';
+const String _diffFlag = 'diff';
+const String _stagedFlagName = 'staged';
+
+/// Shared `--format` option values.
+const String _consoleFormat = 'console';
+const String _jsonFormat = 'json';
+
+/// Option names used by a single command family.
+const String _thresholdFlagName = 'threshold';
+const String _lcovFlag = 'lcov';
+const String _configHelp = 'Path to a crap4dart.yaml config file.';
 
 /// Command-line entry point of crap4dart.
 class Crap4DartRunner {
@@ -126,7 +145,7 @@ mixin CommandHelpers on Command<int> {
     try {
       return const ConfigLoader().load(
         projectRoot,
-        configPath: argResults!['config'] as String?,
+        configPath: argResults![_configFlag] as String?,
       );
     } on ConfigException catch (e) {
       stderr.writeln(e);
@@ -139,10 +158,10 @@ mixin CommandHelpers on Command<int> {
   Future<({DiffLineMap? map, String? base, bool ok})> resolveDiff(
     String projectRoot,
   ) async {
-    final diffBase = argResults!['diff-base'] as String?;
-    final diffMode = (argResults!['diff'] as bool) || diffBase != null;
+    final diffBase = argResults![_diffBaseFlag] as String?;
+    final diffMode = (argResults![_diffFlag] as bool) || diffBase != null;
     if (!diffMode) return (map: null, base: null, ok: true);
-    final changed = argResults!['changed'] as bool;
+    final changed = argResults![_changedFlag] as bool;
     final staged = stagedFlag;
     if (changed || staged || argResults!.rest.isNotEmpty) {
       throw UsageException(
@@ -162,7 +181,7 @@ mixin CommandHelpers on Command<int> {
   ) async {
     const finder = SourceFinder();
     final paths = argResults!.rest;
-    final changed = argResults!['changed'] as bool;
+    final changed = argResults![_changedFlag] as bool;
     final staged = stagedFlag;
     if (changed && staged) {
       throw UsageException(
@@ -183,7 +202,8 @@ mixin CommandHelpers on Command<int> {
 
   /// Reads the optional `--staged` flag when the command exposes it.
   bool get stagedFlag =>
-      argResults!.options.contains('staged') && argResults!['staged'] as bool;
+      argResults!.options.contains(_stagedFlagName) &&
+      argResults![_stagedFlagName] as bool;
 
   /// Finds changed or staged files and keeps only those inside the project
   /// root.
@@ -302,7 +322,7 @@ mixin CommandHelpers on Command<int> {
   /// staged or explicit paths) instead of the full source set.
   bool _isPartialSelection(DiffLineMap? diffMap) =>
       diffMap != null ||
-      argResults!['changed'] as bool ||
+      argResults![_changedFlag] as bool ||
       stagedFlag ||
       argResults!.rest.isNotEmpty;
 }
@@ -313,40 +333,40 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
   AnalyzeCommand({this.projectRoot}) {
     argParser
       ..addFlag(
-        'changed',
+        _changedFlag,
         negatable: false,
         help: 'Analyze only changed Dart files (git working tree).',
       )
       ..addOption(
-        'threshold',
+        _thresholdFlagName,
         help: 'Maximum allowed CRAP score (overrides the config value).',
       )
       ..addOption(
-        'lcov',
+        _lcovFlag,
         help: 'Path to an LCOV coverage file (overrides the config value).',
       )
       ..addFlag(
-        'run-tests',
+        _runTestsFlag,
         negatable: false,
         help: 'Run the test suite first to generate coverage.',
       )
       ..addOption(
-        'config',
-        help: 'Path to a crap4dart.yaml config file.',
+        _configFlag,
+        help: _configHelp,
       )
       ..addOption(
-        'format',
-        allowed: ['console', 'json'],
-        defaultsTo: 'console',
+        _formatFlag,
+        allowed: [_consoleFormat, _jsonFormat],
+        defaultsTo: _consoleFormat,
         help: 'Output format (json writes only JSON to stdout).',
       )
       ..addFlag(
-        'diff',
+        _diffFlag,
         negatable: false,
         help: 'Analyze only methods on lines changed since HEAD.',
       )
       ..addOption(
-        'diff-base',
+        _diffBaseFlag,
         help: 'Like --diff, but diffs against the given git ref.',
       )
       ..addOption(
@@ -435,7 +455,7 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
   }
 
   void _printReport(CrapReport report, double threshold, String? diffBase) {
-    if (argResults!['format'] == 'json') {
+    if (argResults![_formatFlag] == _jsonFormat) {
       stdout.writeln(
         const JsonReporter().renderAnalyze(
           report,
@@ -475,8 +495,10 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
   }
 
   double _resolveThreshold(Crap4DartConfig config) {
-    if (!argResults!.wasParsed('threshold')) return config.crap.threshold;
-    final raw = argResults!['threshold'] as String;
+    if (!argResults!.wasParsed(_thresholdFlagName)) {
+      return config.crap.threshold;
+    }
+    final raw = argResults![_thresholdFlagName] as String;
     final value = double.tryParse(raw);
     if (value == null) {
       throw UsageException('Invalid --threshold value: "$raw"', invocation);
@@ -485,11 +507,11 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
   }
 
   Future<String?> _resolveLcov(String projectRoot, Crap4DartConfig config) {
-    final runTests = (argResults!['run-tests'] as bool) ||
+    final runTests = (argResults![_runTestsFlag] as bool) ||
         config.crap.runTests ||
         config.coverage.runTests;
-    final lcovPath = argResults!.wasParsed('lcov')
-        ? argResults!['lcov'] as String
+    final lcovPath = argResults!.wasParsed(_lcovFlag)
+        ? argResults![_lcovFlag] as String
         : config.coverage.lcovPath;
     return _resolveLcovPath(projectRoot, runTests, lcovPath);
   }
@@ -521,36 +543,36 @@ class CheckCommand extends Command<int> with CommandHelpers {
         help: 'Check all Dart files under lib/ and bin/ (default).',
       )
       ..addFlag(
-        'changed',
+        _changedFlag,
         negatable: false,
         help: 'Check only changed Dart files (git working tree).',
       )
       ..addFlag(
-        'staged',
+        _stagedFlagName,
         negatable: false,
         help: 'Check only staged Dart files (git index).',
       )
       ..addOption('only', help: 'Run only these gates (comma-separated ids).')
       ..addOption('skip', help: 'Skip these gates (comma-separated ids).')
-      ..addOption('config', help: 'Path to a crap4dart.yaml config file.')
+      ..addOption(_configFlag, help: 'Path to a crap4dart.yaml config file.')
       ..addFlag(
-        'run-tests',
+        _runTestsFlag,
         negatable: false,
         help: 'Run the test suite first to generate coverage.',
       )
       ..addOption(
-        'format',
-        allowed: ['console', 'json'],
-        defaultsTo: 'console',
+        _formatFlag,
+        allowed: [_consoleFormat, _jsonFormat],
+        defaultsTo: _consoleFormat,
         help: 'Output format (json writes only JSON to stdout).',
       )
       ..addFlag(
-        'diff',
+        _diffFlag,
         negatable: false,
         help: 'Check only lines changed since HEAD (ratchet mode).',
       )
       ..addOption(
-        'diff-base',
+        _diffBaseFlag,
         help: 'Like --diff, but diffs against the given git ref.',
       )
       ..addFlag(
@@ -632,7 +654,7 @@ class CheckCommand extends Command<int> with CommandHelpers {
   }
 
   void _printResult(GateRunner runner, GateRunResult result) {
-    if (argResults!['format'] == 'json') {
+    if (argResults![_formatFlag] == _jsonFormat) {
       stdout.writeln(const JsonReporter().renderCheck(result));
     } else {
       stdout.writeln(runner.render(result));
@@ -644,7 +666,7 @@ class CheckCommand extends Command<int> with CommandHelpers {
     Crap4DartConfig config,
   ) async {
     final runTests =
-        (argResults!['run-tests'] as bool) || config.coverage.runTests;
+        (argResults![_runTestsFlag] as bool) || config.coverage.runTests;
     if (!runTests) return true;
     final generated = await const CoverageRunner().run(projectRoot);
     if (generated == null) {
@@ -660,7 +682,7 @@ class InitCommand extends Command<int> {
   /// Creates an [InitCommand].
   InitCommand({this.projectRoot}) {
     argParser.addFlag(
-      'force',
+      _forceFlag,
       abbr: 'f',
       negatable: false,
       help: 'Overwrite an existing config file.',
@@ -682,7 +704,7 @@ class InitCommand extends Command<int> {
     final root = projectRoot ?? Directory.current.path;
     final path = p.join(root, ConfigLoader.configFileName);
     final file = File(path);
-    if (file.existsSync() && !(argResults!['force'] as bool)) {
+    if (file.existsSync() && !(argResults![_forceFlag] as bool)) {
       stderr.writeln(
         '${ConfigLoader.configFileName} already exists '
         '(use --force to overwrite).',
@@ -711,12 +733,12 @@ class InstallCommand extends Command<int> {
         help: 'Also install the GitHub Actions quality workflow.',
       )
       ..addFlag(
-        'force',
+        _forceFlag,
         abbr: 'f',
         negatable: false,
         help: 'Merge into existing hooks / overwrite existing files.',
       )
-      ..addOption('config', help: 'Path to a crap4dart.yaml config file.');
+      ..addOption(_configFlag, help: _configHelp);
   }
 
   /// Project root override (default: the current working directory).
@@ -735,9 +757,9 @@ class InstallCommand extends Command<int> {
     try {
       final config = const ConfigLoader().load(
         projectRoot,
-        configPath: argResults!['config'] as String?,
+        configPath: argResults![_configFlag] as String?,
       );
-      final force = argResults!['force'] as bool;
+      final force = argResults![_forceFlag] as bool;
       final hookPath = await const HookInstaller().installHook(
         projectRoot,
         hookName: argResults!['hook'] as String,

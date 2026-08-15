@@ -21,6 +21,25 @@ import 'unused_code_gate.dart';
 import 'unused_files_gate.dart';
 import 'weight_of_class_gate.dart';
 
+/// Gate id constants shared by the enabled/ignorable/severity lookups.
+const String _locId = 'loc';
+const String _testCoverageId = 'test_coverage';
+const String _complexityId = 'complexity';
+const String _methodSizeId = 'method_size';
+const String _nestingId = 'nesting';
+const String _classSizeId = 'class_size';
+const String _weightOfClassId = 'weight_of_class';
+const String _unusedCodeId = 'unused_code';
+const String _unusedFilesId = 'unused_files';
+const String _bannedImportsId = 'banned_imports';
+const String _duplicationId = 'duplication';
+const String _fileNamingId = 'file_naming';
+const String _magicConstantsId = 'magic_constants';
+const String _publicDocsId = 'public_docs';
+const String _hardcodedStringsId = 'hardcoded_strings';
+const String _accessibilityId = 'accessibility';
+const String _goldenId = 'golden';
+
 /// Aggregated outcome of a [GateRunner] run.
 class GateRunResult {
   /// Creates a [GateRunResult].
@@ -161,65 +180,65 @@ class GateRunner {
   }
 
   bool _isEnabled(String id, GatesConfig gates) => switch (id) {
-        'loc' => gates.loc.enabled,
-        'test_coverage' => gates.testCoverage.enabled,
-        'complexity' => gates.complexity.enabled,
-        'method_size' => gates.methodSize.enabled,
-        'nesting' => gates.nesting.enabled,
-        'class_size' => gates.classSize.enabled,
-        'weight_of_class' => gates.weightOfClass.enabled,
-        'unused_code' => gates.unusedCode.enabled,
-        'unused_files' => gates.unusedFiles.enabled,
-        'banned_imports' => gates.bannedImports.enabled,
-        'duplication' => gates.duplication.enabled,
-        'file_naming' => gates.fileNaming.enabled,
-        'magic_constants' => gates.magicConstants.enabled,
-        'public_docs' => gates.publicDocs.enabled,
-        'hardcoded_strings' => gates.hardcodedStrings.enabled,
-        'accessibility' => gates.accessibility.enabled,
-        'golden' => gates.golden.enabled,
+        _locId => gates.loc.enabled,
+        _testCoverageId => gates.testCoverage.enabled,
+        _complexityId => gates.complexity.enabled,
+        _methodSizeId => gates.methodSize.enabled,
+        _nestingId => gates.nesting.enabled,
+        _classSizeId => gates.classSize.enabled,
+        _weightOfClassId => gates.weightOfClass.enabled,
+        _unusedCodeId => gates.unusedCode.enabled,
+        _unusedFilesId => gates.unusedFiles.enabled,
+        _bannedImportsId => gates.bannedImports.enabled,
+        _duplicationId => gates.duplication.enabled,
+        _fileNamingId => gates.fileNaming.enabled,
+        _magicConstantsId => gates.magicConstants.enabled,
+        _publicDocsId => gates.publicDocs.enabled,
+        _hardcodedStringsId => gates.hardcodedStrings.enabled,
+        _accessibilityId => gates.accessibility.enabled,
+        _goldenId => gates.golden.enabled,
         _ => false,
       };
 
   bool _isIgnorable(String id, GatesConfig gates) => switch (id) {
-        'loc' => gates.loc.ignorable,
-        'test_coverage' => gates.testCoverage.ignorable,
-        'complexity' => gates.complexity.ignorable,
-        'method_size' => gates.methodSize.ignorable,
-        'nesting' => gates.nesting.ignorable,
-        'class_size' => gates.classSize.ignorable,
-        'weight_of_class' => gates.weightOfClass.ignorable,
-        'unused_code' => gates.unusedCode.ignorable,
-        'unused_files' => gates.unusedFiles.ignorable,
-        'banned_imports' => gates.bannedImports.ignorable,
-        'duplication' => gates.duplication.ignorable,
-        'file_naming' => gates.fileNaming.ignorable,
-        'magic_constants' => gates.magicConstants.ignorable,
-        'public_docs' => gates.publicDocs.ignorable,
-        'hardcoded_strings' => gates.hardcodedStrings.ignorable,
-        'accessibility' => gates.accessibility.ignorable,
-        'golden' => gates.golden.ignorable,
+        _locId => gates.loc.ignorable,
+        _testCoverageId => gates.testCoverage.ignorable,
+        _complexityId => gates.complexity.ignorable,
+        _methodSizeId => gates.methodSize.ignorable,
+        _nestingId => gates.nesting.ignorable,
+        _classSizeId => gates.classSize.ignorable,
+        _weightOfClassId => gates.weightOfClass.ignorable,
+        _unusedCodeId => gates.unusedCode.ignorable,
+        _unusedFilesId => gates.unusedFiles.ignorable,
+        _bannedImportsId => gates.bannedImports.ignorable,
+        _duplicationId => gates.duplication.ignorable,
+        _fileNamingId => gates.fileNaming.ignorable,
+        _magicConstantsId => gates.magicConstants.ignorable,
+        _publicDocsId => gates.publicDocs.ignorable,
+        _hardcodedStringsId => gates.hardcodedStrings.ignorable,
+        _accessibilityId => gates.accessibility.ignorable,
+        _goldenId => gates.golden.ignorable,
         _ => false,
       };
 
   GateSeverity _severity(String id, GatesConfig gates) => switch (id) {
-        'loc' => gates.loc.severity,
-        'test_coverage' => gates.testCoverage.severity,
-        'complexity' => gates.complexity.severity,
-        'method_size' => gates.methodSize.severity,
-        'nesting' => gates.nesting.severity,
-        'class_size' => gates.classSize.severity,
-        'weight_of_class' => gates.weightOfClass.severity,
-        'unused_code' => gates.unusedCode.severity,
-        'unused_files' => gates.unusedFiles.severity,
-        'banned_imports' => gates.bannedImports.severity,
-        'duplication' => gates.duplication.severity,
-        'file_naming' => gates.fileNaming.severity,
-        'magic_constants' => gates.magicConstants.severity,
-        'public_docs' => gates.publicDocs.severity,
-        'hardcoded_strings' => gates.hardcodedStrings.severity,
-        'accessibility' => gates.accessibility.severity,
-        'golden' => gates.golden.severity,
+        _locId => gates.loc.severity,
+        _testCoverageId => gates.testCoverage.severity,
+        _complexityId => gates.complexity.severity,
+        _methodSizeId => gates.methodSize.severity,
+        _nestingId => gates.nesting.severity,
+        _classSizeId => gates.classSize.severity,
+        _weightOfClassId => gates.weightOfClass.severity,
+        _unusedCodeId => gates.unusedCode.severity,
+        _unusedFilesId => gates.unusedFiles.severity,
+        _bannedImportsId => gates.bannedImports.severity,
+        _duplicationId => gates.duplication.severity,
+        _fileNamingId => gates.fileNaming.severity,
+        _magicConstantsId => gates.magicConstants.severity,
+        _publicDocsId => gates.publicDocs.severity,
+        _hardcodedStringsId => gates.hardcodedStrings.severity,
+        _accessibilityId => gates.accessibility.severity,
+        _goldenId => gates.golden.severity,
         _ => GateSeverity.error,
       };
 

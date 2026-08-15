@@ -5,6 +5,9 @@ import '../analysis/dart_parser.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
+/// Default label parameter when a widget has no dedicated mapping.
+const String _semanticsLabelParam = 'semanticsLabel';
+
 /// The `accessibility` gate: requires semantics labels on interactive
 /// widgets listed in `gates.accessibility.require_label_for`.
 ///
@@ -19,8 +22,8 @@ class AccessibilityGate implements Gate {
   static const Map<String, String> labelParams = {
     'IconButton': 'tooltip',
     'Image': 'semanticLabel',
-    'GestureDetector': 'semanticsLabel',
-    'InkWell': 'semanticsLabel',
+    'GestureDetector': _semanticsLabelParam,
+    'InkWell': _semanticsLabelParam,
   };
 
   @override
@@ -74,12 +77,13 @@ class _A11yVisitor extends RecursiveAstVisitor<void> {
 
   void _check(AstNode node, String name, ArgumentList arguments) {
     if (!_widgets.contains(name)) return;
-    final labelParam = AccessibilityGate.labelParams[name] ?? 'semanticsLabel';
+    final labelParam =
+        AccessibilityGate.labelParams[name] ?? _semanticsLabelParam;
     final hasLabel = arguments.arguments.any(
       (a) => a is NamedExpression && a.name.label.name == labelParam,
     );
     if (hasLabel) return;
-    if (labelParam == 'semanticsLabel' && _wrappedInSemantics(node)) return;
+    if (labelParam == _semanticsLabelParam && _wrappedInSemantics(node)) return;
     violations.add(
       GateViolation(
         file: _file,

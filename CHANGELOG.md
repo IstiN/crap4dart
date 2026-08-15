@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.6.1
+
+### Changed
+
+- Dogfooding cleanup: every literal previously hidden in the committed
+  baseline (304 violations — repeated YAML keys, CLI flag names, gate
+  ids, JSON keys, path segments) is now a named constant. The baseline
+  is empty; `check` passes with no grandfathered violations.
+
 ## 0.6.0
 
 ### Added

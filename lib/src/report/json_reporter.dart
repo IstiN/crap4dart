@@ -5,6 +5,12 @@ import '../gates/gate.dart';
 import '../gates/gate_runner.dart';
 import '../profile/profile_reporter.dart';
 
+/// JSON keys shared across the report shapes.
+const String _commandKey = 'command';
+const String _passedKey = 'passed';
+const String _fileKey = 'file';
+const String _lineKey = 'line';
+
 /// Renders analyze and check results as JSON for machine consumption.
 ///
 /// The output contains only structured data: missing coverage or CRAP
@@ -26,16 +32,16 @@ class JsonReporter {
   }) {
     final maxCrap = report.maxCrap;
     return _encoder.convert({
-      'command': 'analyze',
+      _commandKey: 'analyze',
       'threshold': threshold,
       'maxCrap': maxCrap,
-      'passed': maxCrap <= threshold,
+      _passedKey: maxCrap <= threshold,
       if (diffBase != null) ...{'diffMode': true, 'diffBase': diffBase},
       'methods': [
         for (final m in report.sorted)
           {
-            'file': m.method.filePath,
-            'line': m.method.startLine,
+            _fileKey: m.method.filePath,
+            _lineKey: m.method.startLine,
             'class': m.method.className,
             'method': m.method.methodName,
             'complexity': m.complexity,
@@ -50,8 +56,8 @@ class JsonReporter {
   /// Renders the `check` report from the aggregated [result].
   String renderCheck(GateRunResult result) {
     return _encoder.convert({
-      'command': 'check',
-      'passed': result.passed,
+      _commandKey: 'check',
+      _passedKey: result.passed,
       'gates': [for (final r in result.results) _gateJson(r)],
     });
   }
@@ -69,15 +75,15 @@ class JsonReporter {
     final passed = thresholdMs == null ||
         sorted.every((p) => p.timing.totalMillis <= thresholdMs);
     return _encoder.convert({
-      'command': 'profile',
+      _commandKey: 'profile',
       'totalMicros': totalMicros,
       if (thresholdMs != null) 'thresholdMs': thresholdMs,
-      'passed': passed,
+      _passedKey: passed,
       'methods': [
         for (final p in shown)
           {
-            'file': p.method.filePath,
-            'line': p.method.startLine,
+            _fileKey: p.method.filePath,
+            _lineKey: p.method.startLine,
             'class': p.method.className,
             'method': p.method.methodName,
             'calls': p.timing.calls,
@@ -100,7 +106,7 @@ class JsonReporter {
       'summary': r.summary,
       'violations': [
         for (final v in r.violations)
-          {'file': v.file, 'line': v.line, 'message': v.message},
+          {_fileKey: v.file, _lineKey: v.line, 'message': v.message},
       ],
     };
   }

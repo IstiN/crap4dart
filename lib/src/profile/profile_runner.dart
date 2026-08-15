@@ -8,6 +8,11 @@ import '../files/flutter_project.dart';
 import 'collector_template.dart';
 import 'source_instrumenter.dart';
 
+/// Directories and files the profiler works with.
+const String _testDirName = 'test';
+const String _pubspecFileName = 'pubspec.yaml';
+const String _dartToolDirName = '.dart_tool';
+
 /// Per-method timing data collected from an instrumented test run.
 class MethodTiming {
   /// Creates a [MethodTiming].
@@ -185,8 +190,9 @@ class ProfileRunner {
     final isFlutter = isFlutterProject(projectRoot);
     // --compiler source bypasses kernel caching that would use
     // the original (non-instrumented) source.
-    final args =
-        isFlutter ? <String>['test'] : <String>['test', '--compiler', 'source'];
+    final args = isFlutter
+        ? <String>[_testDirName]
+        : <String>[_testDirName, '--compiler', 'source'];
 
     if (filter.name != null) {
       args.addAll(['--name', filter.name!]);
@@ -289,7 +295,7 @@ class ProfileRunner {
     for (final entity in Directory(projectRoot).listSync()) {
       final name = p.basename(entity.path);
       if (_isManagedCopy(name)) continue;
-      if (skipPubspec && name == 'pubspec.yaml') continue;
+      if (skipPubspec && name == _pubspecFileName) continue;
       final target = p.join(tempDir.path, name);
       try {
         Link(target).createSync(entity.path, recursive: false);
@@ -304,16 +310,16 @@ class ProfileRunner {
   bool _isManagedCopy(String name) =>
       name == 'lib' ||
       name == 'build' ||
-      name == '.dart_tool' ||
-      name == 'test';
+      name == _dartToolDirName ||
+      name == _testDirName;
 
   /// Copies `test/` into [tempDir] — it must contain real files, not
   /// symlinks, because `dart test` resolves `package:` imports relative
   /// to the test file's real path, not to the working directory.
   void _copyTestDir(String projectRoot, Directory tempDir) {
-    final testDir = Directory(p.join(projectRoot, 'test'));
+    final testDir = Directory(p.join(projectRoot, _testDirName));
     if (testDir.existsSync()) {
-      _copyPath(testDir.path, p.join(tempDir.path, 'test'));
+      _copyPath(testDir.path, p.join(tempDir.path, _testDirName));
     }
   }
 
@@ -324,8 +330,8 @@ class ProfileRunner {
     Directory tempDir,
     String packageName,
   ) {
-    final dartToolSrc = Directory(p.join(projectRoot, '.dart_tool'));
-    final dartToolDest = Directory(p.join(tempDir.path, '.dart_tool'));
+    final dartToolSrc = Directory(p.join(projectRoot, _dartToolDirName));
+    final dartToolDest = Directory(p.join(tempDir.path, _dartToolDirName));
     if (dartToolSrc.existsSync()) {
       _copyDartTool(dartToolSrc, dartToolDest, tempDir.path, packageName);
     }
@@ -440,7 +446,7 @@ class ProfileRunner {
 
   /// Reads the package name from `pubspec.yaml`.
   String? _readPackageName(String root) {
-    final pubspec = File(p.join(root, 'pubspec.yaml'));
+    final pubspec = File(p.join(root, _pubspecFileName));
     if (!pubspec.existsSync()) return null;
     final match = RegExp(
       r'^name:\s*(.+)$',
@@ -453,7 +459,7 @@ class ProfileRunner {
   /// the package is a workspace member whose resolution lives in a parent
   /// workspace pubspec that does not list the profiling temp dir.
   bool _isWorkspaceMember(String root) {
-    final pubspec = File(p.join(root, 'pubspec.yaml'));
+    final pubspec = File(p.join(root, _pubspecFileName));
     if (!pubspec.existsSync()) return false;
     return RegExp(
       r'^resolution:\s*workspace\s*$',
@@ -466,7 +472,7 @@ class ProfileRunner {
   /// to no workspace) and absolutizes relative `path:` dependencies (from
   /// one level deeper they would resolve to the wrong directory).
   void _writeStandalonePubspec(String projectRoot, Directory tempDir) {
-    final src = File(p.join(projectRoot, 'pubspec.yaml'));
+    final src = File(p.join(projectRoot, _pubspecFileName));
     final absRoot = p.absolute(projectRoot);
     final rewritten = StringBuffer();
     for (final line in src.readAsLinesSync()) {
@@ -479,7 +485,7 @@ class ProfileRunner {
       }
       rewritten.writeln(line);
     }
-    File(p.join(tempDir.path, 'pubspec.yaml'))
+    File(p.join(tempDir.path, _pubspecFileName))
         .writeAsStringSync(rewritten.toString());
   }
 

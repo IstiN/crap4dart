@@ -8,6 +8,15 @@ import 'config.dart';
 part 'config_scalars.dart';
 part 'gate_config_readers.dart';
 
+/// Top-level and section keys of `crap4dart.yaml`.
+const String _crapKey = 'crap';
+const String _coverageKey = 'coverage';
+const String _profileKey = 'profile';
+const String _sourcesKey = 'sources';
+const String _runTestsKey = 'run_tests';
+const String _gatesKey = 'gates';
+const String _thresholdMsKey = 'threshold_ms';
+
 /// Error raised for malformed or invalid `crap4dart.yaml` content.
 class ConfigException implements Exception {
   /// Creates a [ConfigException].
@@ -86,17 +95,24 @@ class ConfigLoader {
     final root = _ConfigScalars.asMap(doc, path, '(root)');
     _ConfigScalars.checkKeys(
       root,
-      const {'crap', 'coverage', 'gates', 'profile', 'sources', 'exclude'},
+      const {
+        _crapKey,
+        _coverageKey,
+        _gatesKey,
+        _profileKey,
+        _sourcesKey,
+        'exclude'
+      },
       path,
       '',
     );
     final defaults = Crap4DartConfig.defaults();
     return Crap4DartConfig(
-      crap: _readCrap(root['crap'], defaults.crap, path),
-      coverage: _readCoverage(root['coverage'], defaults.coverage, path),
-      gates: _readGates(root['gates'], defaults.gates, path),
-      profile: _readProfile(root['profile'], defaults.profile, path),
-      sources: _readSources(root['sources'], defaults.sources, path),
+      crap: _readCrap(root[_crapKey], defaults.crap, path),
+      coverage: _readCoverage(root[_coverageKey], defaults.coverage, path),
+      gates: _readGates(root[_gatesKey], defaults.gates, path),
+      profile: _readProfile(root[_profileKey], defaults.profile, path),
+      sources: _readSources(root[_sourcesKey], defaults.sources, path),
       exclude: _ConfigScalars.strList(
         root,
         'exclude',
@@ -110,7 +126,7 @@ class ConfigLoader {
   List<String> _readSources(Object? node, List<String> base, String path) {
     if (node == null) return base;
     if (node is! YamlList) {
-      throw ConfigException(path, 'sources', 'expected a list of strings');
+      throw ConfigException(path, _sourcesKey, 'expected a list of strings');
     }
     final sources = <String>[];
     for (final entry in node.nodes) {
@@ -118,7 +134,7 @@ class ConfigLoader {
       if (value is! String || value.isEmpty) {
         throw ConfigException(
           path,
-          'sources',
+          _sourcesKey,
           'expected a list of non-empty strings',
         );
       }
@@ -129,80 +145,81 @@ class ConfigLoader {
 
   CrapConfig _readCrap(Object? node, CrapConfig base, String path) {
     if (node == null) return base;
-    final map = _ConfigScalars.asMap(node, path, 'crap');
+    final map = _ConfigScalars.asMap(node, path, _crapKey);
     _ConfigScalars.checkKeys(
       map,
-      const {'enabled', 'threshold', 'run_tests', 'count_lambdas'},
+      const {_enabledKey, 'threshold', _runTestsKey, 'count_lambdas'},
       path,
-      'crap',
+      _crapKey,
     );
     return CrapConfig(
-      enabled:
-          _ConfigScalars.readBool(map, 'enabled', base.enabled, path, 'crap'),
+      enabled: _ConfigScalars.readBool(
+          map, _enabledKey, base.enabled, path, _crapKey),
       threshold: _ConfigScalars.readNum(
-          map, 'threshold', base.threshold, path, 'crap'),
+          map, 'threshold', base.threshold, path, _crapKey),
       runTests: _ConfigScalars.readBool(
-          map, 'run_tests', base.runTests, path, 'crap'),
+          map, _runTestsKey, base.runTests, path, _crapKey),
       countLambdas: _ConfigScalars.readBool(
-          map, 'count_lambdas', base.countLambdas, path, 'crap'),
+          map, 'count_lambdas', base.countLambdas, path, _crapKey),
     );
   }
 
   CoverageConfig _readCoverage(Object? node, CoverageConfig base, String path) {
     if (node == null) return base;
-    final map = _ConfigScalars.asMap(node, path, 'coverage');
+    final map = _ConfigScalars.asMap(node, path, _coverageKey);
     _ConfigScalars.checkKeys(
       map,
-      const {'lcov_path', 'run_tests', 'required', 'branch_coverage'},
+      const {'lcov_path', _runTestsKey, 'required', 'branch_coverage'},
       path,
-      'coverage',
+      _coverageKey,
     );
     return CoverageConfig(
-      lcovPath:
-          _ConfigScalars.str(map, 'lcov_path', base.lcovPath, path, 'coverage'),
+      lcovPath: _ConfigScalars.str(
+          map, 'lcov_path', base.lcovPath, path, _coverageKey),
       runTests: _ConfigScalars.readBool(
-          map, 'run_tests', base.runTests, path, 'coverage'),
+          map, _runTestsKey, base.runTests, path, _coverageKey),
       required: _ConfigScalars.readBool(
-          map, 'required', base.required, path, 'coverage'),
+          map, 'required', base.required, path, _coverageKey),
       branchCoverage: _ConfigScalars.readBool(
-          map, 'branch_coverage', base.branchCoverage, path, 'coverage'),
+          map, 'branch_coverage', base.branchCoverage, path, _coverageKey),
     );
   }
 
   ProfileConfig _readProfile(Object? node, ProfileConfig base, String path) {
     if (node == null) return base;
-    final map = _ConfigScalars.asMap(node, path, 'profile');
+    final map = _ConfigScalars.asMap(node, path, _profileKey);
     _ConfigScalars.checkKeys(
       map,
-      const {'enabled', 'threshold_ms', 'top'},
+      const {_enabledKey, _thresholdMsKey, 'top'},
       path,
-      'profile',
+      _profileKey,
     );
-    final thresholdValue = map['threshold_ms'];
+    final thresholdValue = map[_thresholdMsKey];
     double? thresholdMs;
     if (thresholdValue != null) {
       thresholdMs = _ConfigScalars.readNum(
         map,
-        'threshold_ms',
+        _thresholdMsKey,
         base.thresholdMs ?? 0,
         path,
-        'profile',
+        _profileKey,
       );
     }
     final topRaw = map['top'];
     return ProfileConfig(
       enabled: _ConfigScalars.readBool(
-          map, 'enabled', base.enabled, path, 'profile'),
+          map, _enabledKey, base.enabled, path, _profileKey),
       thresholdMs: thresholdMs,
       top: topRaw == null
           ? null
-          : _ConfigScalars.readInt(map, 'top', base.top ?? 20, path, 'profile'),
+          : _ConfigScalars.readInt(
+              map, 'top', base.top ?? 20, path, _profileKey),
     );
   }
 
   GatesConfig _readGates(Object? node, GatesConfig base, String path) {
     if (node == null) return base;
-    final map = _ConfigScalars.asMap(node, path, 'gates');
+    final map = _ConfigScalars.asMap(node, path, _gatesKey);
     for (final key in map.keys) {
       if (!knownGates.contains(key)) {
         throw ConfigException(path, 'gates.$key', 'unknown gate id');

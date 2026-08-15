@@ -5,6 +5,11 @@ import 'package:path/path.dart' as p;
 
 import 'exit_codes.dart';
 
+/// Path segments of the bundled skill file.
+const String _skillsDirName = 'skills';
+const String _skillDirName = 'crap4dart-profiling';
+const String _skillFileName = 'SKILL.md';
+
 /// The `skill` command: prints the crap4dart profiling skill content for
 /// agents, or shows installation instructions.
 class SkillCommand extends Command<int> {
@@ -93,10 +98,10 @@ cat ~/.agents/skills/crap4dart-profiling/SKILL.md
   File? _findSkillFile() {
     // Check several locations: source tree, installed package, compiled.
     final candidates = <String>[
-      p.join(Directory.current.path, '.agents', 'skills', 'crap4dart-profiling',
-          'SKILL.md'),
-      p.join(
-          Directory.current.path, 'skills', 'crap4dart-profiling', 'SKILL.md'),
+      p.join(Directory.current.path, '.agents', _skillsDirName, _skillDirName,
+          _skillFileName),
+      p.join(Directory.current.path, _skillsDirName, _skillDirName,
+          _skillFileName),
     ];
 
     // Also look relative to the crap4dart package itself.
@@ -105,9 +110,9 @@ cat ~/.agents/skills/crap4dart-profiling/SKILL.md
       candidates.add(p.join(
         p.dirname(p.dirname(p.dirname(scriptPath))),
         '.agents',
-        'skills',
-        'crap4dart-profiling',
-        'SKILL.md',
+        _skillsDirName,
+        _skillDirName,
+        _skillFileName,
       ));
     }
 

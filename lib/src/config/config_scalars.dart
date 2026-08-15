@@ -1,5 +1,13 @@
 part of 'config_loader.dart';
 
+/// YAML keys for the shared gate flags, used across the config parts.
+const String _enabledKey = 'enabled';
+const String _severityKey = 'severity';
+const String _ignorableKey = 'ignorable';
+
+/// Error message for values that must be integers.
+const String _expectedIntegerMsg = 'expected an integer';
+
 /// The three framework flags every gate config shares.
 typedef GateFlagsRecord = ({
   bool enabled,
@@ -74,7 +82,7 @@ class _ConfigScalars {
     final value = map[key];
     if (value == null) return base;
     if (value is int) return value;
-    throw ConfigException(path, '$ctx.$key', 'expected an integer');
+    throw ConfigException(path, '$ctx.$key', _expectedIntegerMsg);
   }
 
   static String str(
@@ -127,9 +135,9 @@ class _ConfigScalars {
     String ctx,
   ) {
     return (
-      enabled: readBool(map, 'enabled', base.enabled, path, ctx),
-      severity: severity(map, 'severity', base.severity, path, ctx),
-      ignorable: readBool(map, 'ignorable', base.ignorable, path, ctx),
+      enabled: readBool(map, _enabledKey, base.enabled, path, ctx),
+      severity: severity(map, _severityKey, base.severity, path, ctx),
+      ignorable: readBool(map, _ignorableKey, base.ignorable, path, ctx),
     );
   }
 
@@ -169,7 +177,7 @@ class _ConfigScalars {
   static int requiredInt(YamlMap map, String key, String ctx, String path) {
     final value = map[key];
     if (value is int) return value;
-    throw ConfigException(path, '$ctx.$key', 'expected an integer');
+    throw ConfigException(path, '$ctx.$key', _expectedIntegerMsg);
   }
 
   /// Reads an optional integer entry key, or `null` when absent.
@@ -177,6 +185,6 @@ class _ConfigScalars {
     final value = map[key];
     if (value == null) return null;
     if (value is int) return value;
-    throw ConfigException(path, '$ctx.$key', 'expected an integer');
+    throw ConfigException(path, '$ctx.$key', _expectedIntegerMsg);
   }
 }

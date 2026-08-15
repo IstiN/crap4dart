@@ -1,5 +1,13 @@
 part of 'config.dart';
 
+/// Default exclude globs for generated files, shared by gate defaults.
+const String _generatedGlob = '**.g.dart';
+const String _freezedGlob = '**.freezed.dart';
+const String _mocksGlob = '**.mocks.dart';
+
+/// Default glob excluding test sources from generated-code gates.
+const String _testGlob = 'test/**';
+
 /// File size gate settings (`loc`).
 class LocGateConfig {
   /// Creates a [LocGateConfig].
@@ -9,7 +17,7 @@ class LocGateConfig {
     this.ignorable = false,
     this.maxLines = 800,
     this.entries = const [],
-    this.exclude = const ['**.g.dart', '**.freezed.dart', '**.mocks.dart'],
+    this.exclude = const [_generatedGlob, _freezedGlob, _mocksGlob],
   });
 
   /// Whether the gate is enabled.
@@ -286,7 +294,7 @@ class WeightOfClassGateConfig {
     this.severity = GateSeverity.error,
     this.ignorable = false,
     this.maxWeight = 0.33,
-    this.exclude = const ['**.g.dart', '**.freezed.dart', '**.mocks.dart'],
+    this.exclude = const [_generatedGlob, _freezedGlob, _mocksGlob],
   });
 
   /// Whether the gate is enabled (off by default: data/model classes are
@@ -360,9 +368,9 @@ class UnusedCodeGateConfig {
     this.severity = GateSeverity.error,
     this.ignorable = false,
     this.exclude = const [
-      '**.g.dart',
-      '**.freezed.dart',
-      '**.mocks.dart',
+      _generatedGlob,
+      _freezedGlob,
+      _mocksGlob,
       'bin/**',
     ],
   });
@@ -391,9 +399,9 @@ class UnusedFilesGateConfig {
     this.ignorable = false,
     this.dirs = const ['lib'],
     this.exclude = const [
-      '**.g.dart',
-      '**.freezed.dart',
-      '**.mocks.dart',
+      _generatedGlob,
+      _freezedGlob,
+      _mocksGlob,
     ],
   });
 
@@ -426,10 +434,10 @@ class MagicConstantsGateConfig {
     this.minDuplicates = 3,
     this.minLength = 4,
     this.exclude = const [
-      '**.g.dart',
-      '**.freezed.dart',
-      '**.mocks.dart',
-      'test/**',
+      _generatedGlob,
+      _freezedGlob,
+      _mocksGlob,
+      _testGlob,
     ],
   });
 
@@ -467,10 +475,10 @@ class FileNamingGateConfig {
     this.severity = GateSeverity.error,
     this.ignorable = false,
     this.exclude = const [
-      '**.g.dart',
-      '**.freezed.dart',
-      '**.mocks.dart',
-      'test/**',
+      _generatedGlob,
+      _freezedGlob,
+      _mocksGlob,
+      _testGlob,
     ],
     this.allow = defaultAllowedStems,
   });
@@ -551,7 +559,7 @@ class PublicDocsGateConfig {
     this.enabled = true,
     this.severity = GateSeverity.error,
     this.ignorable = false,
-    this.exclude = const ['test/**'],
+    this.exclude = const [_testGlob],
   });
 
   /// Whether the gate is enabled.
@@ -579,10 +587,10 @@ class DuplicationGateConfig {
     this.minTokens = 50,
     this.minLines = 5,
     this.exclude = const [
-      '**.g.dart',
-      '**.freezed.dart',
-      '**.mocks.dart',
-      'test/**',
+      _generatedGlob,
+      _freezedGlob,
+      _mocksGlob,
+      _testGlob,
     ],
   });
 
