@@ -184,7 +184,26 @@ class _LineMarker extends RecursiveAstVisitor<void> {
   final Set<int> lines;
   final int Function(AstNode) lineTo;
   void mark(AstNode node) {
+    node.accept(this);
+  }
+
+  @override
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
     lines.add(lineTo(node));
-    node.visitChildren(this);
+  }
+
+  @override
+  void visitIntegerLiteral(IntegerLiteral node) {
+    lines.add(lineTo(node));
+  }
+
+  @override
+  void visitDoubleLiteral(DoubleLiteral node) {
+    lines.add(lineTo(node));
+  }
+
+  @override
+  void visitAdjacentStrings(AdjacentStrings node) {
+    lines.add(lineTo(node));
   }
 }
