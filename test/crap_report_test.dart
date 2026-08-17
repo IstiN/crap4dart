@@ -40,6 +40,26 @@ void main() {
       expect(report.isThresholdExceeded(5.0), isTrue);
     });
 
+    test('orders N/A entries by file path and line', () {
+      final metrics = [
+        ...analyzeFixture(withLcov: false),
+        ...analyzeFixture(withLcov: false),
+      ];
+      final sorted = CrapReport(metrics).sorted;
+      // Every entry is N/A: the whole table must be file:line ordered
+      // (Dart's sort is unstable — the tie-break makes this hold).
+      for (var i = 1; i < sorted.length; i++) {
+        final prev = sorted[i - 1].method;
+        final cur = sorted[i].method;
+        final byFile = prev.filePath.compareTo(cur.filePath);
+        expect(
+          byFile < 0 || (byFile == 0 && prev.startLine <= cur.startLine),
+          isTrue,
+          reason: '$prev should precede $cur',
+        );
+      }
+    });
+
     test('renders a table with a summary line', () {
       final output = CrapReport(analyzeFixture()).render();
       expect(output, contains('CRAP'));

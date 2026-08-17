@@ -25,18 +25,26 @@ class CrapReport {
     'FILE:LINE',
   ];
 
-  /// Metrics sorted for display: numeric CRAP descending, then N/A entries.
+  /// Metrics sorted for display: numeric CRAP descending, then N/A
+  /// entries ordered by file path and line (Dart's sort is unstable, so
+  /// equal keys need an explicit tie-break to keep file order).
   List<MethodMetrics> get sorted {
     final copy = List<MethodMetrics>.of(metrics);
     copy.sort((a, b) {
       final aCrap = a.crap;
       final bCrap = b.crap;
-      if (aCrap == null && bCrap == null) return 0;
+      if (aCrap == null && bCrap == null) return _byLocation(a, b);
       if (aCrap == null) return 1;
       if (bCrap == null) return -1;
       return bCrap.compareTo(aCrap);
     });
     return copy;
+  }
+
+  int _byLocation(MethodMetrics a, MethodMetrics b) {
+    final byFile = a.method.filePath.compareTo(b.method.filePath);
+    if (byFile != 0) return byFile;
+    return a.method.startLine.compareTo(b.method.startLine);
   }
 
   /// Maximum numeric CRAP score, or `0.0` when no numeric scores exist.

@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.8.7
+
+### Fixed
+
+- `analyze`: N/A entries (no coverage data) are now ordered by file
+  path and line — Dart's unstable sort previously shuffled them when
+  every score was N/A.
+- `analyze`: the "no LCOV coverage data found" warning now includes a
+  hint on how to generate coverage (`flutter test --coverage` or
+  `coverage.run_tests: true`).
+
 ## 0.8.6
 
 ### Changed
