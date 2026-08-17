@@ -573,10 +573,13 @@ Files matching the gate's `exclude` list (default generated files and
 ### 11.14 broken_goldens
 
 Scans golden PNG files under `dirs` (default `test`, recursively) for
-rendered Flutter error artifacts. Two detectors: (a) overflow stripes —
+rendered Flutter error artifacts. Three detectors: (a) overflow stripes —
 a run of at least `min_stripe_run` (default 8) yellow-or-black stripe
 pixels in a row or column; (b) build-error screens — at least 15% of
-the image being the dark-red ErrorWidget background. Non-PNG files are
+the image being the dark-red ErrorWidget background; (c) tofu icon placeholders —
+a bordered square with a diagonal cross (>= 14 px wide), confirmed by
+its side walls and converging-then-crossing diagonals against the
+dominant background. Non-PNG files are
 ignored; files matching `exclude` (default none) are skipped. Golden
 tests themselves do not fail on these errors — the snapshot silently
 records the broken frame.

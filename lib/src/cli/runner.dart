@@ -22,6 +22,7 @@ import '../profile/profile_runner.dart';
 import '../report/badge_svg.dart';
 import '../report/json_reporter.dart';
 import 'exit_codes.dart';
+import 'goldens_command.dart';
 import 'profile_command.dart';
 import 'skill_command.dart';
 
@@ -50,7 +51,7 @@ Future<String> gitTopLevel(String dir) async {
 }
 
 /// Current crap4dart version.
-const String crap4dartVersion = '0.8.7';
+const String crap4dartVersion = '0.9.0';
 
 /// Shared CLI flag names used by multiple commands.
 const String _configFlag = 'config';
@@ -97,6 +98,7 @@ class Crap4DartRunner {
         profileRunner: profileRunner ?? const ProfileRunner(),
       ))
       ..addCommand(SkillCommand(projectRoot: projectRoot))
+      ..addCommand(GoldensCommand(projectRoot: projectRoot))
       ..addCommand(InitCommand(projectRoot: projectRoot))
       ..addCommand(InstallCommand(projectRoot: projectRoot));
     runner.argParser.addFlag(
@@ -412,10 +414,9 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
       stderr.writeln(
         'Warning: no LCOV coverage data found; coverage and CRAP scores '
         'will be reported as N/A.\n'
-        'Hint: generate coverage first — `flutter test --coverage` '
-        '(or `dart test --coverage=coverage`), or set '
-        '`coverage.run_tests: true` in crap4dart.yaml to do it '
-        'automatically.',
+        'Hint: rerun with --run-tests to generate coverage and real '
+        'CRAP scores automatically (or `flutter test --coverage` / set '
+        '`coverage.run_tests: true` in crap4dart.yaml).',
       );
     }
     final report = CrapReport(

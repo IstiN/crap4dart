@@ -450,10 +450,17 @@ gates:
   Generated files and `test/**` are excluded by default.
 - **broken_goldens** — scans golden PNG files under `dirs` (default
   `test`) for rendered error artifacts: overflow stripes (the yellow/
-  black RenderFlex pattern) and build-error screens (the dark-red
-  `ErrorWidget` background). Golden tests do not fail on these — the
-  broken frame gets captured (often permanently, via
-  `--update-goldens`), so the pixels are the only witness.
+  black RenderFlex pattern), build-error screens (the dark-red
+  `ErrorWidget` background) and broken icon placeholders (the tofu
+  box-with-an-X of a failed image load, detected by its bordered X
+  shape). Golden tests do not fail on these — the broken frame gets
+  captured (often permanently, via `--update-goldens`), so the pixels
+  are the only witness. For standard `Image.asset`/`Image.network`
+  failures you can additionally fail the TEST itself:
+  `crap4dart goldens --write` drops in a `guardGoldens` helper that
+  turns image-load errors into failing assertions (widgets with their
+  own fallback icons emit no error — the pixel detector still covers
+  those).
 - **test_assertions** — fails `test()`/`testWidgets()` bodies with
   fewer than `min_assertions` (default 1) assertion calls (`expect`,
   `expectLater`, `fail`, `throwsA`, ...). A test without assertions

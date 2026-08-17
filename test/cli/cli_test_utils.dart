@@ -169,6 +169,10 @@ int risky(int x) {
 ''');
   Directory(p.join(root.path, 'coverage')).createSync();
   File(p.join(root.path, 'coverage', 'lcov.info')).writeAsStringSync(lcov);
+  File(p.join(root.path, 'crap4dart.yaml')).writeAsStringSync('''
+coverage:
+  run_tests: false
+''');
 }
 
 /// Writes a minimal project that passes all enabled gates.
@@ -185,6 +189,7 @@ void documented() {}
   File(p.join(root.path, 'crap4dart.yaml')).writeAsStringSync('''
 coverage:
   required: false
+  run_tests: false
 gates:
   folder_structure:
     dirs: [lib/src]

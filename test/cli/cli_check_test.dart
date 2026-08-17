@@ -30,6 +30,7 @@ void main() {
       File(p.join(tempDir.path, 'crap4dart.yaml')).writeAsStringSync('''
 coverage:
   required: false
+  run_tests: false
 gates:
   loc:
     max_lines: 100

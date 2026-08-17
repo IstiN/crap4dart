@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.9.0
+
+### Added
+
+- `broken_goldens`: tofu icon detection — broken icon placeholders
+  (the box-with-an-X of a failed image load) are flagged in golden
+  PNGs by their shape: bordered square, converging diagonal bands,
+  crossing in the middle. Verified on real goldens: 5/5 broken caught
+  (one missed by the human reviewer), zero false positives on terminal
+  UI screenshots and outlined digit glyphs.
+- `crap4dart goldens` command: `--print-snippet` / `--write` emits the
+  `guardGoldens` test helper that turns image-load errors into failing
+  assertions inside golden tests (standard Image.asset/network paths).
+
+### Changed
+
+- BREAKING: `coverage.run_tests` now defaults to `true` — `analyze`
+  runs the test suite to produce coverage instead of reporting all-N/A
+  CRAP scores. Opt out with `run_tests: false` (bare `crap4dart`
+  first-run experience drove this: a wall of N/A helped no one).
+
 ## 0.8.7
 
 ### Fixed

@@ -88,7 +88,7 @@ class CoverageConfig {
   /// Creates a [CoverageConfig].
   const CoverageConfig({
     this.lcovPath = 'coverage/lcov.info',
-    this.runTests = false,
+    this.runTests = true,
     this.required = true,
     this.branchCoverage = true,
   });
@@ -96,7 +96,9 @@ class CoverageConfig {
   /// Path to the LCOV coverage file, relative to the project root.
   final String lcovPath;
 
-  /// Whether to run the test suite to generate coverage before analyzing.
+  /// Whether to run the test suite to generate coverage before
+  /// analyzing (default true since 0.9.0 — CRAP without coverage is
+  /// all N/A; opt out with `run_tests: false`).
   final bool runTests;
 
   /// Whether missing coverage data is an error instead of N/A.
