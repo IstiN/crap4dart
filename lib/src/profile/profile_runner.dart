@@ -197,11 +197,19 @@ class ProfileRunner {
     TestFilter filter,
   ) {
     final isFlutter = isFlutterProject(projectRoot);
-    // --compiler source bypasses kernel caching that would use
-    // the original (non-instrumented) source.
-    final args = isFlutter
-        ? <String>[_testDirName]
-        : <String>[_testDirName, '--compiler', 'source'];
+    // --compiler source (dart test only) bypasses kernel caching that would
+    // use the original (non-instrumented) source.
+    //
+    // `test` is the subcommand for both runners. For `dart test` it is ONLY
+    // the subcommand (selectors follow separately); for `flutter test`, a
+    // lone `test` ALSO acts as a selector for the whole test directory — so
+    // with explicit paths we must not let `flutter test` treat a directory
+    // selector as requested, or it profiles the WHOLE suite in addition to
+    // the given files.
+    final args = <String>[
+      'test',
+      if (!isFlutter) ...<String>['--compiler', 'source'],
+    ];
 
     if (filter.name != null) {
       args.addAll(['--name', filter.name!]);

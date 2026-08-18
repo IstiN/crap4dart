@@ -38,6 +38,16 @@ Future<ProcessResult> fakeTestRun(
   return ProcessResult(0, 0, 'ok', '');
 }
 
+/// Runner double that records the spawned test args and writes timing JSON.
+ProfileRunner capturingRunner(List<List<String>> captured) => ProfileRunner(
+      runner: (exe, args, {workingDirectory, environment}) async {
+        captured.add(args);
+        final output = environment!['CRAP_PROFILE_OUTPUT']!;
+        File(output).writeAsStringSync(timingJson);
+        return ProcessResult(0, 0, 'ok', '');
+      },
+    );
+
 void main() {
   test('run returns parsed timings sorted by total time', () async {
     final root = createProfiledProject();
@@ -63,15 +73,7 @@ void main() {
     final root = createProfiledProject();
     addTearDown(() => root.deleteSync(recursive: true));
     final captured = <List<String>>[];
-    final runner = ProfileRunner(
-      runner: (exe, args, {workingDirectory, environment}) async {
-        captured.add(args);
-        final output = environment!['CRAP_PROFILE_OUTPUT']!;
-        File(output).writeAsStringSync(timingJson);
-        return ProcessResult(0, 0, 'ok', '');
-      },
-    );
-    await runner.run(
+    await capturingRunner(captured).run(
       root.path,
       filter: const TestFilter(
         name: 'golden',
@@ -81,9 +83,15 @@ void main() {
       ),
     );
     final args = captured.single;
-    expect(args, containsAllInOrder(['test', '--compiler', 'source']));
+    // `test` stays as the subcommand; with explicit paths it must NOT also
+    // act as a whole-suite directory selector (flutter treats a bare `test`
+    // positional as one). Only the requested file is passed as selector.
+    expect(args.first, 'test');
+    expect(args.skip(1), isNot(contains('test')),
+        reason: 'explicit paths must be the only selectors');
+    expect(args, containsAllInOrder(['--compiler', 'source']));
     expect(
-        args.getRange(3, args.length).toList(),
+        args,
         containsAll([
           '--name',
           'golden',
@@ -93,5 +101,15 @@ void main() {
           'slow',
           'test/a_test.dart'
         ]));
+  });
+
+  test('run keeps default test dir when no explicit paths given', () async {
+    final root = createProfiledProject();
+    addTearDown(() => root.deleteSync(recursive: true));
+    final captured = <List<String>>[];
+    await capturingRunner(captured).run(root.path);
+    final args = captured.single;
+    expect(args.first, 'test');
+    expect(args, contains('--compiler'));
   });
 }

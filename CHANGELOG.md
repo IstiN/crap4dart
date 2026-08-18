@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.9.3
+
+### Fixed
+
+- `profile`: explicit test paths no longer run the WHOLE suite — the
+  default `test` directory selector was passed unconditionally before
+  the requested paths, and `dart test`/`flutter test` treat every
+  positional argument as a selector, so `crap4dart profile
+  path/to/a_test.dart` profiled all 450+ files while appearing to
+  profile one. The `test` dir is now passed only when no explicit
+  paths are given. Found profiling yoloit: a single-file run kept
+  collecting timings for the entire repository.
+
 ## 0.9.2
 
 ### Fixed
