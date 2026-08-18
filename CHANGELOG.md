@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.9.2
+
+### Fixed
+
+- `profile`: isolate-safe collector flush — temp files now carry the
+  isolate identity hash (microsecond names collided across parallel
+  test isolates, making flushes rename each other), and the merge read
+  retries once around a concurrent rename instead of discarding the
+  accumulated data as corrupt. Fixes the "instrumented runner drops a
+  shard after ~30 tests" report from a full-suite yoloit run —
+  verified end-to-end: 4523 methods, complete report, no shard loss.
+- `profile`: MEAN column marks sub-30µs means with `~` (instrumentation
+  overhead dominates there; a method that got FASTER can show a higher
+  mean after its neighbors were optimized — read CALLS/TOTAL deltas).
+
 ## 0.9.1
 
 ### Fixed
