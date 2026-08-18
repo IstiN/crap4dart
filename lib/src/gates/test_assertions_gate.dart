@@ -90,9 +90,12 @@ class _TestBodyVisitor extends RecursiveAstVisitor<void> {
 
   void _registerTest(MethodInvocation node, String kind) {
     final args = node.argumentList.arguments;
-    if (args.length < 2) return;
-    final nameArg = args[0];
-    final bodyArg = args[args.length - 1];
+    // Named arguments (e.g. `skip:`, `timeout:`) are appended after positional
+    // ones, so the body is the second positional argument, never `args.last`.
+    final positional = args.where((a) => a is! NamedExpression).toList();
+    if (positional.length < 2) return;
+    final nameArg = positional[0];
+    final bodyArg = positional[1];
     final label = nameArg is StringLiteral ? nameLiteral(nameArg) : kind;
     final line = _lineInfo.getLocation(node.offset).lineNumber;
     final counter = _AssertionCounter();

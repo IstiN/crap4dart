@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.9.4
+
+### Fixed
+
+- `test_assertions`: trailing named arguments (`skip:`, `timeout:`) no
+  longer hide the test body. The gate now uses the second positional
+  argument as the body instead of `args.last`, so assertions inside
+  `test('...', () { ... }, skip: true)` and `testWidgets(..., skip:)`
+  are counted correctly.
+
 ## 0.9.3
 
 ### Fixed
