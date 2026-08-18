@@ -43,24 +43,31 @@ class CrapCollector {
   void _flush() {
     final path = Platform.environment['CRAP_PROFILE_OUTPUT'];
     if (path == null) return;
+    if (_stats.isEmpty) return;
 
     // Read existing data (from other isolates that already flushed).
+    // Retries once: a concurrent rename can land between existsSync
+    // and readAsStringSync.
     final existing = <String, Map<String, int>>{};
-    try {
-      final f = File(path);
-      if (f.existsSync()) {
-        final raw = jsonDecode(f.readAsStringSync());
-        if (raw is Map) {
-          for (final e in raw.entries) {
-            if (e.value is Map) {
-              existing[e.key as String] =
-                  Map<String, int>.from(e.value as Map);
+    for (var attempt = 0; attempt < 2; attempt++) {
+      try {
+        final f = File(path);
+        if (f.existsSync()) {
+          final raw = jsonDecode(f.readAsStringSync());
+          if (raw is Map) {
+            for (final e in raw.entries) {
+              if (e.value is Map) {
+                existing[e.key as String] =
+                    Map<String, int>.from(e.value as Map);
+              }
             }
           }
+          break;
         }
+      } catch (_) {
+        // Corrupt or concurrently-replaced file — retry once, then
+        // start fresh.
       }
-    } catch (_) {
-      // Corrupt or missing file — start fresh.
     }
 
     // Merge our stats into existing.
@@ -91,9 +98,12 @@ class CrapCollector {
       }
     }
 
-    // Atomic write: write to temp file, then rename.
+    // Atomic write: write to a per-isolate temp file, then rename.
+    // Microsecond timestamps can collide across isolates — the
+    // identity hash keeps every flush's temp unique.
     try {
-      final tmpPath = '$path.tmp.${DateTime.now().microsecondsSinceEpoch}';
+      final tmpPath = '$path.tmp.${identityHashCode(this)}.'
+          '${DateTime.now().microsecondsSinceEpoch}';
       File(tmpPath).writeAsStringSync(jsonEncode(existing));
       File(tmpPath).renameSync(path);
     } catch (_) {

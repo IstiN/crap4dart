@@ -73,7 +73,7 @@ After profiling, full reports are saved to `profile-reports/`:
 | `TOTAL(ms)` | Total time across all calls |
 | `%` | Share of total profiling time |
 | `CALLS` | Number of invocations |
-| `MEAN(µs)` | Average time per call |
+| `MEAN(µs)` | Average time per call; `~` prefix marks means under 30µs where the Stopwatch instrumentation overhead dominates — trust CALLS and TOTAL there (the method may have gotten cheaper) |
 | `MAX(µs)` | Worst single call |
 | `@60fps(ms)` | Cost if called every frame (mean × 60) |
 
@@ -107,7 +107,7 @@ methods = sorted(d['methods'], key=lambda m: -m['totalMicros'])
 Look for:
 
 1. **High TOTAL + high CALLS** — method called too often. Cache/debounce it.
-2. **High MEAN** — single call is expensive. Algorithm/data structure issue.
+2. **High MEAN** — single call is expensive. Algorithm/data structure issue. MEAN of a cheap-but-optimized method can APPEAR to grow after you optimize everything around it: the fixed instrumentation cost weighs more; check CALLS/TOTAL deltas before concluding a regression. A mean that jumps on the FIRST call only (cache warm-up) with CALLS exploding is a cache working, not a regression.
 3. **High @60fps** — will cause UI jank. Must optimize or move off build path.
 4. **High MAX >> MEAN** — occasional spikes. GC, I/O, or contention.
 

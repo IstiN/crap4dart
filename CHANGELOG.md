@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.9.1
+
+### Fixed
+
+- `broken_goldens` tofu detection precision: an anchored convergence
+  baseline (letter glyph arcs like "m" previously faked the X), solid
+  top-border and clear-above checks, continuous side walls and
+  sustained diagonal movement. Verified on three real projects: all
+  large broken icons caught, zero glyph/TUI false positives.
+
 ## 0.9.0
 
 ### Added

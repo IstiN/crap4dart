@@ -104,13 +104,22 @@ class ProfileReport {
       _fmt(p.timing.totalMillis),
       '${pct.toStringAsFixed(1)}%',
       '${p.timing.calls}',
-      p.timing.meanMicros.toStringAsFixed(1),
+      _meanWithCaveat(p.timing.meanMicros),
       '${p.timing.maxMicros}',
       _fmt(fps60ms),
       '${p.method.className}.${p.method.methodName}',
       '${p.method.filePath}:${p.method.startLine}',
     ];
   }
+
+  /// Mean per call, marked with `~` when the instrumentation overhead
+  /// dominates: the Stopwatch wrapper costs on the order of a
+  /// microsecond, so sub-30µs means are mostly noise from the profiler
+  /// itself (the method may have become CHEAPER — trust CALLS and
+  /// TOTAL there).
+  String _meanWithCaveat(double meanMicros) => meanMicros < 30
+      ? '~${meanMicros.toStringAsFixed(1)}'
+      : meanMicros.toStringAsFixed(1);
 
   static String _fmt(double value) => value.toStringAsFixed(2);
 }
