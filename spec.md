@@ -357,10 +357,11 @@ stderr, keeping stdout unchanged (including under `--format json`).
 
 The `profile` command shall use **source instrumentation**: it creates a
 temporary copy of the project's `lib/` directory with every method body
-wrapped in a `Stopwatch`-based `try/finally` block, runs the test suite
-against the instrumented copy, and collects deterministic per-method timing
-data. The temporary directory (`.crap_profile_temp/`) shall be cleaned up
-automatically after the run.
+wrapped in a `try/finally` block reporting method entry/exit to a
+collector (which owns per-call Stopwatches on a call stack), runs the test
+suite against the instrumented copy, and collects deterministic per-method
+timing data. The temporary directory (`.crap_profile_temp/`) shall be
+cleaned up automatically after the run.
 
 For pure-Dart projects the test runner shall use
 `dart test --compiler source` (bypassing the kernel cache that would load
@@ -369,7 +370,10 @@ the original uninstrumented sources). For Flutter projects it shall use
 
 For each profiled method, the tool shall report:
 
-- **total time** — total execution time across all calls (microseconds)
+- **total time** — total execution time across all calls (microseconds),
+  inclusive of nested instrumented calls
+- **self time** — total time minus the time spent in nested instrumented
+  calls (flamegraph self-time semantics)
 - **calls** — number of invocations
 - **mean time** — average time per call (microseconds)
 - **max time** — slowest single call (microseconds)
@@ -381,17 +385,19 @@ Method attribution: timing data shall be matched to project methods by
 `ClassName.methodName` using the same method parsing as `analyze` (§7).
 Timing entries that do not match a project method shall be ignored.
 
-The console report shall list `TOTAL(ms)`, `%`, `CALLS`, `MEAN(µs)`,
+The console report shall list `TOTAL`, `SELF`, `%`, `CALLS`, `MEAN(µs)`,
 `MAX(µs)`, `@60fps(ms)`, `METHOD` and `FILE:LINE` columns sorted by total
 time descending, limited to the configured `top` count, followed by a
 summary line stating whether the threshold was exceeded and how many
-methods violated it.
+methods violated it. The `TOTAL` and `SELF` columns and the summary line
+shall render time with adaptive units (`ms`, `s`, `m`, `h`) so the columns
+stay compact at extreme call counts (tens of billions).
 
 With `--format json`, stdout shall contain a single JSON document with:
 `command`, `totalMicros`, `thresholdMs` (when set), `passed`, and `methods`
 (each with `file`, `line`, `class`, `method`, `calls`, `totalMicros`,
-`minMicros`, `maxMicros`, `meanMicros`). The report shall mark diff mode
-with `diffMode`/`diffBase` fields as in §9.2.
+`totalSelfMicros`, `minMicros`, `maxMicros`, `meanMicros`). The report
+shall mark diff mode with `diffMode`/`diffBase` fields as in §9.2.
 
 The run shall fail with threshold-failure status when at least one
 method's total time exceeds the configured (or `--threshold`) value in

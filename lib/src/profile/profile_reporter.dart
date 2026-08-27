@@ -27,7 +27,8 @@ class ProfileReport {
 
   /// Column headers of the report table.
   static const List<String> headers = [
-    'TOTAL(ms)',
+    'TOTAL',
+    'SELF',
     '%',
     'CALLS',
     'MEAN(µs)',
@@ -69,10 +70,10 @@ class ProfileReport {
     if (header != null) buffer.writeln(header);
     buffer.writeln(
       'Profile Report (${profiles.length} methods, '
-      'total ${_fmt(totalMicros / 1000.0)}ms)',
+      'total ${_fmtTotal(totalMicros / 1000.0)})',
     );
     buffer.writeln(
-      TableFormatter(numericColumnCount: 6).renderTable(headers, rows),
+      TableFormatter(numericColumnCount: 7).renderTable(headers, rows),
     );
     buffer.writeln();
 
@@ -101,7 +102,8 @@ class ProfileReport {
     // This shows the "hidden" cost of frequently-rebuilt widgets.
     final fps60ms = p.timing.meanMicros * 60.0 / 1000.0;
     return [
-      _fmt(p.timing.totalMillis),
+      _fmtTotal(p.timing.totalMillis),
+      _fmtTotal(p.timing.totalSelfMillis),
       '${pct.toStringAsFixed(1)}%',
       '${p.timing.calls}',
       _meanWithCaveat(p.timing.meanMicros),
@@ -122,6 +124,17 @@ class ProfileReport {
       : meanMicros.toStringAsFixed(1);
 
   static String _fmt(double value) => value.toStringAsFixed(2);
+
+  /// TOTAL/SELF with adaptive units. At extreme call counts (tens of
+  /// billions, as seen on a markdown hot loop) a plain `toStringAsFixed(2)`
+  /// renders e.g. `50000000.00` — a wall of digits that blows the column
+  /// width up. Unit suffixes keep the value compact at any magnitude.
+  static String _fmtTotal(double millis) {
+    if (millis < 1000) return '${millis.toStringAsFixed(2)}ms';
+    if (millis < 60000) return '${(millis / 1000).toStringAsFixed(2)}s';
+    if (millis < 3600000) return '${(millis / 60000).toStringAsFixed(2)}m';
+    return '${(millis / 3600000).toStringAsFixed(2)}h';
+  }
 }
 
 /// Attributes raw [MethodTiming] data to [MethodInfo] by class.method name.

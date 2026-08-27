@@ -88,6 +88,7 @@ class JsonReporter {
             'method': p.method.methodName,
             'calls': p.timing.calls,
             'totalMicros': p.timing.totalMicros,
+            'totalSelfMicros': p.timing.totalSelfMicros,
             'minMicros': p.timing.minMicros,
             'maxMicros': p.timing.maxMicros,
             'meanMicros': p.timing.meanMicros,

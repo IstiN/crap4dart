@@ -9,6 +9,9 @@ import 'collector_template.dart';
 import 'source_instrumenter.dart';
 import 'workspace_pubspec.dart';
 
+/// Microseconds per millisecond (unit conversion for reported times).
+const double _microsPerMillisecond = 1000.0;
+
 /// Directories and files the profiler works with.
 const String _testDirName = 'test';
 const String _pubspecFileName = 'pubspec.yaml';
@@ -22,6 +25,7 @@ class MethodTiming {
     required this.methodName,
     required this.calls,
     required this.totalMicros,
+    this.totalSelfMicros = 0,
     required this.minMicros,
     required this.maxMicros,
   });
@@ -35,8 +39,14 @@ class MethodTiming {
   /// Number of times the method was called.
   final int calls;
 
-  /// Total execution time in microseconds across all calls.
+  /// Total execution time in microseconds across all calls (inclusive of
+  /// nested instrumented calls).
   final int totalMicros;
+
+  /// Self execution time in microseconds across all calls — total time
+  /// minus the time spent in nested instrumented calls (flamegraph
+  /// semantics).
+  final int totalSelfMicros;
 
   /// Minimum single-call time in microseconds.
   final int minMicros;
@@ -47,11 +57,14 @@ class MethodTiming {
   /// Mean execution time in microseconds.
   double get meanMicros => calls > 0 ? totalMicros / calls : 0.0;
 
+  /// Total self execution time in milliseconds.
+  double get totalSelfMillis => totalSelfMicros / _microsPerMillisecond;
+
   /// Total execution time in milliseconds.
-  double get totalMillis => totalMicros / 1000.0;
+  double get totalMillis => totalMicros / _microsPerMillisecond;
 
   /// Mean execution time in microseconds (formatted).
-  double get meanMillis => meanMicros / 1000.0;
+  double get meanMillis => meanMicros / _microsPerMillisecond;
 }
 
 /// Merged timing result from an instrumented test run.
@@ -279,6 +292,7 @@ class ProfileRunner {
         methodName: dotIndex > 0 ? key.substring(dotIndex + 1) : key,
         calls: stats['calls'] as int? ?? 0,
         totalMicros: stats['totalMicros'] as int? ?? 0,
+        totalSelfMicros: stats['totalSelfMicros'] as int? ?? 0,
         minMicros: stats['minMicros'] as int? ?? 0,
         maxMicros: stats['maxMicros'] as int? ?? 0,
       ));

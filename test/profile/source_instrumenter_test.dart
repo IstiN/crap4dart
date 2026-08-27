@@ -15,10 +15,10 @@ class Foo {
       final result = instrumenter.instrument(source);
 
       expect(result, contains("__crap_collector.dart"));
-      expect(result, contains('Stopwatch()..start()'));
+      expect(result, contains("CrapCollector.instance.enter('Foo.bar')"));
       expect(result, contains('try {'));
       expect(result, contains('} finally {'));
-      expect(result, contains("CrapCollector.instance.record('Foo.bar'"));
+      expect(result, contains("CrapCollector.instance.exit('Foo.bar')"));
     });
 
     test('wraps a top-level function', () {
@@ -30,8 +30,8 @@ int add(int a, int b) {
       const instrumenter = SourceInstrumenter(packageName: 'myapp');
       final result = instrumenter.instrument(source);
 
-      expect(result, contains("record('(top-level).add'"));
-      expect(result, contains('Stopwatch'));
+      expect(result, contains("enter('(top-level).add')"));
+      expect(result, contains("exit('(top-level).add')"));
     });
 
     test('skips expression bodies', () {
@@ -42,7 +42,7 @@ int double(int x) => x * 2;
       final result = instrumenter.instrument(source);
 
       // No insertion for expression bodies.
-      expect(result, isNot(contains('Stopwatch')));
+      expect(result, isNot(contains('CrapCollector.instance')));
     });
 
     test('skips abstract methods', () {
@@ -54,7 +54,7 @@ abstract class Foo {
       const instrumenter = SourceInstrumenter(packageName: 'myapp');
       final result = instrumenter.instrument(source);
 
-      expect(result, isNot(contains('Stopwatch')));
+      expect(result, isNot(contains('CrapCollector.instance')));
     });
 
     test('handles multiple methods in same class', () {
@@ -71,8 +71,8 @@ class Foo {
       const instrumenter = SourceInstrumenter(packageName: 'myapp');
       final result = instrumenter.instrument(source);
 
-      expect(result, contains("record('Foo.a'"));
-      expect(result, contains("record('Foo.b'"));
+      expect(result, contains("enter('Foo.a'"));
+      expect(result, contains("enter('Foo.b'"));
     });
   });
 }

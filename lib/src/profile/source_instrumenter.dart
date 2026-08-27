@@ -12,11 +12,14 @@ class _Insertion {
 }
 
 /// Instruments Dart source code by wrapping each method body in a
-/// `Stopwatch`-based `try/finally` block that records execution time.
+/// `try/finally` block that reports execution time to a collector.
 ///
 /// The instrumented code imports a collector library (expected at
 /// `package:PACKAGE/__crap_collector.dart`) and calls
-/// `CrapCollector.instance.record(key, micros)` on every method exit.
+/// `CrapCollector.instance.enter(key)` on method entry and
+/// `CrapCollector.instance.exit(key)` on method exit, so the collector
+/// can measure inclusive time per call and subtract nested call time to
+/// derive self time.
 class SourceInstrumenter {
   /// Creates a [SourceInstrumenter].
   const SourceInstrumenter({required this.packageName});
@@ -58,20 +61,20 @@ class SourceInstrumenter {
       }
 
       final key = _methodKey(entry.info);
-      final varName = '__sw_crap';
 
-      // Insert after the opening brace: start timer + try.
+      // Insert after the opening brace: mark entry + try.
       insertions.add(_Insertion(
         leftBracket.offset + leftBracket.length,
-        '\n      final $varName = Stopwatch()..start();\n      try {',
+        '\n      CrapCollector.instance.enter(\'$key\');\n      try {',
       ));
 
-      // Insert before the closing brace: finally + record.
+      // Insert before the closing brace: finally + exit. The collector
+      // owns the Stopwatch (a stack frame per open call), which also lets
+      // it subtract nested call time to compute self time.
       insertions.add(_Insertion(
         rightBracket.offset,
         '} finally { '
-        "CrapCollector.instance.record('$key', "
-        '$varName.elapsedMicroseconds); '
+        "CrapCollector.instance.exit('$key'); "
         '}\n    ',
       ));
     }

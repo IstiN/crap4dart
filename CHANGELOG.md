@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.9.5
+
+### Fixed
+
+- `profile`: per-method counters inflated quadratically on hot paths.
+  The collector re-merged its CUMULATIVE in-memory counters into the
+  output file on every flush (every 5 calls) instead of only the delta
+  since the last flush, so a method with millions of real calls reported
+  tens of billions of calls and impossible TOTALs (48.5G calls / 3538h
+  in a 10-second run on flutter_agent; real CPU was ~4h). MEAN and %
+  looked correct only because numerator and denominator carried the same
+  inflation factor. Flushes now merge deltas and advance snapshots only
+  after a successful write; `CrapCollector.flush()` can be called to
+  persist the tail without waiting for the next 5th call.
+
+### Added
+
+- `profile`: `SELF` column and `totalSelfMicros` in JSON output —
+  self time excluding nested instrumented calls (flamegraph semantics),
+  so hot code is ranked by actual CPU burn rather than by how many
+  callers fan out through it. The collector now receives method
+  entry/exit events (`enter`/`exit`) instead of a bare exit record and
+  keeps a call stack of Stopwatches; `TOTAL` remains inclusive time.
+
+### Fixed (earlier in 0.9.5)
+
+- `profile`: the `TOTAL` column no longer overflows into a wall of
+  digits at extreme call counts. At tens of billions of calls (a hot
+  inner loop, e.g. markdown parsing) `toStringAsFixed(2)` rendered
+  values like `50000000.00`, blowing the column width up. Total time is
+  now rendered with adaptive units — `82.50ms`, `13.89s`, `22.50m`,
+  `13.89h` — in both the column and the summary line (ranks and means
+  were already correct). Found profiling a markdown pipeline; reported
+  upstream and fixed here.
+
 ## 0.9.4
 
 ### Fixed

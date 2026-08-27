@@ -134,19 +134,25 @@ crap4dart profile --diff-base main         # only methods touched since main
 Example console output:
 
 ```
-Profile Report (142 methods, total 1234.56ms)
+Profile Report (142 methods, total 1.23s)
 
-  TOTAL(ms)  %      CALLS  MEAN(µs)  MAX(µs)  @60fps(ms)  METHOD                      FILE:LINE
-      45.20  3.7%    142   318.3     2890     19.10       CrapAnalyzer.analyzeMethod  lib/src/crap/crap_analyzer.dart:88
-      32.10  2.6%    500   64.2      410       3.85       MethodExtractor.extract     lib/src/analysis/method_extractor.dart:34
-      28.70  2.3%     88   326.1     2100     19.57       LcovParser.parseFile        lib/src/coverage/lcov_parser.dart:21
+  TOTAL    SELF    %      CALLS  MEAN(µs)  MAX(µs)  @60fps(ms)  METHOD                      FILE:LINE
+  45.20ms  12.10ms  3.7%    142   318.3     2890     19.10       CrapAnalyzer.analyzeMethod  lib/src/crap/crap_analyzer.dart:88
+  32.10ms   9.80ms  2.6%    500   64.2      410       3.85       MethodExtractor.extract     lib/src/analysis/method_extractor.dart:34
+  28.70ms   8.30ms  2.3%     88   326.1     2100     19.57       LcovParser.parseFile        lib/src/coverage/lcov_parser.dart:21
 
 Threshold: 10.00ms — 3 methods exceed
 ```
 
 Columns:
 
-- **TOTAL(ms)** — total wall-clock time across all calls.
+- **TOTAL** — total wall-clock time across all calls (inclusive of nested
+  profiled calls), rendered with adaptive units (`82.50ms`, `13.89s`,
+  `22.50m`, `13.89h`) so extreme call counts (tens of billions) keep the
+  column compact.
+- **SELF** — time spent in the method's own body: TOTAL minus nested
+  profiled calls (flamegraph self-time). Ranks hot code by actual CPU
+  burn, not by how many callers it fans out into.
 - **%** — share of the total profiled time.
 - **CALLS** — number of invocations.
 - **MEAN(µs)** — average time per call (microseconds).
