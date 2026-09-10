@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Fixed
+
+- Cyclomatic complexity: `switch` **expression** arms were not counted.
+  Only `SwitchCase`/`SwitchPatternCase`/`SwitchDefault` (statement form)
+  incremented complexity, so a Dart 3 `switch` expression scored CC 1
+  no matter how many arms it had, while the equivalent `switch`
+  statement scored one per arm. A 9-arm expression at 0% coverage
+  reported CRAP 2.00 instead of 110.00 — an under-report of the exact
+  anti-pattern the tool exists to find, on code that is idiomatic modern
+  Dart. `SwitchExpressionCase` now counts, so both forms score the same.
+
+### Changed
+
+- `GateRunner`: the three parallel 21-arm `switch` expressions mapping a
+  gate id to its `enabled`/`ignorable`/`severity` flag are now lookup
+  tables. With the complexity fix above they were CC 23 each (over the
+  project's own limit of 12) and drove `GateRunner`'s WMC to 109.
+
 ## 0.9.5
 
 ### Fixed

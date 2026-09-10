@@ -270,8 +270,10 @@ function declarations.
 
 Cyclomatic complexity shall be computed from method bodies with base
 value 1 and +1 for each: `if`, `for` (any form), `while`, `do`,
-`catch` clause, `switch` case (including `default`), conditional
-expression (`?:`), and each `&&`/`||` operator. Branches inside lambda
+`catch` clause, `switch` case (including `default`), `switch` expression
+arm (including the wildcard arm), conditional expression (`?:`), and each
+`&&`/`||` operator. A `switch` expression and the equivalent `switch`
+statement shall score the same. Branches inside lambda
 bodies count towards the enclosing method; nested named function
 declarations do not.
 

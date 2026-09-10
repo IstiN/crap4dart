@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 /// - [DoStatement]
 /// - [CatchClause]
 /// - [SwitchCase], [SwitchPatternCase] and [SwitchDefault] members
+/// - [SwitchExpressionCase] arms of a `switch` expression
 /// - [ConditionalExpression] (`?:`)
 /// - `&&` and `||` [BinaryExpression] operators
 ///
@@ -110,6 +111,12 @@ class _ComplexityVisitor extends RecursiveAstVisitor<void> {
   void visitSwitchDefault(SwitchDefault node) {
     complexity++;
     super.visitSwitchDefault(node);
+  }
+
+  @override
+  void visitSwitchExpressionCase(SwitchExpressionCase node) {
+    complexity++;
+    super.visitSwitchExpressionCase(node);
   }
 
   @override
