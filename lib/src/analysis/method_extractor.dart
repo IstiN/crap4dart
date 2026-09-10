@@ -46,11 +46,20 @@ typedef ExtractedMethod = ({MethodInfo info, AstNode node});
 /// Extracts concrete methods and top-level functions from a
 /// [CompilationUnit].
 ///
-/// Constructors, abstract/bodyless methods and nested function
-/// declarations are ignored.
+/// Abstract/bodyless methods and nested function declarations are
+/// ignored. Constructors are ignored unless [countConstructors] is set.
 class MethodExtractor {
   /// Creates a [MethodExtractor].
-  const MethodExtractor();
+  ///
+  /// When [countConstructors] is true, constructors with a body — most
+  /// notably factory constructors doing validation or mapping work — are
+  /// extracted as methods named `<Class>.<name>` (`<Class>.new` for the
+  /// unnamed constructor). Bodyless and redirecting constructors are
+  /// always skipped: they contain no branches.
+  const MethodExtractor({this.countConstructors = false});
+
+  /// Whether constructors with a body are extracted as methods.
+  final bool countConstructors;
 
   /// Extracts all methods from [unit] using [lineInfo] for line numbers.
   ///
@@ -72,7 +81,11 @@ class MethodExtractor {
     LineInfo lineInfo, {
     String filePath = '',
   }) {
-    final visitor = _MethodVisitor(lineInfo, filePath);
+    final visitor = _MethodVisitor(
+      lineInfo,
+      filePath,
+      countConstructors: countConstructors,
+    );
     for (final declaration in unit.declarations) {
       declaration.accept(visitor);
     }
@@ -81,10 +94,15 @@ class MethodExtractor {
 }
 
 class _MethodVisitor extends RecursiveAstVisitor<void> {
-  _MethodVisitor(this._lineInfo, this._filePath);
+  _MethodVisitor(
+    this._lineInfo,
+    this._filePath, {
+    required this.countConstructors,
+  });
 
   final LineInfo _lineInfo;
   final String _filePath;
+  final bool countConstructors;
   final List<ExtractedMethod> methods = [];
 
   @override
@@ -102,11 +120,16 @@ class _MethodVisitor extends RecursiveAstVisitor<void> {
     _add(node.name.lexeme, node, topLevelClassName);
   }
 
-  // Constructors are never counted.
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {}
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (!countConstructors) return;
+    // Bodyless and redirecting constructors (`factory Foo() = _Foo;`)
+    // carry no branches of their own.
+    if (node.body is EmptyFunctionBody) return;
+    _add(node.name?.lexeme ?? 'new', node, _containerName(node));
+  }
 
-  String _containerName(MethodDeclaration node) {
+  String _containerName(AstNode node) {
     final named = node.thisOrAncestorOfType<NamedCompilationUnitMember>();
     if (named != null) return named.name.lexeme;
     final extension = node.thisOrAncestorOfType<ExtensionDeclaration>();

@@ -54,6 +54,12 @@ void main() {
       expect(config.gates.complexity.countLambdas, isFalse);
     });
 
+    test('count_constructors defaults to false and parses', () {
+      expect(loader.loadString('').crap.countConstructors, isFalse);
+      final config = loader.loadString('crap:\n  count_constructors: true\n');
+      expect(config.crap.countConstructors, isTrue);
+    });
+
     test('exclude defaults to empty and merges from config', () {
       expect(loader.loadString('').exclude, isEmpty);
       final config =

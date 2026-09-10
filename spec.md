@@ -262,9 +262,15 @@ ASTs; full semantic resolution shall not be required.
 
 ### 7.1 Exclusions
 
-The parser shall ignore constructors (except for parameter counting in
-the `method_size` gate), abstract and bodyless methods, and nested
+The parser shall ignore abstract and bodyless methods and nested
 function declarations.
+
+Constructors shall be ignored by default (except for parameter counting
+in the `method_size` gate). When `crap.count_constructors` is true, CRAP
+analysis shall additionally score constructors that have a body, named
+`<Class>.<name>` and `<Class>.new` for the unnamed constructor;
+bodyless and redirecting constructors (`factory Foo() = _Foo;`) shall
+remain ignored, as they contain no branches.
 
 ### 7.2 Complexity Counting
 

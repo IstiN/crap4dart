@@ -29,6 +29,9 @@ crap:
   # Count branches inside lambdas towards the enclosing method's
   # cyclomatic complexity.
   # count_lambdas: true
+  # Score constructors with a body (e.g. factory constructors doing
+  # validation or mapping) as methods.
+  # count_constructors: false
 
 # Coverage input settings.
 coverage:

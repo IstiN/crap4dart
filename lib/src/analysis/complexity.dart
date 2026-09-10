@@ -30,11 +30,14 @@ class ComplexityCalculator {
   final bool countLambdas;
 
   /// Returns the cyclomatic complexity of the body of [node], where [node]
-  /// is a [MethodDeclaration] or a top-level [FunctionDeclaration].
+  /// is a [MethodDeclaration], a [ConstructorDeclaration] or a top-level
+  /// [FunctionDeclaration].
   int compute(AstNode node) {
     final FunctionBody body;
     switch (node) {
       case MethodDeclaration():
+        body = node.body;
+      case ConstructorDeclaration():
         body = node.body;
       case FunctionDeclaration():
         body = node.functionExpression.body;
@@ -42,7 +45,8 @@ class ComplexityCalculator {
         throw ArgumentError.value(
           node.runtimeType,
           'node',
-          'Expected a MethodDeclaration or FunctionDeclaration',
+          'Expected a MethodDeclaration, ConstructorDeclaration or '
+              'FunctionDeclaration',
         );
     }
     final visitor = _ComplexityVisitor(countLambdas: countLambdas);

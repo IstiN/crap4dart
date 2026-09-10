@@ -47,16 +47,18 @@ class CrapAnalyzer {
   /// attributed to methods; otherwise coverage and CRAP are `null`.
   /// [projectRoot] is used to match LCOV `SF` paths against analyzed files.
   /// [countLambdas] controls whether lambda branches count towards the
-  /// enclosing method's complexity.
+  /// enclosing method's complexity. [countConstructors] controls whether
+  /// constructors with a body are scored as methods.
   List<MethodMetrics> analyze(
     List<String> filePaths, {
     String? lcovPath,
     String? projectRoot,
     bool countLambdas = true,
+    bool countConstructors = false,
   }) {
     final coverageByFile = _loadCoverage(lcovPath, projectRoot);
     final parser = DartParser();
-    const extractor = MethodExtractor();
+    final extractor = MethodExtractor(countConstructors: countConstructors);
     final complexityCalculator =
         ComplexityCalculator(countLambdas: countLambdas);
     const coverageCalculator = MethodCoverageCalculator();

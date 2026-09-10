@@ -446,6 +446,7 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
       lcovPath: lcovPath,
       projectRoot: projectRoot,
       countLambdas: config.crap.countLambdas,
+      countConstructors: config.crap.countConstructors,
     );
     if (diffMap == null) return metrics;
     return [

@@ -153,7 +153,13 @@ class ConfigLoader {
     final map = _ConfigScalars.asMap(node, path, _crapKey);
     _ConfigScalars.checkKeys(
       map,
-      const {_enabledKey, 'threshold', _runTestsKey, 'count_lambdas'},
+      const {
+        _enabledKey,
+        'threshold',
+        _runTestsKey,
+        'count_lambdas',
+        'count_constructors',
+      },
       path,
       _crapKey,
     );
@@ -166,6 +172,8 @@ class ConfigLoader {
           map, _runTestsKey, base.runTests, path, _crapKey),
       countLambdas: _ConfigScalars.readBool(
           map, 'count_lambdas', base.countLambdas, path, _crapKey),
+      countConstructors: _ConfigScalars.readBool(
+          map, 'count_constructors', base.countConstructors, path, _crapKey),
     );
   }
 

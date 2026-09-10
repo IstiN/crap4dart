@@ -228,6 +228,9 @@ crap:
   # Count branches inside lambdas towards the enclosing method's
   # cyclomatic complexity.
   # count_lambdas: true
+  # Score constructors with a body (e.g. factory constructors doing
+  # validation or mapping) as methods.
+  # count_constructors: false
 
 # Coverage input settings.
 coverage:
@@ -358,6 +361,14 @@ default discovery, `--changed`, `--staged`, `--diff` and explicit paths.
 `true`, independently) control whether branches inside lambdas count
 towards the enclosing method's cyclomatic complexity. Setting them to
 `false` is useful for test-heavy code full of `test(...)` closures.
+
+`crap.count_constructors` (default `false`) scores constructors that have a
+body as methods, named `<Class>.<name>` (`<Class>.new` for the unnamed
+constructor). Bodyless and redirecting constructors (`factory Foo() = _Foo;`)
+are always skipped — they contain no branches. Turn it on for codebases where
+factory constructors do real work: validation, JSON normalization, mapping
+between representations — where leaving constructors out can mean a file with
+real branching reports no scored methods at all.
 
 The `gates.test_coverage.dirs` option (default `[lib]`) scopes the coverage
 aggregate to the LCOV entries under the listed directories.

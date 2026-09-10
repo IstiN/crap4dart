@@ -67,6 +67,7 @@ class CrapConfig {
     this.threshold = 8.0,
     this.runTests = false,
     this.countLambdas = true,
+    this.countConstructors = false,
   });
 
   /// Whether CRAP analysis is enabled.
@@ -81,6 +82,10 @@ class CrapConfig {
   /// Whether branches inside lambdas count towards the enclosing method's
   /// cyclomatic complexity in CRAP analysis.
   final bool countLambdas;
+
+  /// Whether constructors with a body (notably factory constructors doing
+  /// validation or mapping work) are scored as methods. Off by default.
+  final bool countConstructors;
 }
 
 /// Settings describing the coverage input.
