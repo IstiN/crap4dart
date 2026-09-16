@@ -738,6 +738,7 @@ class DuplicationGateConfig {
       _mocksGlob,
       _testGlob,
     ],
+    this.sources = const [],
   });
 
   /// Whether the gate is enabled.
@@ -761,4 +762,14 @@ class DuplicationGateConfig {
 
   /// Glob patterns excluded from the gate.
   final List<String> exclude;
+
+  /// Additional file/directory paths scanned for duplication, resolved
+  /// against the project root and unioned with the analyzed source set.
+  ///
+  /// This is what makes cross-module duplication detectable: a monorepo
+  /// can keep its CRAP analysis scoped to the main package while the
+  /// duplication gate still compares `lib/` against `flutter_app/lib/`,
+  /// `packages/*/lib/`, etc. Directories are scanned recursively,
+  /// `.dart` files are taken directly, missing paths are skipped.
+  final List<String> sources;
 }

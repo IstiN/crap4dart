@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Added
+
+- `duplication` gate: new `sources` key — additional file/directory paths
+  (resolved against the project root) unioned into the duplication scan,
+  enabling cross-module duplicate detection in monorepos without widening
+  the CRAP analysis scope.
+
 ## 0.9.5
 
 ### Fixed

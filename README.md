@@ -312,6 +312,11 @@ gates:
       - '**.g.dart'
       - '**.freezed.dart'
       - '**.mocks.dart'
+    # Extra file/directory paths scanned for duplication (cross-module
+    # checks), unioned with the analyzed source set.
+    # sources:
+    #   - 'flutter_app/lib'
+    #   - 'packages/fa_ui/lib'
       - 'test/**'
   # Forbid mechanical file names (numeric suffixes, generic names).
   file_naming:
@@ -446,6 +451,10 @@ gates:
   (default 50) and `min_lines` lines (default 5) long. The gate fails a
   file when its duplicated line percentage exceeds `threshold` (default
   1.0). Generated files and `test/**` are excluded by default.
+  Cross-module duplication can be gated with `sources`: extra
+  file/directory paths (resolved against the project root) unioned into
+  the scan, so a monorepo can compare `lib/` against `flutter_app/lib/`
+  or `packages/*/lib/` without widening CRAP analysis.
 - **file_naming** — forbids mechanical file names that indicate code was
   split to dodge the `loc` gate instead of along domain boundaries:
   numeric suffixes (`jira_batch1.dart`, `report2.dart`, `configv3.dart`)

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:path/path.dart' as p;
 
 import '../analysis/dart_parser.dart';
 import '../config/config.dart';
@@ -73,21 +74,51 @@ class DuplicationGate implements Gate {
   }
 
   /// Loads and tokenizes the files that participate in duplicate detection.
+  ///
+  /// Beyond the analyzed source set, the gate's [DuplicationGateConfig.sources]
+  /// paths are unioned in — that is what makes cross-module duplication
+  /// visible without widening the CRAP analysis scope.
   List<_FileTokens> _collectFiles(
     GateContext context,
     DuplicationGateConfig config,
   ) {
-    final files = <_FileTokens>[];
-    for (final file in context.files) {
+    final files = <String>[...context.files];
+    for (final source in _expandSources(context, config.sources)) {
+      if (!files.contains(source)) files.add(source);
+    }
+    files.sort();
+    final tokens = <_FileTokens>[];
+    for (final file in files) {
       if (context.matchesAnyGlob(file, config.exclude)) continue;
       final parsed = context.parsed(file);
-      final tokens = _extractFileTokens(parsed);
-      if (tokens.length >= config.minTokens) {
+      final fileTokens = _extractFileTokens(parsed);
+      if (fileTokens.length >= config.minTokens) {
         final totalLines = _lineCount(File(file).readAsStringSync());
-        files.add(_FileTokens(file, tokens, totalLines));
+        tokens.add(_FileTokens(file, fileTokens, totalLines));
       }
     }
-    return files;
+    return tokens;
+  }
+
+  /// Resolves the gate's additional [sources] against the project root:
+  /// directories are scanned recursively for `.dart` files, files are
+  /// taken directly, missing paths are skipped silently.
+  List<String> _expandSources(GateContext context, List<String> sources) {
+    final result = <String>[];
+    for (final source in sources) {
+      final absolute = p.join(context.projectRoot, source);
+      final type = FileSystemEntity.typeSync(absolute);
+      if (type == FileSystemEntityType.file) {
+        if (absolute.endsWith('.dart')) result.add(absolute);
+      } else if (type == FileSystemEntityType.directory) {
+        for (final entity in Directory(absolute).listSync(recursive: true)) {
+          if (entity is File && entity.path.endsWith('.dart')) {
+            result.add(entity.path);
+          }
+        }
+      }
+    }
+    return result;
   }
 
   /// Builds the gate result from marked token streams.

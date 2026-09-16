@@ -554,7 +554,8 @@ class _GateConfigReaders {
         'threshold',
         'min_tokens',
         'min_lines',
-        _excludeKey
+        _excludeKey,
+        _sourcesKey
       },
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -570,6 +571,8 @@ class _GateConfigReaders {
               map, 'min_lines', base.minLines, path, ctx),
           exclude:
               _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+          sources:
+              _ConfigScalars.strList(map, _sourcesKey, base.sources, path, ctx),
         );
       },
     );

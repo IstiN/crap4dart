@@ -193,6 +193,11 @@ gates:
       - '**.freezed.dart'
       - '**.mocks.dart'
       - 'test/**'
+    # Extra file/directory paths scanned for duplication (cross-module
+    # checks), unioned with the analyzed source set.
+    # sources:
+    #   - 'flutter_app/lib'
+    #   - 'packages/fa_ui/lib'
   # Forbid mechanical file names (numeric suffixes, generic names).
   file_naming:
     enabled: true

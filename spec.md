@@ -549,6 +549,16 @@ percentage of duplicated lines exceeds `threshold` (default 1.0). Files
 matching the gate's `exclude` list (default generated files and `test/**`)
 are skipped.
 
+Detection is cross-file: every file in the scan is indexed together, so a
+block copied between files (including files in different modules) is
+marked in both. The gate's `sources` key lists additional file/directory
+paths (resolved against the project root) that are unioned into the scan
+beyond the analyzed source set — directories are scanned recursively,
+`.dart` files are taken directly, missing paths are skipped. This is the
+intended mechanism for cross-module duplication gates in monorepos: the
+CRAP analysis stays scoped to the main package while duplication spans
+`flutter_app/lib/`, `packages/*/lib/`, and so on.
+
 ### 11.12 file_naming
 
 Flags Dart files whose names indicate a mechanical split instead of a
