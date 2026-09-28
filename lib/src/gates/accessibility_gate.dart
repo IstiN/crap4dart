@@ -71,7 +71,7 @@ class _A11yVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    _check(node, node.constructorName.type.name2.lexeme, node.argumentList);
+    _check(node, node.constructorName.type.name.lexeme, node.argumentList);
     super.visitInstanceCreationExpression(node);
   }
 
@@ -80,7 +80,7 @@ class _A11yVisitor extends RecursiveAstVisitor<void> {
     final labelParam =
         AccessibilityGate.labelParams[name] ?? _semanticsLabelParam;
     final hasLabel = arguments.arguments.any(
-      (a) => a is NamedExpression && a.name.label.name == labelParam,
+      (a) => a is NamedArgument && a.name.lexeme == labelParam,
     );
     if (hasLabel) return;
     if (labelParam == _semanticsLabelParam && _wrappedInSemantics(node)) return;
@@ -99,7 +99,7 @@ class _A11yVisitor extends RecursiveAstVisitor<void> {
   bool _isSemanticsWidget(AstNode node) {
     if (node is MethodInvocation) return node.methodName.name == 'Semantics';
     if (node is InstanceCreationExpression) {
-      return node.constructorName.type.name2.lexeme == 'Semantics';
+      return node.constructorName.type.name.lexeme == 'Semantics';
     }
     return false;
   }

@@ -148,8 +148,8 @@ class _WidgetVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    final superclass = node.extendsClause?.superclass.name2.lexeme;
-    final name = node.name.lexeme;
+    final superclass = node.extendsClause?.superclass.name.lexeme;
+    final name = node.namePart.typeName.lexeme;
     if (superclass != null &&
         GoldenGate.widgetBaseClasses.contains(superclass) &&
         !name.startsWith('_') &&
@@ -158,7 +158,9 @@ class _WidgetVisitor extends RecursiveAstVisitor<void> {
         _WidgetInfo(
           name,
           _file,
-          _parsed.lineInfo.getLocation(node.name.offset).lineNumber,
+          _parsed.lineInfo
+              .getLocation(node.namePart.typeName.offset)
+              .lineNumber,
         ),
       );
     }
@@ -179,7 +181,7 @@ class _GoldenTestVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    referencedTypes.add(node.name2.lexeme);
+    referencedTypes.add(node.name.lexeme);
     super.visitNamedType(node);
   }
 

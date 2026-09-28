@@ -137,8 +137,8 @@ class _StringsVisitor extends RecursiveAstVisitor<void> {
       contextNode = contextNode.parent!;
     }
     final parent = contextNode.parent;
-    if (parent is NamedExpression) {
-      final label = parent.name.label.name;
+    if (parent is NamedArgument) {
+      final label = parent.name.lexeme;
       if (_checkParams.contains(label)) {
         _add(node, preview, "in parameter '$label'");
       }
@@ -152,7 +152,7 @@ class _StringsVisitor extends RecursiveAstVisitor<void> {
   bool _isTextCall(AstNode? node) {
     if (node is MethodInvocation) return node.methodName.name == 'Text';
     if (node is InstanceCreationExpression) {
-      return node.constructorName.type.name2.lexeme == 'Text';
+      return node.constructorName.type.name.lexeme == 'Text';
     }
     return false;
   }

@@ -89,7 +89,7 @@ class _MethodVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (node.isAbstract || node.body is EmptyFunctionBody) return;
+    if (!node.isComplete || node.body is EmptyFunctionBody) return;
     _add(node.name.lexeme, node, _containerName(node));
     // Do not descend into the body: nested function declarations inside
     // method bodies are not extracted as separate methods.
@@ -107,8 +107,14 @@ class _MethodVisitor extends RecursiveAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {}
 
   String _containerName(MethodDeclaration node) {
-    final named = node.thisOrAncestorOfType<NamedCompilationUnitMember>();
-    if (named != null) return named.name.lexeme;
+    final clazz = node.thisOrAncestorOfType<ClassDeclaration>();
+    if (clazz != null) return clazz.namePart.typeName.lexeme;
+    final enumDecl = node.thisOrAncestorOfType<EnumDeclaration>();
+    if (enumDecl != null) return enumDecl.namePart.typeName.lexeme;
+    final mixinDecl = node.thisOrAncestorOfType<MixinDeclaration>();
+    if (mixinDecl != null) return mixinDecl.name.lexeme;
+    final extType = node.thisOrAncestorOfType<ExtensionTypeDeclaration>();
+    if (extType != null) return extType.namePart.typeName.lexeme;
     final extension = node.thisOrAncestorOfType<ExtensionDeclaration>();
     if (extension != null) {
       return extension.name?.lexeme ?? unnamedExtensionName;

@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:crap4dart/src/gates/gate_context.dart';
+
 import 'gate_test_utils.dart';
 
 /// A Checkstyle XML report with one Kotlin finding.
@@ -30,7 +32,7 @@ EOF
 }
 
 /// A gate context config running [tool] as the `external` rule `fake`.
-externalContext(Directory project, String tool) => makeContext(
+GateContext externalContext(Directory project, String tool) => makeContext(
       project,
       const [],
       configYaml: '''

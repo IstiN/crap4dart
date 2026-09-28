@@ -92,7 +92,7 @@ class _TestBodyVisitor extends RecursiveAstVisitor<void> {
     final args = node.argumentList.arguments;
     // Named arguments (e.g. `skip:`, `timeout:`) are appended after positional
     // ones, so the body is the second positional argument, never `args.last`.
-    final positional = args.where((a) => a is! NamedExpression).toList();
+    final positional = args.where((a) => a is! NamedArgument).toList();
     if (positional.length < 2) return;
     final nameArg = positional[0];
     final bodyArg = positional[1];

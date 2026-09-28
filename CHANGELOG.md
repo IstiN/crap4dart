@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- Dependencies refreshed: `analyzer` 7.3 -> 14.4 (new "parts" AST —
+  `ClassDeclaration.namePart.typeName`, `NamedType.name`,
+  `NamedArgument`/`Argument` model, `body.members`, `isComplete`),
+  `xml` 7.1, `test` 1.32, `lints` 6.1.
+
 ### Added
 
 - `duplication` gate: new `sources` key — additional file/directory paths

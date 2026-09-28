@@ -51,7 +51,7 @@ class _DocsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    _checkNamed(node, node.name.lexeme, 'class');
+    _checkNamed(node, node.namePart.typeName.lexeme, 'class');
     super.visitClassDeclaration(node);
   }
 
@@ -63,7 +63,7 @@ class _DocsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    _checkNamed(node, node.name.lexeme, 'enum');
+    _checkNamed(node, node.namePart.typeName.lexeme, 'enum');
     super.visitEnumDeclaration(node);
   }
 
@@ -71,7 +71,7 @@ class _DocsVisitor extends RecursiveAstVisitor<void> {
   // ignore: experimental_member_use
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     // ignore: experimental_member_use
-    _checkNamed(node, node.name.lexeme, 'extension type');
+    _checkNamed(node, node.namePart.typeName.lexeme, 'extension type');
     // ignore: experimental_member_use
     super.visitExtensionTypeDeclaration(node);
   }
@@ -80,7 +80,7 @@ class _DocsVisitor extends RecursiveAstVisitor<void> {
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     final name = node.name?.lexeme;
     if (name != null) _checkNamed(node, name, 'extension');
-    node.members.accept(this);
+    node.body.members.accept(this);
   }
 
   @override
@@ -131,8 +131,18 @@ class _DocsVisitor extends RecursiveAstVisitor<void> {
 
   // Members of private containers are not public API.
   bool _enclosingIsPublic(AstNode node) {
-    final named = node.thisOrAncestorOfType<NamedCompilationUnitMember>();
-    if (named != null) return _isPublic(named.name.lexeme);
+    final clazz = node.thisOrAncestorOfType<ClassDeclaration>();
+    if (clazz != null) return _isPublic(clazz.namePart.typeName.lexeme);
+    final enumDecl = node.thisOrAncestorOfType<EnumDeclaration>();
+    if (enumDecl != null) {
+      return _isPublic(enumDecl.namePart.typeName.lexeme);
+    }
+    final mixinDecl = node.thisOrAncestorOfType<MixinDeclaration>();
+    if (mixinDecl != null) return _isPublic(mixinDecl.name.lexeme);
+    final extType = node.thisOrAncestorOfType<ExtensionTypeDeclaration>();
+    if (extType != null) {
+      return _isPublic(extType.namePart.typeName.lexeme);
+    }
     final extension = node.thisOrAncestorOfType<ExtensionDeclaration>();
     if (extension != null) {
       final name = extension.name?.lexeme;

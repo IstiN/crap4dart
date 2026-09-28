@@ -73,12 +73,12 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    final name = node.name.lexeme;
+    final name = node.namePart.typeName.lexeme;
     if (name.startsWith('_')) {
       _declare(name, node);
     } else {
       // Public classes' private members are candidates.
-      for (final member in node.members) {
+      for (final member in node.body.members) {
         member.accept(this);
       }
     }
@@ -91,7 +91,8 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
     final name = node.name.lexeme;
     final isPrivate = name.startsWith('_');
     final enclosingClass = node.thisOrAncestorOfType<ClassDeclaration>();
-    if (isPrivate && !(enclosingClass?.name.lexeme.startsWith('_') ?? true)) {
+    if (isPrivate &&
+        !(enclosingClass?.namePart.typeName.lexeme.startsWith('_') ?? true)) {
       _declare(name, node);
     }
     // Methods outside a class declaration (mixins, extensions, enums)
@@ -105,7 +106,8 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
   void visitFieldDeclaration(FieldDeclaration node) {
     final inPrivateContainer = node
             .thisOrAncestorOfType<ClassDeclaration>()
-            ?.name
+            ?.namePart
+            .typeName
             .lexeme
             .startsWith('_') ??
         true;

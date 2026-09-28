@@ -92,7 +92,7 @@ class _SizeVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (!node.isAbstract && node.body is! EmptyFunctionBody) {
+    if (node.isComplete && node.body is! EmptyFunctionBody) {
       checked++;
       _checkSize(node, node.name.lexeme, node.parameters);
     }
@@ -110,7 +110,13 @@ class _SizeVisitor extends RecursiveAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     // Constructors are checked only for parameter count.
     checked++;
-    final name = node.name?.lexeme ?? node.returnType.name;
+    final name = node.name?.lexeme ??
+        node
+            .thisOrAncestorOfType<ClassDeclaration>()
+            ?.namePart
+            .typeName
+            .lexeme ??
+        'constructor';
     _checkParams(node, name, node.parameters);
   }
 

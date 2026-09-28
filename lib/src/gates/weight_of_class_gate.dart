@@ -66,7 +66,7 @@ class _WeightVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    if (node.name.lexeme.startsWith('_')) return;
+    if (node.namePart.typeName.lexeme.startsWith('_')) return;
     final (:fields, :members) = _countMembers(node);
     if (members > 0 && fields > 0) {
       checked++;
@@ -79,7 +79,8 @@ class _WeightVisitor extends RecursiveAstVisitor<void> {
           GateViolation(
             file: _file,
             line: line,
-            message: '${node.name.lexeme} exposes $fields public fields '
+            message:
+                '${node.namePart.typeName.lexeme} exposes $fields public fields '
                 'of $members public members '
                 '(weight=${(fields / members).toStringAsFixed(2)})',
           ),
@@ -92,7 +93,7 @@ class _WeightVisitor extends RecursiveAstVisitor<void> {
   ({int fields, int members}) _countMembers(ClassDeclaration node) {
     var fields = 0;
     var members = 0;
-    for (final member in node.members) {
+    for (final member in node.body.members) {
       if (member is FieldDeclaration && !member.isStatic) {
         for (final variable in member.fields.variables) {
           if (!variable.name.lexeme.startsWith('_')) {
@@ -109,5 +110,5 @@ class _WeightVisitor extends RecursiveAstVisitor<void> {
 
   /// Whether [member] is a non-static, non-abstract method.
   bool _isPublicInstanceMethod(ClassMember member) =>
-      member is MethodDeclaration && !member.isStatic && !member.isAbstract;
+      member is MethodDeclaration && !member.isStatic && member.isComplete;
 }
