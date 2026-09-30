@@ -722,6 +722,36 @@ class PublicDocsGateConfig {
   final List<String> exclude;
 }
 
+/// Matching knobs of the `duplication` gate: block granularity and the
+/// Type-2 clone normalizations.
+class DuplicationMatching {
+  /// Creates a [DuplicationMatching].
+  const DuplicationMatching({
+    this.minTokens = 50,
+    this.minLines = 5,
+    this.ignoreLocals = false,
+    this.ignoreLiterals = false,
+  });
+
+  /// Minimum number of tokens in a block to be considered for duplication.
+  final int minTokens;
+
+  /// Minimum number of lines in a block to be considered for duplication.
+  final int minLines;
+
+  /// Whether locally declared identifiers (parameters, local variables,
+  /// loop and catch variables, type parameters, local functions, pattern
+  /// variables) are consistently renamed before hashing, enabling
+  /// detection of renamed (Type-2) clones. Interpolated strings become
+  /// opaque under this mode. Off by default.
+  final bool ignoreLocals;
+
+  /// Whether string and numeric literals are replaced with type
+  /// placeholders before hashing, so clones differing only in literal
+  /// values are detected. Off by default.
+  final bool ignoreLiterals;
+}
+
 /// Code duplication gate settings (`duplication`).
 class DuplicationGateConfig {
   /// Creates a [DuplicationGateConfig].
@@ -730,8 +760,7 @@ class DuplicationGateConfig {
     this.severity = GateSeverity.error,
     this.ignorable = false,
     this.threshold = 1.0,
-    this.minTokens = 50,
-    this.minLines = 5,
+    this.matching = const DuplicationMatching(),
     this.exclude = const [
       _generatedGlob,
       _freezedGlob,
@@ -754,22 +783,16 @@ class DuplicationGateConfig {
   /// Maximum allowed duplicated line percentage per file.
   final double threshold;
 
-  /// Minimum number of tokens in a block to be considered for duplication.
-  final int minTokens;
-
-  /// Minimum number of lines in a block to be considered for duplication.
-  final int minLines;
+  /// Block granularity and Type-2 clone normalizations.
+  final DuplicationMatching matching;
 
   /// Glob patterns excluded from the gate.
   final List<String> exclude;
 
   /// Additional file/directory paths scanned for duplication, resolved
-  /// against the project root and unioned with the analyzed source set.
-  ///
-  /// This is what makes cross-module duplication detectable: a monorepo
-  /// can keep its CRAP analysis scoped to the main package while the
-  /// duplication gate still compares `lib/` against `flutter_app/lib/`,
-  /// `packages/*/lib/`, etc. Directories are scanned recursively,
-  /// `.dart` files are taken directly, missing paths are skipped.
+  /// against the project root and unioned with the analyzed source set:
+  /// this is what makes cross-module duplication detectable. Directories
+  /// are scanned recursively, `.dart` files are taken directly, missing
+  /// paths are skipped.
   final List<String> sources;
 }

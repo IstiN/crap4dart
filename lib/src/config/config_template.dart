@@ -187,6 +187,12 @@ gates:
     min_tokens: 50
     # Minimum number of lines in a block to count as duplication.
     min_lines: 5
+    # Rename locally declared identifiers consistently before hashing so
+    # renamed (Type-2) clones are detected; API names stay visible.
+    ignore_locals: false
+    # Replace string and numeric literals with placeholders before
+    # hashing so clones differing only in literal values are detected.
+    ignore_literals: false
     # Glob patterns excluded from the gate.
     exclude:
       - '**.g.dart'

@@ -554,6 +554,8 @@ class _GateConfigReaders {
         'threshold',
         'min_tokens',
         'min_lines',
+        'ignore_locals',
+        'ignore_literals',
         _excludeKey,
         _sourcesKey
       },
@@ -565,10 +567,16 @@ class _GateConfigReaders {
           ignorable: flags.ignorable,
           threshold: _ConfigScalars.readNum(
               map, 'threshold', base.threshold, path, ctx),
-          minTokens: _ConfigScalars.readInt(
-              map, 'min_tokens', base.minTokens, path, ctx),
-          minLines: _ConfigScalars.readInt(
-              map, 'min_lines', base.minLines, path, ctx),
+          matching: DuplicationMatching(
+            minTokens: _ConfigScalars.readInt(
+                map, 'min_tokens', base.matching.minTokens, path, ctx),
+            minLines: _ConfigScalars.readInt(
+                map, 'min_lines', base.matching.minLines, path, ctx),
+            ignoreLocals: _ConfigScalars.readBool(
+                map, 'ignore_locals', base.matching.ignoreLocals, path, ctx),
+            ignoreLiterals: _ConfigScalars.readBool(map, 'ignore_literals',
+                base.matching.ignoreLiterals, path, ctx),
+          ),
           exclude:
               _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
           sources:

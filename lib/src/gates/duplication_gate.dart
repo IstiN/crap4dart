@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:path/path.dart' as p;
 
 import '../analysis/dart_parser.dart';
@@ -42,10 +44,15 @@ class _FileTokens {
 /// exceeds the configured threshold.
 ///
 /// The detection tokenizes the whole Dart file with `package:analyzer`,
-/// normalizes string and numeric literals, skips comments, then indexes
-/// sliding windows of tokens with a Rabin-Karp hash, similar to jscpd.
-/// Any duplicated block of at least `min_tokens` tokens and `min_lines`
-/// lines is detected within or across files.
+/// skips comments, then indexes sliding windows of tokens with a
+/// Rabin-Karp hash, similar to jscpd. Any duplicated block of at least
+/// `min_tokens` tokens and `min_lines` lines is detected within or across
+/// files. Two opt-in normalizations extend detection to renamed clones
+/// (Type-2): `ignore_locals` renames function-local identifiers
+/// consistently in first-use order — the API surface (called method
+/// names, type names, field references) keeps its lexeme, so swapped
+/// locals or different calls never match — and `ignore_literals`
+/// replaces string and numeric literals with type placeholders.
 class DuplicationGate implements Gate {
   /// Creates a [DuplicationGate].
   const DuplicationGate();
@@ -65,7 +72,8 @@ class DuplicationGate implements Gate {
       return GateResult.pass(id, summary: 'no files with enough tokens');
     }
 
-    _detectDuplicates(files, config.minTokens, config.minLines);
+    _detectDuplicates(
+        files, config.matching.minTokens, config.matching.minLines);
     final result = _buildResult(files, config, context);
 
     return result.violations.isEmpty
@@ -91,8 +99,8 @@ class DuplicationGate implements Gate {
     for (final file in files) {
       if (context.matchesAnyGlob(file, config.exclude)) continue;
       final parsed = context.parsed(file);
-      final fileTokens = _extractFileTokens(parsed);
-      if (fileTokens.length >= config.minTokens) {
+      final fileTokens = _extractFileTokens(parsed, config);
+      if (fileTokens.length >= config.matching.minTokens) {
         final totalLines = _lineCount(File(file).readAsStringSync());
         tokens.add(_FileTokens(file, fileTokens, totalLines));
       }
@@ -169,13 +177,17 @@ class DuplicationGate implements Gate {
   }
 
   /// Extracts normalized tokens from the whole parsed file.
-  List<_NormalizedToken> _extractFileTokens(ParsedUnit parsed) {
+  List<_NormalizedToken> _extractFileTokens(
+    ParsedUnit parsed,
+    DuplicationGateConfig config,
+  ) {
     final tokens = <_NormalizedToken>[];
+    final mask = _TokenMask.build(parsed, config);
     Token? token = parsed.unit.beginToken;
     final end = parsed.unit.endToken;
     while (token != null) {
       if (token.offset > end.offset) break;
-      final normalized = _normalize(token);
+      final normalized = _normalize(token, mask);
       if (normalized != null) {
         final line = parsed.lineInfo.getLocation(token.offset).lineNumber;
         tokens.add(_NormalizedToken(normalized, line));
@@ -188,12 +200,16 @@ class DuplicationGate implements Gate {
 
   /// Normalizes a token for duplicate detection.
   ///
-  /// Comments and synthetic tokens are skipped; everything else keeps its
-  /// lexeme. Whitespace is already absent from the analyzer token stream.
-  String? _normalize(Token token) {
+  /// Comments and synthetic tokens are skipped; string and numeric
+  /// literals are masked when [DuplicationGateConfig.ignoreLiterals] is
+  /// set, and function-local identifiers are consistently renamed when
+  /// [DuplicationGateConfig.ignoreLocals] is set. Everything else keeps
+  /// its lexeme. Whitespace is already absent from the analyzer token
+  /// stream.
+  String? _normalize(Token token, _TokenMask mask) {
     if (token.isSynthetic || token is CommentToken) return null;
     if (token.type.name == 'EOF') return null;
-    return token.lexeme;
+    return mask.of(token) ?? token.lexeme;
   }
 
   /// Detects duplicated windows and marks the involved tokens.
@@ -291,6 +307,187 @@ class DuplicationGate implements Gate {
     if (content.isEmpty) return 0;
     final newlines = '\n'.allMatches(content).length;
     return content.endsWith('\n') ? newlines : newlines + 1;
+  }
+}
+
+/// A single function-local scope: identifiers declared inside [start,
+/// end) are renamed consistently for clone matching.
+class _FunctionScope {
+  _FunctionScope(this.start, this.end, this.names);
+
+  final int start;
+  final int end;
+  final Set<String> names;
+  final Map<String, String> _placeholders = {};
+
+  /// Placeholder for [name], assigned in first-use order: renamed clones
+  /// of the same algorithm hash identically, while two locals swapped
+  /// against each other keep different placeholders and never match.
+  String placeholderFor(String name) =>
+      _placeholders.putIfAbsent(name, () => '\$L${_placeholders.length + 1}');
+}
+
+/// Token masking applied before hashing: literal erasure and
+/// function-local consistent renaming. Both modes are opt-in.
+class _TokenMask {
+  _TokenMask(this._scopes, this._ignoreLocals, this._ignoreLiterals);
+
+  final List<_FunctionScope> _scopes;
+  final bool _ignoreLocals;
+  final bool _ignoreLiterals;
+
+  /// Builds the mask [config] asks for; scopes are sorted and disjoint.
+  static _TokenMask build(
+    ParsedUnit parsed,
+    DuplicationGateConfig config,
+  ) {
+    if (!config.matching.ignoreLocals) {
+      return _TokenMask(const [], false, config.matching.ignoreLiterals);
+    }
+    final builder = _FunctionScopeBuilder();
+    parsed.unit.accept(builder);
+    return _TokenMask(builder.scopes, true, config.matching.ignoreLiterals);
+  }
+
+  /// Masked value of [token], or null to keep its lexeme.
+  String? of(Token token) {
+    if (_ignoreLiterals) {
+      switch (token.type.name) {
+        case 'STRING':
+        case 'STRING_INTERPOLATION':
+          return '\$STR';
+        case 'INT':
+        case 'DOUBLE':
+        case 'HEXADECIMAL':
+          return '\$NUM';
+      }
+    }
+    // Interpolated strings embed local identifiers in their raw lexeme;
+    // they are opaque under local renaming so embedded renames cannot
+    // break window hashes.
+    if (_ignoreLocals && token.type.name == 'STRING_INTERPOLATION') {
+      return '\$STR';
+    }
+    if (_scopes.isEmpty) return null;
+    final scope = _scopeAt(token.offset);
+    if (scope == null || !scope.names.contains(token.lexeme)) return null;
+    return scope.placeholderFor(token.lexeme);
+  }
+
+  /// Scope containing [offset], or null — binary search over starts.
+  _FunctionScope? _scopeAt(int offset) {
+    var low = 0;
+    var high = _scopes.length - 1;
+    while (low <= high) {
+      final mid = (low + high) >> 1;
+      final scope = _scopes[mid];
+      if (offset < scope.start) {
+        high = mid - 1;
+      } else if (offset >= scope.end) {
+        low = mid + 1;
+      } else {
+        return scope;
+      }
+    }
+    return null;
+  }
+}
+
+/// Collects the outermost function scopes of a compilation unit: one
+/// per method, constructor, and function expression; nested functions
+/// share the outermost scope.
+class _FunctionScopeBuilder extends GeneralizingAstVisitor<void> {
+  final scopes = <_FunctionScope>[];
+  var _depth = 0;
+
+  @override
+  void visitNode(AstNode node) => node.visitChildren(this);
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) =>
+      _addScope(node, node.parameters?.offset ?? node.body.offset);
+
+  @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) =>
+      _addScope(node, node.parameters.offset);
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) =>
+      _addScope(node, node.parameters?.offset ?? node.body.offset);
+
+  void _addScope(AstNode node, int start) {
+    if (_depth > 0) {
+      node.visitChildren(this);
+      return;
+    }
+    final collector = _DeclaredNamesCollector();
+    node.accept(collector);
+    scopes.add(_FunctionScope(start, node.end, collector.names));
+    _depth++;
+    node.visitChildren(this);
+    _depth--;
+  }
+}
+
+/// Collects every identifier declared inside a function: parameters
+/// (except field initializers, which reference API state), local
+/// variables, loop and catch variables, type parameters, local
+/// functions, and pattern variables.
+class _DeclaredNamesCollector extends GeneralizingAstVisitor<void> {
+  final names = <String>{};
+
+  @override
+  void visitNode(AstNode node) => node.visitChildren(this);
+
+  @override
+  void visitFormalParameter(FormalParameter node) {
+    if (node is! FieldFormalParameter && node is! SuperFormalParameter) {
+      final name = node.name;
+      if (name != null) names.add(name.lexeme);
+    }
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    names.add(node.name.lexeme);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {
+    names.add(node.name.lexeme);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitCatchClauseParameter(CatchClauseParameter node) {
+    names.add(node.name.lexeme);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitTypeParameter(TypeParameter node) {
+    names.add(node.name.lexeme);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitVariablePattern(VariablePattern node) {
+    names.add(node.name.lexeme);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitWildcardPattern(WildcardPattern node) {
+    names.add(node.name.lexeme);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    names.add(node.name.lexeme);
+    node.visitChildren(this);
   }
 }
 

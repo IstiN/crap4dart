@@ -553,12 +553,25 @@ Detection is cross-file: every file in the scan is indexed together, so a
 block copied between files (including files in different modules) is
 marked in both. The gate's `sources` key lists additional file/directory
 paths (resolved against the project root) that are unioned into the scan
-beyond the analyzed source set — directories are scanned recursively,
-`.dart` files are taken directly, missing paths are skipped. This is the
-intended mechanism for cross-module duplication gates in monorepos: the
-CRAP analysis stays scoped to the main package while duplication spans
-`flutter_app/lib/`, `packages/*/lib/`, and so on.
+beyond the analyzed source set.
 
+Two opt-in normalizations extend detection to renamed clones
+("Type-2"):
+
+- `ignore_locals` (default `false`): identifiers declared inside a
+  function — parameters (except `this.x` field formals, which reference
+  API state), local variables, loop and catch variables, type
+  parameters, local functions, and pattern variables — are renamed to
+  placeholders in first-use order before hashing. Renamed clones hash
+  identically, while locals swapped against each other keep different
+  placeholders and never match. The API surface — called method names,
+  type names, field references — keeps its lexeme. Interpolated string
+  literals become opaque placeholders in this mode, because their raw
+  lexeme embeds local identifiers.
+- `ignore_literals` (default `false`): string and numeric literal
+  tokens are replaced with `$STR`/`$NUM` placeholders before hashing.
+
+With both keys left off the gate reports exact copy-paste only.
 ### 11.12 file_naming
 
 Flags Dart files whose names indicate a mechanical split instead of a
