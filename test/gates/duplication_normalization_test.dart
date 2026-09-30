@@ -59,6 +59,17 @@ void main() {
         reason: 'patterns, loop vars, local functions, catch params renamed');
   });
 
+  test('exact copy never lost when scopes shift numbering', () async {
+    final result = await runPair(
+      project,
+      shiftedScope(),
+      plainScope(),
+      ignoreLocals: true,
+    );
+    expect(result.passed, isFalse,
+        reason: 'raw pass must keep Type-1 detection under masking');
+  });
+
   test('unknown duplication key is rejected', () {
     expect(
       () => const ConfigLoader().loadString(duplicationYaml(badKey: true)),

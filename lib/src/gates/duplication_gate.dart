@@ -11,11 +11,13 @@ import '../config/config.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
-/// A single normalized token together with its source line.
+/// A single token together with its source line, raw lexeme, and
+/// normalized value (identical to the lexeme when no masking applies).
 class _NormalizedToken {
   /// Creates a [_NormalizedToken].
-  _NormalizedToken(this.value, this.line);
+  _NormalizedToken(this.lexeme, this.value, this.line);
 
+  final String lexeme;
   final String value;
   final int line;
   bool duplicated = false;
@@ -72,8 +74,7 @@ class DuplicationGate implements Gate {
       return GateResult.pass(id, summary: 'no files with enough tokens');
     }
 
-    _detectDuplicates(
-        files, config.matching.minTokens, config.matching.minLines);
+    _detectDuplicates(files, config.matching);
     final result = _buildResult(files, config, context);
 
     return result.violations.isEmpty
@@ -190,7 +191,7 @@ class DuplicationGate implements Gate {
       final normalized = _normalize(token, mask);
       if (normalized != null) {
         final line = parsed.lineInfo.getLocation(token.offset).lineNumber;
-        tokens.add(_NormalizedToken(normalized, line));
+        tokens.add(_NormalizedToken(token.lexeme, normalized, line));
       }
       if (token == end) break;
       token = token.next;
@@ -213,17 +214,47 @@ class DuplicationGate implements Gate {
   }
 
   /// Detects duplicated windows and marks the involved tokens.
-  void _detectDuplicates(List<_FileTokens> files, int minTokens, int minLines) {
+  ///
+  /// Two passes: the raw pass compares lexemes (Type-1 copy-paste) and
+  /// always runs; when local renaming is enabled a second pass compares
+  /// masked values (Type-2 renamed clones). The union of both is
+  /// reported — enabling `ignore_locals` can only add findings, never
+  /// lose exact copies whose enclosing scopes shift placeholder
+  /// numbering.
+  void _detectDuplicates(
+    List<_FileTokens> files,
+    DuplicationMatching matching,
+  ) {
+    if (matching.ignoreLocals) {
+      _markDuplicates(files, matching, _rawCodes);
+    }
+    _markDuplicates(files, matching, _maskedCodes);
+  }
+
+  /// Token codes from the raw lexemes.
+  List<int> _rawCodes(List<_NormalizedToken> tokens) =>
+      [for (final t in tokens) t.lexeme.hashCode.toUnsigned(64)];
+
+  /// Token codes from the masked (normalized) values.
+  List<int> _maskedCodes(List<_NormalizedToken> tokens) =>
+      [for (final t in tokens) t.value.hashCode.toUnsigned(64)];
+
+  /// One detection pass over the given [codes] of every file.
+  void _markDuplicates(
+    List<_FileTokens> files,
+    DuplicationMatching matching,
+    List<int> Function(List<_NormalizedToken>) codes,
+  ) {
     final occurrences = <int, List<_TokenPos>>{};
     for (var fileIndex = 0; fileIndex < files.length; fileIndex++) {
-      _indexFile(files[fileIndex], fileIndex, minTokens, minLines, occurrences);
+      _indexFile(files[fileIndex], fileIndex, matching, codes, occurrences);
     }
 
     for (final positions in occurrences.values) {
       if (positions.length < 2) continue;
       for (final pos in positions) {
         final tokens = files[pos.fileIndex].tokens;
-        final limit = min(pos.tokenIndex + minTokens, tokens.length);
+        final limit = min(pos.tokenIndex + matching.minTokens, tokens.length);
         for (var i = pos.tokenIndex; i < limit; i++) {
           tokens[i].duplicated = true;
         }
@@ -235,18 +266,18 @@ class DuplicationGate implements Gate {
   void _indexFile(
     _FileTokens file,
     int fileIndex,
-    int minTokens,
-    int minLines,
+    DuplicationMatching matching,
+    List<int> Function(List<_NormalizedToken>) codeOf,
     Map<int, List<_TokenPos>> occurrences,
   ) {
     final tokens = file.tokens;
     final n = tokens.length;
-    if (n < minTokens) return;
+    if (n < matching.minTokens) return;
 
+    final minTokens = matching.minTokens;
+    final minLines = matching.minLines;
     final lines = tokens.map((t) => t.line).toList();
-    final codes = tokens
-        .map((t) => t.value.hashCode.toUnsigned(64))
-        .toList(growable: false);
+    final codes = codeOf(tokens);
     final pow = _modPow(_base, minTokens - 1);
 
     var hash = 0;

@@ -567,7 +567,10 @@ Two opt-in normalizations extend detection to renamed clones
   placeholders and never match. The API surface — called method names,
   type names, field references — keeps its lexeme. Interpolated string
   literals become opaque placeholders in this mode, because their raw
-  lexeme embeds local identifiers.
+  lexeme embeds local identifiers. Detection is a union of two passes:
+  the raw-lexeme pass always runs alongside the masked one, so exact
+  copies are never lost when enclosing scopes shift placeholder
+  numbering.
 - `ignore_literals` (default `false`): string and numeric literal
   tokens are replaced with `$STR`/`$NUM` placeholders before hashing.
 

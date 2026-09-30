@@ -160,3 +160,37 @@ String kindsOriginal() =>
 /// The all-declaration-kinds renamed counterpart.
 String kindsClone() =>
     kinds('go', 'source', 'first', 'rest', 'total', 'part', 'assist', 'e');
+
+/// An exact-copy block whose enclosing scope carries an extra local
+/// before it, shifting placeholder numbering against [plainScope].
+String shiftedScope() => '''
+void run(int mode) {
+  final noise = mode + 1;
+  final warm = noise.isEven ? noise : mode;
+  final log = <int>[warm];
+  final sink = <int>[];
+  for (var i = 0; i < 9; i++) {
+    final entry = 7 * i;
+    if (entry.isNegative) {
+      sink.add(0);
+    } else {
+      sink.add(entry + 1);
+    }
+  }
+}
+''';
+
+/// The same exact-copy block in a scope without the leading locals.
+String plainScope() => '''
+void walk() {
+  final sink = <int>[];
+  for (var i = 0; i < 9; i++) {
+    final entry = 7 * i;
+    if (entry.isNegative) {
+      sink.add(0);
+    } else {
+      sink.add(entry + 1);
+    }
+  }
+}
+''';
