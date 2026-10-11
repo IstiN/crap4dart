@@ -382,17 +382,8 @@ class _TokenMask {
 
   /// Masked value of [token], or null to keep its lexeme.
   String? of(Token token) {
-    if (_ignoreLiterals) {
-      switch (token.type.name) {
-        case 'STRING':
-        case 'STRING_INTERPOLATION':
-          return '\$STR';
-        case 'INT':
-        case 'DOUBLE':
-        case 'HEXADECIMAL':
-          return '\$NUM';
-      }
-    }
+    final literal = _literalMask(token);
+    if (literal != null) return literal;
     // Interpolated strings embed local identifiers in their raw lexeme;
     // they are opaque under local renaming so embedded renames cannot
     // break window hashes.
@@ -403,6 +394,21 @@ class _TokenMask {
     final scope = _scopeAt(token.offset);
     if (scope == null || !scope.names.contains(token.lexeme)) return null;
     return scope.placeholderFor(token.lexeme);
+  }
+
+  /// Literal mask for [token] when `ignore_literals` is on, else null.
+  String? _literalMask(Token token) {
+    if (!_ignoreLiterals) return null;
+    switch (token.type.name) {
+      case 'STRING':
+      case 'STRING_INTERPOLATION':
+        return '\$STR';
+      case 'INT':
+      case 'DOUBLE':
+      case 'HEXADECIMAL':
+        return '\$NUM';
+    }
+    return null;
   }
 
   /// Scope containing [offset], or null — binary search over starts.
