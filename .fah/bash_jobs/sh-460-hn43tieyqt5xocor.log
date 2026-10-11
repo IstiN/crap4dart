@@ -1,0 +1,10 @@
+Analyzing crap4dart...
+No issues found!
+00:01 +162: test/gates/external_gate_test.dart: passes when the tool finds nothing
+00:01 +163: test/gates/external_gate_test.dart: passes when the tool finds nothing
+00:01 +164: test/gates/external_gate_test.dart: passes when the tool finds nothing
+00:01 +165: test/gates/external_gate_test.dart: passes when the tool finds nothing
+00:01 +166: test/gates/external_gate_test.dart: passes when the tool finds nothing
+00:01 +167: test/gates/external_gate_test.dart: passes when the tool finds nothing
+00:02 +168: test/gates/external_gate_test.dart: passes with no rules configured
+00:02 +169: All tests passed!

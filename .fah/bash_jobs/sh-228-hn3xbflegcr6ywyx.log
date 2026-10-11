@@ -1,0 +1,12 @@
+
+  final TuiLineBuffer buffer;
+  final List<String> killRing;
+  final int killIndex;
+  final List<_UndoStep> undoStack;
+  final bool lastActionWasYank;
+
+  // ignore: library_private_types_in_public_api — private ctor; exposing _UndoStep would leak internals.
+  const TuiLineEditor._(
+    this.buffer, {
+    this.killRing = const [],
+70 14

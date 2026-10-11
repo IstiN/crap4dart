@@ -1,0 +1,25 @@
+00:00 +0 -1: loading test/gates/mutation_gate_test.dart [E]
+  Failed to load "test/gates/mutation_gate_test.dart":
+  test/gates/mutation_gate_test.dart:56:50: Error: The argument type 'List<dynamic>' can't be assigned to the parameter type 'List<FileCoverage>?'.
+   - 'List' is from 'dart:core'.
+   - 'FileCoverage' is from 'package:crap4dart/src/coverage/lcov_parser.dart' ('lib/src/coverage/lcov_parser.dart').
+        makeContext(project, ['lib/a.dart'], lcov: coveredLcov()),
+                                                   ^
+00:00 +0 -1: passes the project root and timeout to the runner [E]
+  Expected: '/var/folders/f5/00cqw7d526l50rt309fcqp1r0000gn/T/crap4dart_mutation_engine_TADCa5'
+    Actual: <null>
+     Which: not an <Instance of 'String'>
+  
+  package:matcher                             expect
+  test/gates/mutation_engine_test.dart 136:5  main.<fn>
+  
+00:00 +0 -1: Some tests failed.
+00:00 +0 -1: site metadata records file, line and containing method [E]
+  Expected: <5>
+    Actual: <4>
+  
+  package:matcher                               expect
+  test/gates/mutation_operators_test.dart 89:7  main.<fn>.<fn>
+  
+00:00 +0 -1: Some tests failed.
+

@@ -1,0 +1,13 @@
+done
+184-    # Maximum allowed duplicated line percentage per file.
+185-    threshold: 1.0
+186-    # Minimum number of tokens in a block to count as duplication.
+187:    min_tokens: 50
+188-    # Minimum number of lines in a block to count as duplication.
+189-    min_lines: 5
+190-    # Glob patterns excluded from the gate.
+191-    exclude:
+192-      - '**.g.dart'
+193-      - '**.freezed.dart'
+194-      - '**.mocks.dart'
+195-      - 'test/**'

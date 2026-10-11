@@ -1,0 +1,22 @@
+00:15 +406: All tests passed!
+Max CRAP: 8.00 — OK (threshold: 8.00)
+ M .gitignore
+ M AGENTS.md
+ M CHANGELOG.md
+ M README.md
+ M lib/src/config/config_template.dart
+ M lib/src/config/gate_config_mutation.dart
+ M lib/src/config/gate_config_readers_extra.dart
+ M lib/src/gates/mutation_engine.dart
+ M lib/src/gates/mutation_gate.dart
+ M spec.md
+ M test/config_loader_mutation_test.dart
+ M test/gates/mutation_runner_test.dart
+?? .fah/
+?? lib/src/gates/mutation_cache.dart
+?? test/gates/mutation_cache_test.dart
+?? test/gates/mutation_engine_cache_test.dart
+?? test/gates/mutation_gate_cache_test.dart
+ test/config_loader_mutation_test.dart         |  49 ++++++++-
+ test/gates/mutation_runner_test.dart          |  36 ++++++-
+ 12 files changed, 407 insertions(+), 53 deletions(-)

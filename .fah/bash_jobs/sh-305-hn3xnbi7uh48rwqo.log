@@ -1,0 +1,4 @@
+00:00 +31 -1: test/gates/mutation_gate_test.dart: fails with one violation per survived mutant [E]
+00:00 +32 -2: test/gates/mutation_gate_test.dart: uncovered sites are excluded from the score denominator [E]
+00:00 +35 -3: test/gates/mutation_gate_test.dart: caps executed mutants at max_mutants [E]
+00:00 +37 -3: Some tests failed.

@@ -1,0 +1,7 @@
+Formatted lib/src/config/gate_configs.dart
+Formatted 1 file (1 changed) in 0.00 seconds.
+   info - src/gates/mutation_operators.dart:236:5 - Missing type annotation. Try adding a type annotation. - strict_top_level_inference
+   info - src/gates/mutation_operators.dart:236:12 - An uninitialized variable should have an explicit type annotation. Try adding a type annotation. - prefer_typing_uninitialized_variables
+   info - src/gates/mutation_operators.dart:236:12 - Missing type annotation. Try adding a type annotation. - strict_top_level_inference
+
+53 issues found.

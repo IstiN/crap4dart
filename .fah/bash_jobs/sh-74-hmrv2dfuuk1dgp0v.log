@@ -1,0 +1,6 @@
+00:00 +5 -1: ignore_literals masks string and numeric literals [E]
+  Expected: false
+    Actual: <true>
+00:00 +5 -1: locals of every declaration kind are masked
+00:00 +6 -1: unknown duplication key is rejected
+00:00 +7 -1: Some tests failed.

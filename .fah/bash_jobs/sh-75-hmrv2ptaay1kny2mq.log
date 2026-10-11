@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "<stdin>", line 31, in <module>
+AssertionError
+For example, 'dart test --chain-stack-traces'.

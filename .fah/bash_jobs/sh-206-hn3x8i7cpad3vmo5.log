@@ -1,0 +1,14 @@
+done lib/src/cli/reasoning_liveness.dart
+done tool_liveness
+done lib/src/cli/waiting_heartbeat.dart
+done lib/src/env/io_execution_env.dart
+done lib/src/cli/agent_cli_waiting.dart
+done test/cli/stream_liveness_test.dart
+147:        onRemind: (call) => reminds.add(toolLivenessReminderLine(call, now)),
+148:        onEscalate: (call) =>
+305:      onRemind: (call) =>
+307:      onEscalate: (call) =>
+103:      final hb = WaitingHeartbeat(onBeat: () => beats++);
+113:      final hb = WaitingHeartbeat(onBeat: () => beats++, minutes: () => 0);
+121:      final hb = WaitingHeartbeat(onBeat: () => beats++);
+135:      final hb = WaitingHeartbeat(onBeat: () => beats++, minutes: () => 1);

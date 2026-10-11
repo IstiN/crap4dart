@@ -1,0 +1,25 @@
+
+    test('mergeRun prunes vanished methods and supersedes old outcomes', () {
+      final cache = populated();
+      cache.mergeRun({
+        'lib/a.dart#C.add': (
+          digest: 'd1b',
+          outcomes: const [
+            CachedOutcome(
+              offset: 5,
+              line: 2,
+              category: 'arithmetic',
+              original: '+',
+              mutant: '-',
+              status: 'killed',
+            ),
+          ],
+        ),
+      }, {
+        'lib/a.dart#C.add',
+      });
+      expect(cache.methods.keys, {'lib/a.dart#C.add'});
+      expect(cache.methods['lib/a.dart#C.add']!.digest, 'd1b');
+    });
+  });
+}

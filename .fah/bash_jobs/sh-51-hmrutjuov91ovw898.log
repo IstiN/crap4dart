@@ -1,0 +1,3 @@
+=== VariablePattern ===
+awk: can't open file NR>=n && NR<=n+25 && /get /
+ source line number 1

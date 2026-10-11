@@ -1,0 +1,10 @@
+lib/src/gates/mutation_gate.dart:59:        timeout: Duration(seconds: config.execution.timeoutSeconds),
+lib/src/gates/mutation_gate.dart:68:  /// capped at [MutationGateConfig.maxMutants] (file order, then
+lib/src/gates/mutation_gate.dart:78:      if (covered.length >= config.maxMutants) break;
+lib/src/gates/mutation_gate.dart:85:        if (covered.length >= config.maxMutants) break;
+lib/src/config/gate_config_readers_extra.dart:126:        'max_mutants',
+lib/src/config/gate_config_readers_extra.dart:152:            timeoutSeconds: _ConfigScalars.readInt(map, 'timeout_seconds',
+lib/src/config/gate_config_readers_extra.dart:153:                base.execution.timeoutSeconds, path, ctx),
+lib/src/config/gate_config_readers_extra.dart:154:            maxMutants: _ConfigScalars.readInt(
+lib/src/config/gate_config_readers_extra.dart:155:                map, 'max_mutants', base.execution.maxMutants, path, ctx),
+test/config_loader_mutation_test.dart:18:    expect(config.timeoutSeconds, 60);

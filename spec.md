@@ -723,6 +723,30 @@ then offset), `operators` selects an enabled category subset, and
 `exclude` (default generated files and `test/**`) skips files. The
 gate is disabled by default.
 
+Digest-incremental cache: when `cache` (default true) is enabled, the
+gate persists per-method outcomes to
+`<projectRoot>/.crap-mutation-cache.json` (versioned JSON envelope
+`{version, meta, methods}`) keyed by method identity (file +
+`className.methodName`) and a digest (FNV-1a 64-bit, zero dependencies)
+of the method's exact AST source span. On later runs, a covered mutant
+whose method digest and site identity (offset, category, original,
+mutant) match a previously `killed` outcome is replayed — counted
+killed, reported as `cached` in the summary — and never re-executed;
+survivors are always re-executed, because the test suite may have
+improved. Changed or new methods re-execute fully; coverage gating is
+re-derived from the run's fresh LCOV and is never cached. The envelope
+`meta` guard (tool version, enabled operator categories, `test_args`)
+wipes the cache on any mismatch. Entries of deleted or excluded files
+are pruned after each run.
+
+`test_args` (default `['test']`) is the full per-mutant test
+invocation argument list (`dart <args...>` / `flutter <args...>`), so
+consumers can scope per-mutant runs to relevant test paths on large
+repos; scoping is the consumer's responsibility — a mutant is killed
+only if the scoped suite would kill it. Validation is strict: a
+non-list, a non-string member or an empty list/string is a config
+error.
+
 ## 12. Baseline
 
 `check --save-baseline` shall run all enabled gates and write every

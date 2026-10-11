@@ -125,6 +125,8 @@ class _ExtendedGateConfigReaders {
         'timeout_seconds',
         'max_mutants',
         'operators',
+        'cache',
+        'test_args',
         _excludeKey,
       },
       (map, base, path, ctx) {
@@ -148,18 +150,45 @@ class _ExtendedGateConfigReaders {
               map, 'min_score', base.minScore, path, ctx),
           maxSurvivors: _ConfigScalars.readInt(
               map, 'max_survivors', base.maxSurvivors, path, ctx),
+          operators: operators,
           execution: MutationExecution(
             timeoutSeconds: _ConfigScalars.readInt(map, 'timeout_seconds',
                 base.execution.timeoutSeconds, path, ctx),
             maxMutants: _ConfigScalars.readInt(
                 map, 'max_mutants', base.execution.maxMutants, path, ctx),
+            cache: _ConfigScalars.readBool(
+                map, 'cache', base.execution.cache, path, ctx),
+            testArgs: _testArgs(map, base, path, ctx),
           ),
-          operators: operators,
           exclude:
               _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
         );
       },
     );
+  }
+
+  /// Reads `test_args`: a non-empty list of non-empty strings.
+  static List<String> _testArgs(
+    YamlMap map,
+    MutationGateConfig base,
+    String path,
+    String ctx,
+  ) {
+    final args = _ConfigScalars.strList(
+        map, 'test_args', base.execution.testArgs, path, ctx);
+    if (args.isEmpty) {
+      throw ConfigException(path, '$ctx.test_args', 'must not be empty');
+    }
+    for (final arg in args) {
+      if (arg.isEmpty) {
+        throw ConfigException(
+          path,
+          '$ctx.test_args',
+          'arguments must be non-empty strings',
+        );
+      }
+    }
+    return args;
   }
 
   static ExternalGateConfig readExternal(

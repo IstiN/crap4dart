@@ -1,0 +1,12 @@
+20:    this.timeoutSeconds = 60,
+21:    this.maxMutants = 500,
+24:  /// Per-mutant timeout in seconds; a timed-out mutant counts as
+26:  final int timeoutSeconds;
+30:  final int maxMutants;
+40:    this.minScore = 0.8,
+44:    this.exclude = const [
+64:  /// uncovered sites are excluded from the denominator.
+65:  final double minScore;
+68:  /// meets [minScore] (each surviving mutant is a missing assertion).
+71:  /// Per-mutant timeout and the executed-mutant cap.
+79:  /// Glob patterns excluded from the gate.

@@ -1,0 +1,4 @@
+00:00 +24: test/session/session_whole_file_open_test.dart: gh-1073: whole-file open (non-ranged filesystem) fails closed on a missing session file
+00:00 +25: test/session/session_whole_file_open_test.dart: gh-1073: whole-file open (non-ranged filesystem) fails closed on a missing session file
+00:01 +26: test/session/session_whole_file_open_test.dart: gh-1073: whole-file open (non-ranged filesystem) wholeFileOnly opens through bulk reads on a ranged fs
+00:01 +27: All tests passed!

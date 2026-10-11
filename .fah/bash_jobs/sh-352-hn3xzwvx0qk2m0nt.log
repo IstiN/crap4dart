@@ -1,0 +1,25 @@
+ CRAP   COV%  BR%  CC  METHOD                                             FILE:LINE                                                                                       
+-----  -----  ---  --  -------------------------------------------------  ------------------------------------------------------------------------------------------------
+42.00    0.0  N/A   6  (top-level).defaultMutantTestRunner                /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/gates/mutation_engine.dart:114                
+27.67   25.0  N/A   7  _DocsVisitor._enclosingIsPublic                    /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/gates/public_docs_gate.dart:133               
+12.87   81.8  N/A  12  MutationGate._isCovered                            /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/gates/mutation_gate.dart:107                  
+12.00  100.0  N/A  12  _TokenMask.of                                      /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/gates/duplication_gate.dart:384               
+ 8.00  100.0  N/A   8  CrapAnalyzer._coverageFor                          /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/crap/crap_analyzer.dart:114                   
+ 8.00  100.0  N/A   8  DuplicationGate._expandSources                     /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/gates/duplication_gate.dart:115               
+ 8.00  100.0  N/A   8  UnusedCodeGate.run                                 /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/gates/unused_code_gate.dart:22                
+ 8.00  100.0  N/A   8  TofuDetector._diagonalsCross                       /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/gates/tofu_detector.dart:172                  
+ 8.00  100.0  N/A   8  CoverageRunner._run                                /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/coverage/coverage_runner.dart:47              
+ 8.00  100.0  N/A   8  GateRunner.run                                     /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/gates/gate_runner.dart:123                    
+ 8.00  100.0  N/A   8  TofuDetector._rowHasTofuX                          /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/gates/tofu_detector.dart:35                   
+ 7.77   75.0  N/A   7  TofuDetector._wallsAreContinuous                   /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/gates/tofu_detector.dart:102                  
+ 7.54   77.8  N/A   7  WorkspacePubspec.writeStandalone                   /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/profile/workspace_pubspec.dart:22             
+ 7.04   90.5  N/A   7  ProfileReport.render                               /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/profile/profile_reporter.dart:59              
+ 7.04   90.9  N/A   7  _StringsVisitor._checkNode                         /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/gates/hardcoded_strings_gate.dart:132         
+ 7.01   93.3  N/A   7  HardcodedStringsGate._loadArbKeys                  /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/gates/hardcoded_strings_gate.dart:65          
+ 7.01   94.1  N/A   7  ProfileRunner.run                                  /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/profile/profile_runner.dart:130               
+ 7.00   96.0  N/A   7  ProfileCommand.run                                 /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/cli/profile_command.dart:103                  
+ 7.00  100.0  N/A   7  CheckCommand.run                                   /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/cli/runner.dart:611                           
+ 7.00  100.0  N/A   7  TofuDetector._diagonalStep                         /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/gates/tofu_detector.dart:230                  
+ 7.00  100.0  N/A   7  ConfigLoader._readSources                          /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/config/config_loader.dart:132                 
+ 7.00  100.0  N/A   7  CoverageGate.run                                   /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/gates/coverage_gate.dart:16                   
+ 7.00  100.0  N/A   7  _PixelStats._stripeKind                            /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/gates/broken_goldens_gate.dart:222            

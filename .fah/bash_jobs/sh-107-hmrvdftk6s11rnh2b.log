@@ -1,0 +1,4 @@
+=== fa Type-1 (copy-paste) ===
+[FAIL] duplication: 230/844 files over 0.0% duplication
+=== fa Type-2 (+renames+lit) ===
+[FAIL] duplication: 276/844 files over 0.0% duplication

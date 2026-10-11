@@ -1,0 +1,42 @@
+  /// Normalizes a token for duplicate detection.
+  ///
+  /// Comments and synthetic tokens are skipped; everything else keeps its
+  /// lexeme. Whitespace is already absent from the analyzer token stream.
+  String? _normalize(Token token) {
+    if (token.isSynthetic || token is CommentToken) return null;
+    if (token.type.name == 'EOF') return null;
+    return token.lexeme;
+  }
+
+  /// Detects duplicated windows and marks the involved tokens.
+  void _detectDuplicates(List<_FileTokens> files, int minTokens, int minLines) {
+    final occurrences = <int, List<_TokenPos>>{};
+    for (var fileIndex = 0; fileIndex < files.length; fileIndex++) {
+      _indexFile(files[fileIndex], fileIndex, minTokens, minLines, occurrences);
+    }
+
+    for (final positions in occurrences.values) {
+      if (positions.length < 2) continue;
+      for (final pos in positions) {
+        final tokens = files[pos.fileIndex].tokens;
+        final limit = min(pos.tokenIndex + minTokens, tokens.length);
+        for (var i = pos.tokenIndex; i < limit; i++) {
+          tokens[i].duplicated = true;
+        }
+      }
+    }
+  }
+
+  /// Indexes all valid windows of a single file.
+  void _indexFile(
+    _FileTokens file,
+    int fileIndex,
+    int minTokens,
+    int minLines,
+    Map<int, List<_TokenPos>> occurrences,
+  ) {
+    final tokens = file.tokens;
+    final n = tokens.length;
+    if (n < minTokens) return;
+
+    final lines = tokens.map((t) => t.line).toList();

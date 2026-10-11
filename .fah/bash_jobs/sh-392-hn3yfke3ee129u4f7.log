@@ -1,0 +1,71 @@
+  /// Builds the mask [config] asks for; scopes are sorted and disjoint.
+  static _TokenMask build(
+    ParsedUnit parsed,
+    DuplicationGateConfig config,
+  ) {
+    if (!config.matching.ignoreLocals) {
+      return _TokenMask(const [], false, config.matching.ignoreLiterals);
+    }
+    final builder = _FunctionScopeBuilder();
+    parsed.unit.accept(builder);
+    return _TokenMask(builder.scopes, true, config.matching.ignoreLiterals);
+  }
+
+  /// Masked value of [token], or null to keep its lexeme.
+  String? of(Token token) {
+    if (_ignoreLiterals) {
+      switch (token.type.name) {
+        case 'STRING':
+        case 'STRING_INTERPOLATION':
+          return '\$STR';
+        case 'INT':
+        case 'DOUBLE':
+        case 'HEXADECIMAL':
+          return '\$NUM';
+      }
+    }
+    // Interpolated strings embed local identifiers in their raw lexeme;
+    // they are opaque under local renaming so embedded renames cannot
+    // break window hashes.
+    if (_ignoreLocals && token.type.name == 'STRING_INTERPOLATION') {
+      return '\$STR';
+    }
+    if (_scopes.isEmpty) return null;
+    final scope = _scopeAt(token.offset);
+    if (scope == null || !scope.names.contains(token.lexeme)) return null;
+    return scope.placeholderFor(token.lexeme);
+  }
+
+  /// Scope containing [offset], or null — binary search over starts.
+  _FunctionScope? _scopeAt(int offset) {
+    var low = 0;
+    var high = _scopes.length - 1;
+    while (low <= high) {
+      final mid = (low + high) >> 1;
+      final scope = _scopes[mid];
+      if (offset < scope.start) {
+        high = mid - 1;
+      } else if (offset >= scope.end) {
+        low = mid + 1;
+      } else {
+        return scope;
+      }
+    }
+    return null;
+  }
+}
+
+/// Collects the outermost function scopes of a compilation unit: one
+/// per method, constructor, and function expression; nested functions
+/// share the outermost scope.
+class _FunctionScopeBuilder extends GeneralizingAstVisitor<void> {
+  final scopes = <_FunctionScope>[];
+  var _depth = 0;
+
+  @override
+  void visitNode(AstNode node) => node.visitChildren(this);
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) =>
+      _addScope(node, node.parameters?.offset ?? node.body.offset);
+

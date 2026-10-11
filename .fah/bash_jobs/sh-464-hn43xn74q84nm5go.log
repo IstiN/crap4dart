@@ -1,0 +1,20 @@
+  error - test/gates/mutation_gate_cache_test.dart:41:12 - A value of type '({int cached, int calls, bool passed, String? summary})' can't be returned from the function 'runGate' because it has a return type of 'Future<({int cached, int calls, bool passed, String summary})>'. - return_of_invalid_type
+warning - test/gates/mutation_engine_cache_test.dart:118:13 - The value of the local variable 'path' isn't used. Try removing the variable or using it. - unused_local_variable
+warning - test/gates/mutation_engine_cache_test.dart:152:13 - The value of the local variable 'path' isn't used. Try removing the variable or using it. - unused_local_variable
+
+5 issues found.
+00:00 +16 -3: test/config_loader_mutation_test.dart: mutation is a known gate id for --only/--skip filtering
+00:00 +17 -3: test/gates/mutation_runner_test.dart: exit code zero survives, non-zero kills
+00:00 +18 -3: test/gates/mutation_runner_test.dart: spawns dart test in the project root
+00:00 +19 -3: test/gates/mutation_runner_test.dart: forwards custom test args to the test invocation
+00:00 +20 -3: test/gates/mutation_runner_test.dart: a hanging suite times out and is killed
+00:00 +21 -3: test/gates/mutation_runner_test.dart: a missing executable raises MutationTestUnavailableException
+00:00 +22 -3: Some tests failed.
+
+Failing tests:
+  test/gates/mutation_cache_test.dart: fnv1a64Hex is deterministic and 16 hex chars
+  test/gates/mutation_engine_cache_test.dart: loading test/gates/mutation_engine_cache_test.dart
+  test/gates/mutation_gate_cache_test.dart: loading test/gates/mutation_gate_cache_test.dart
+
+Consider enabling the flag chain-stack-traces to receive more detailed exceptions.
+For example, 'dart test --chain-stack-traces'.

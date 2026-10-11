@@ -1,0 +1,59 @@
+}
+
+/// Soft-wraps [text] into border-prefixed card body rows at [width]
+/// visible columns (gh-1433 AC9 log face): physical lines keep their
+/// breaks, long lines wrap, and the whole body stops at
+/// [logFaceCardMaxBodyChars] with an explicit `(+N more chars, see
+/// <log>)` pointer (E7) — never a silent ellipsis.
+List<String> _wrapCardBody(String text, int width) {
+  final rows = <String>[];
+  var emitted = 0;
+  var overflow = 0;
+  var capped = false;
+
+  void row(String chunk) {
+    rows.add('│ ${_pad(chunk, width)}');
+====
+/// gh-1164 Part A: the `js-apps` skill is a first-party core builtin
+/// (source of truth `prompts/skills/js-apps/SKILL.md`, compiled into
+/// `builtinSkillFiles` by `scripts/gen_prompts.dart`) — invocable on every
+/// host (CLI + app), with the incident-hardened content: the decisive
+/// apps/<id>-vs-dynamic_message routing table, the calculator anti-pattern
+/// named, and the pre-flight/error-channel contract taught.
+@TestOn('vm')
+library;
+
+import 'package:flutter_agent_harness/flutter_agent_harness.dart';
+====
+  String stripComment(String l) =>
+      l.contains('#') && !l.contains('"#') ? l.split('#').first : l;
+
+  for (var i = 0; i < lines.length; i++) {
+    if (!RegExp(r'gh\s+release\s+create\b').hasMatch(stripComment(lines[i])))
+      continue;
+    final cmdLines = <String>[lines[i]];
+    var j = i;
+    while (j < lines.length - 1 &&
+  for (final step in (job['steps'] as YamlList)) {
+    if (step is! YamlMap || !step.containsKey('if') || !step.containsKey('run'))
+      continue;
+    final cond = step['if'].toString();
+    final body = step['run'].toString();
+  Process.runSync(git, [
+    'config',
+    'user.name',
+    't',
+  ], workingDirectory: dir.path);
+  if (changelog != null)
+    File('${dir.path}/CHANGELOG.md').writeAsStringSync(changelog);
+  var i = 0;
+  for (final group in [commitSubjects, postTagSubjects]) {
+  )..createSync(recursive: true);
+  final bin = stubGh(dir.path);
+  File('${dir.path}/release-state.txt').writeAsStringSync(state);
+  if (body != null)
+    File('${dir.path}/release-body.txt').writeAsStringSync(body);
+  File('${dir.path}/log').writeAsStringSync('');
+  final res = Process.runSync(
+    'bash',
+    ['scripts/release_draft_guard.sh', 'v1.2.3'],

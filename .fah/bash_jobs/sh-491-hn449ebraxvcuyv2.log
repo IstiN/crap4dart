@@ -1,0 +1,6 @@
+ N/A    N/A  N/A   1  (top-level).parseMethods                           /Users/Uladzimir_Klyshevich/git/crap4dart/test/test_utils.dart:6                                
+ N/A    N/A  N/A   1  (top-level).complexityOf                           /Users/Uladzimir_Klyshevich/git/crap4dart/test/test_utils.dart:13                               
+
+Max CRAP: 9.00 — FAIL (threshold: 8.00)
+CRAP threshold exceeded: 9.00 > 8.0
+exit: 0

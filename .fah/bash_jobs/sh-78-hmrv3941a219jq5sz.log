@@ -1,0 +1,31 @@
+305-    threshold: 1.0
+306-    # Minimum number of tokens in a block to count as duplication.
+307:    min_tokens: 50
+308-    # Minimum number of lines in a block to count as duplication.
+309-    min_lines: 5
+310-    # Glob patterns excluded from the gate.
+311-    exclude:
+312-      - '**.g.dart'
+313-      - '**.freezed.dart'
+314-      - '**.mocks.dart'
+315-    # Extra file/directory paths scanned for duplication (cross-module
+316-    # checks), unioned with the analyzed source set.
+317-    # sources:
+318-    #   - 'flutter_app/lib'
+319-    #   - 'packages/fa_ui/lib'
+--
+448-  data/model classes are legitimate.
+449-- **duplication** — detects exact copy-paste token blocks across Dart
+450:  source files. A block counts when it is at least `min_tokens` tokens
+451-  (default 50) and `min_lines` lines (default 5) long. The gate fails a
+452-  file when its duplicated line percentage exceeds `threshold` (default
+453-  1.0). Generated files and `test/**` are excluded by default.
+454-  Cross-module duplication can be gated with `sources`: extra
+455-  file/directory paths (resolved against the project root) unioned into
+456-  the scan, so a monorepo can compare `lib/` against `flutter_app/lib/`
+457-  or `packages/*/lib/` without widening CRAP analysis.
+458-- **file_naming** — forbids mechanical file names that indicate code was
+459-  split to dodge the `loc` gate instead of along domain boundaries:
+460-  numeric suffixes (`jira_batch1.dart`, `report2.dart`, `configv3.dart`)
+461-  and generic dumping-ground names (`utils.dart`, `helpers.dart`,
+546:twice, is at least `min_tokens` long (default 50) and spans at least

@@ -1,0 +1,16 @@
+06:42 +10223 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips fromJson rejects non-string parentId
+06:42 +10224 ~6 -8: test/session/session_record_test.dart: SessionHeader round-trips with all fields
+06:42 +10225 ~6 -8: test/session/session_record_test.dart: SessionHeader rejects unsupported version
+06:42 +10226 ~6 -8: test/session/session_record_test.dart: SessionHeader rejects wrong type and missing fields
+06:42 +10227 ~6 -8: test/session/session_record_test.dart: SessionHeader rejects non-object metadata
+06:44 +10228 ~6 -8: Some tests failed.
+
+Failing tests:
+  test/daily_publish_report_signal_test.dart: cancelled-run digest cancelled digest degrades gracefully without the workflow file
+  test/daily_publish_report_signal_test.dart: cancelled-run digest cancelled leg -> dedicated section with job, ceiling, elapsed
+  test/publish_staging_test.dart: gh-1522 rework — stamp_staged_release.sh behavior a curated ## <version> section for the same version never duplicates
+  test/publish_staging_test.dart: gh-1522 rework — stamp_staged_release.sh behavior folds the curated Unreleased body under the tag section; no Unreleased header survives
+  ... and 4 more
+
+Consider enabling the flag chain-stack-traces to receive more detailed exceptions.
+For example, 'dart test --chain-stack-traces'.

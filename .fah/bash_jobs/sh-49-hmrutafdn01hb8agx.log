@@ -1,0 +1,22 @@
+== SimpleFormalParameter (line ) ==
+== DeclaredVariablePattern (line 13627) ==
+  BindPatternVariableFragment? get declaredFragment;
+  Token? get keyword;
+  TypeAnnotation? get type;
+  final Token? keyword;
+== ForEachPartsWithDeclaration (line 20729) ==
+  DeclaredIdentifier get loopVariable;
+== ForPartsWithDeclarations (line 22647) ==
+  VariableDeclarationList get variables;
+  VariableDeclarationListImpl _variables;
+== PatternVariableDeclaration (line 42638) ==
+  Token get equals;
+  Expression get expression;
+  Expression get expression2;
+  Token get keyword;
+  DartPattern get pattern;
+== DeclaredVariablePattern (line 13627) ==
+  BindPatternVariableFragment? get declaredFragment;
+  Token? get keyword;
+  TypeAnnotation? get type;
+  final Token? keyword;

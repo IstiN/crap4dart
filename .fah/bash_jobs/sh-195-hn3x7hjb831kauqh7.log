@@ -1,0 +1,95 @@
+# crap4dart
+
+CRAP metric analyzer and configurable quality gates for Dart and Flutter
+projects.
+
+[![Quality](https://github.com/IstiN/crap4dart/actions/workflows/quality.yml/badge.svg)](https://github.com/IstiN/crap4dart/actions/workflows/quality.yml)
+[![pub package](https://img.shields.io/pub/v/crap4dart.svg)](https://pub.dev/packages/crap4dart)
+![CRAP](badges/crap.svg)
+
+## What is CRAP?
+
+CRAP (Change Risk Anti-Patterns) combines cyclomatic complexity with test
+coverage to score the risk of changing a method:
+
+```
+CRAP = CC² · (1 − coverage)³ + CC
+```
+
+- `CC` — cyclomatic complexity of the method
+- `coverage` — line coverage fraction of the method (`0.0..1.0`)
+
+A method that is both complex and untested gets a high score. Scores above
+the default threshold of **8.0** fail the analysis.
+
+crap4dart is a Dart port of the Java tool
+[crap4java](https://github.com/unclebob/crap4java).
+
+## Features
+
+- **CRAP analysis** per method, combining complexity and LCOV coverage
+- **21 quality gate**: `loc`, `test_coverage`, `golden`,
+  `hardcoded_strings`, `accessibility`, `complexity`, `method_size`,
+  `nesting`, `class_size`, `weight_of_class`, `unused_code`,
+  `unused_files`, `banned_imports`, `public_docs`, `duplication`,
+  `file_naming`, `magic_constants`, `broken_goldens`, `test_assertions`,
+  `folder_structure`, `external`
+- **Gate framework**: per-path thresholds (`entries`), warning
+  severity, baseline mode, opt-in ignore markers
+- **Configuration** via `crap4dart.yaml` with strict validation
+- **Pre-commit hook** installation (`check --staged` on every commit)
+- **GitHub Actions workflow** template (`crap4dart install --ci`)
+- **JSON output** for CI integration (`--format json`)
+- **Branch coverage** (BRDA records) next to line coverage
+
+## Installation
+
+Published on pub.dev:
+
+```sh
+dart pub global activate crap4dart
+```
+
+From the repository:
+
+```sh
+dart pub global activate -sgit https://github.com/IstiN/crap4dart.git
+```
+
+## Usage
+
+====
+1:# crap4dart
+10:## What is CRAP?
+28:## Features
+45:## Installation
+59:## Usage
+61:### analyze (default command)
+77:### check
+93:### init
+102:### install
+113:### profile
+171:### Exit codes
+179:## Diff mode (ratchet)
+204:## Configuration
+209:# crap4dart configuration.
+210:# See https://github.com/IstiN/crap4dart for details.
+212:# Directories scanned for Dart sources by "analyze" and "check"
+213:# (default mode, without --changed/--staged).
+214:# sources: [lib, bin]
+216:# Files excluded from analysis in every mode (glob patterns relative
+217:# to the project root).
+218:# exclude: ['example/**', 'tool/**', '**.g.dart']
+220:# CRAP metric analysis settings ("analyze" command).
+232:# Coverage input settings.
+243:# Quality gates ("check" command).
+345:# CPU profiling settings ("profile" command).
+376:### Test code quality
+389:## Quality gates
+535:## Baseline
+550:## Pre-commit hook
+565:## CI
+574:## CRAP badge
+596:## JSON output
+662:## Development
+674:## License

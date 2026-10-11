@@ -1,0 +1,30 @@
+00:00 +0: fnv1a64Hex is deterministic and 16 hex chars
+00:00 +0 -1: fnv1a64Hex is deterministic and 16 hex chars [E]
+  Expected: an object with length of <16>
+    Actual: '-51e593d120dcd51b'
+     Which: has length of <17>
+  
+  package:matcher                           expect
+  test/gates/mutation_cache_test.dart 24:7  main.<fn>.<fn>
+  
+00:00 +0 -1: fnv1a64Hex changes on any edit, however small
+00:00 +1 -1: MutationCache.replayKill replays a killed outcome on digest and site match
+00:00 +2 -1: MutationCache.replayKill never replays survivors or timeouts
+00:00 +3 -1: MutationCache.replayKill does not replay on digest, key or site identity mismatch
+00:00 +4 -1: MutationCache persistence round-trips through the JSON envelope
+00:00 +5 -1: MutationCache persistence same method name in different files stays distinct
+00:00 +6 -1: MutationCache persistence missing, corrupt or version-mismatched file yields a fresh cache
+00:00 +7 -1: MutationCache persistence meta mismatch (operators or test_args) wipes the cache
+--
+  test/gates/mutation_cache_test.dart: fnv1a64Hex is deterministic and 16 hex chars
+
+Consider enabling the flag chain-stack-traces to receive more detailed exceptions.
+For example, 'dart test --chain-stack-traces'.
+Analyzing crap4dart...
+
+  error - test/gates/mutation_engine_cache_test.dart:36:18 - Undefined name 'mutationOperatorCategories'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - test/gates/mutation_gate_cache_test.dart:40:55 - The argument type 'String?' can't be assigned to the parameter type 'String'.  - argument_type_not_assignable
+  error - test/gates/mutation_gate_cache_test.dart:41:12 - A value of type '({int cached, int calls, bool passed, String? summary})' can't be returned from the function 'runGate' because it has a return type of 'Future<({int cached, int calls, bool passed, String summary})>'. - return_of_invalid_type
+warning - test/gates/mutation_engine_cache_test.dart:118:13 - The value of the local variable 'path' isn't used. Try removing the variable or using it. - unused_local_variable
+warning - test/gates/mutation_engine_cache_test.dart:152:13 - The value of the local variable 'path' isn't used. Try removing the variable or using it. - unused_local_variable
+

@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "<stdin>", line 13, in <module>
+ValueError: substring not found
+--- inspect
+21:    final result = await _runPair(
+32:    final result = await _runPair(
+41:    final result = await _runPair(
+52:    final result = await _runPair(
+63:    final result = await _runPair(

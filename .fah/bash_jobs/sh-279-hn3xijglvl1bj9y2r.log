@@ -1,0 +1,26 @@
+
+/// Settings of all quality gates.
+class GatesConfig {
+  /// Creates a [GatesConfig].
+  const GatesConfig({
+    this.loc = const LocGateConfig(),
+    this.testCoverage = const TestCoverageGateConfig(),
+    this.complexity = const ComplexityGateConfig(),
+    this.methodSize = const MethodSizeGateConfig(),
+    this.nesting = const NestingGateConfig(),
+    this.classSize = const ClassSizeGateConfig(),
+    this.weightOfClass = const WeightOfClassGateConfig(),
+    this.unusedCode = const UnusedCodeGateConfig(),
+    this.unusedFiles = const UnusedFilesGateConfig(),
+    this.bannedImports = const BannedImportsGateConfig(),
+    this.publicDocs = const PublicDocsGateConfig(),
+    this.duplication = const DuplicationGateConfig(),
+    this.fileNaming = const FileNamingGateConfig(),
+    this.magicConstants = const MagicConstantsGateConfig(),
+    this.brokenGoldens = const BrokenGoldensGateConfig(),
+    this.testAssertions = const TestAssertionsGateConfig(),
+    this.folderStructure = const FolderStructureGateConfig(),
+    this.external = const ExternalGateConfig(),
+    this.flutter = const FlutterGatesConfig(),
+  });
+

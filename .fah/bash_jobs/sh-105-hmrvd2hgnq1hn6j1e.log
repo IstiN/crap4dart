@@ -1,0 +1,6 @@
+    --diff             Check only lines changed since HEAD (ratchet mode).
+    --diff-base        Like --diff, but diffs against the given git ref.
+    --save-baseline    Record current violations to .crap-baseline.json (future runs fail only on new violations).
+    --baseline         Fail only on violations not recorded in the baseline file.
+
+Run "crap4dart help" to see global options.

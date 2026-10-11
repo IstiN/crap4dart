@@ -1,0 +1,24 @@
+
+  final TuiLineBuffer buffer;
+  final List<String> killRing;
+  final int killIndex;
+  final List<_UndoStep> undoStack;
+  final bool lastActionWasYank;
+
+  // ignore: library_private_types_in_public_api — private ctor; exposing _UndoStep would leak internals.
+  const TuiLineEditor._(
+    this.buffer, {
+    this.killRing = const [],
+    this.killIndex = -1,
+    // ignore: library_private_types_in_public_api — private ctor param; exposing _UndoStep would leak internals.
+    required this.logPath,
+    required this._process,
+    required this._logSink,
+    required this._ceiling,
+    required this._ownGroup,
+    Duration? timeout,
+    CancelToken? token,
+    this._redactor,
+  }) {
+    // Collect stdout/stderr into the log file. A naturally exiting process
+    // closes the streams and we flush every byte; a killed/timed-out process

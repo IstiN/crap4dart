@@ -17,7 +17,9 @@ Guidance for AI agents and contributors working on crap4dart.
    `broken_goldens`, `test_assertions`, `folder_structure`,
    `external` (Checkstyle-XML tool wrapper: detekt/ktlint/swiftlint),
    `mutation` (mutation testing: AST operator table + per-mutant test
-   re-runs; disabled by default).
+   re-runs with a digest-incremental killed-stays-killed cache —
+   unchanged methods replay cached kills, survivors always re-run;
+   disabled by default).
 3. **Gate framework** — per-gate `severity: error|warning`, opt-in
    `ignorable` (ignore comments are OFF by default), per-path
    thresholds (`entries`), baseline mode

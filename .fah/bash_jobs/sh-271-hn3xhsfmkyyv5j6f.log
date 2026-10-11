@@ -1,0 +1,12 @@
+Analyzing flutter_agent...
+
+warning - test/hosts/extension_host_parity_test.dart:364:11 - The map entry key can't be null, so the null-aware operator '?' is unnecessary. Try removing the operator '?'. - invalid_null_aware_operator
+warning - test/hosts/extension_host_parity_test.dart:365:11 - The map entry key can't be null, so the null-aware operator '?' is unnecessary. Try removing the operator '?'. - invalid_null_aware_operator
+warning - test/session/session_repair_test.dart:30:9 - The map entry key can't be null, so the null-aware operator '?' is unnecessary. Try removing the operator '?'. - invalid_null_aware_operator
+warning - test/session/session_repair_test.dart:43:5 - The map entry key can't be null, so the null-aware operator '?' is unnecessary. Try removing the operator '?'. - invalid_null_aware_operator
+warning - test/session/session_streamed_open_test.dart:130:9 - The map entry key can't be null, so the null-aware operator '?' is unnecessary. Try removing the operator '?'. - invalid_null_aware_operator
+warning - test/session/session_streamed_open_test.dart:147:5 - The map entry key can't be null, so the null-aware operator '?' is unnecessary. Try removing the operator '?'. - invalid_null_aware_operator
+warning - test/session/session_whole_file_open_test.dart:107:9 - The map entry key can't be null, so the null-aware operator '?' is unnecessary. Try removing the operator '?'. - invalid_null_aware_operator
+
+7 issues found.
+exit=2

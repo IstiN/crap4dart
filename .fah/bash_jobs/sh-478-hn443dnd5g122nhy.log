@@ -1,0 +1,39 @@
+ lib/src/gates/mutation_gate.dart              | 137 +++++++++++++++++++++++---
+ spec.md                                       |  24 +++++
+ test/config_loader_mutation_test.dart         |  32 ++++++
+ test/gates/mutation_runner_test.dart          |  22 +++++
+ 12 files changed, 381 insertions(+), 45 deletions(-)
+[PASS] loc: 200 files within 200 limits
+[PASS] test_coverage: coverage 96.2% >= 70.0%
+[PASS] complexity: 738 methods within their CC limit
+[FAIL] method_size: 6 violations in 897 methods over their size limits
+  lib/src/config/gate_config_mutation.dart:36: MutationGateConfig has 10 params > max 8
+  test/config_loader_mutation_test.dart:5: main has 105 lines > max 80
+  test/gates/mutation_cache_test.dart:19: main has 197 lines > max 80
+  test/gates/mutation_engine_cache_test.dart:28: main has 303 lines > max 80
+  test/gates/mutation_gate_cache_test.dart:11: main has 108 lines > max 80
+  test/gates/mutation_runner_test.dart:39: main has 93 lines > max 80
+[PASS] nesting: 738 methods within nesting 5
+[PASS] class_size: 104 classes within 25 methods/WMC 80
+[PASS] duplication: 66 files, 0.00% duplicated lines
+[PASS] file_naming: 72 files have domain-meaningful names
+[PASS] magic_constants: 72 files free of magic constants
+[PASS] broken_goldens: 0 golden images clean
+[PASS] test_assertions: 0 tests assert their expectations
+[PASS] folder_structure: 1 directories organized into packages
+[PASS] external: no tools configured
+[PASS] broken_goldens: 0 golden images clean
+[PASS] test_assertions: 0 tests assert their expectations
+[PASS] folder_structure: 1 directories organized into packages
+[PASS] external: no tools configured
+[PASS] unused_code: 262 private declarations used
+[PASS] unused_files: 64 files in lib are used
+[PASS] banned_imports: no rules configured
+[PASS] public_docs: 555 public declarations documented
+[SKIP] hardcoded_strings: disabled in config
+[SKIP] accessibility: disabled in config
+[SKIP] golden: disabled in config
+[SKIP] weight_of_class: disabled in config
+[SKIP] mutation: disabled in config
+Gates: 20 passed, 1 failed, 0 warned, 5 skipped
+check exit: 2

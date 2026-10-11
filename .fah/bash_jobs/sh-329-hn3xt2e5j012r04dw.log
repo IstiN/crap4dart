@@ -1,0 +1,46 @@
+  @override
+  void visitPrefixExpression(PrefixExpression node) {
+    final operator = node.operator.lexeme;
+    if (operator == '!' && _categories.contains('unary')) {
+      // Delete the `!` prefix: the operand stays.
+      _add('unary', '!', '', node.operator.offset, 1);
+    } else if (operator == '-' && _categories.contains('constant')) {
+      // `-1` becomes `0` (the whole `-1` span is replaced).
+      final operand = node.operand;
+      if (operand is IntegerLiteral && operand.literal.lexeme == _oneLexeme) {
+        _add('constant', '-1', _zeroLexeme, node.operator.offset,
+            operand.end - node.operator.offset);
+      }
+    }
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitBooleanLiteral(BooleanLiteral node) {
+    if (!_categories.contains('boolean')) return;
+    final lexeme = node.literal.lexeme;
+    _add('boolean', lexeme, lexeme == _trueLexeme ? _falseLexeme : _trueLexeme,
+        node.literal.offset, node.literal.length);
+  }
+
+  @override
+  void visitIntegerLiteral(IntegerLiteral node) {
+    if (!_categories.contains('constant')) return;
+    final lexeme = node.literal.lexeme;
+    if (lexeme != _zeroLexeme && lexeme != _oneLexeme) return;
+    _add('constant', lexeme, lexeme == _zeroLexeme ? _oneLexeme : _zeroLexeme,
+        node.literal.offset, node.literal.length);
+  }
+9:/// The `magic_constants` gate: flags magic literals — hex color values
+10-/// used outside named constant declarations, and numeric or string
+11-/// literals that repeat `min_duplicates` times or more in one file.
+12-///
+13-/// Repeated literals and inline colors are a typical AI-refactor
+14-/// artifact: every occurrence should become a named constant instead.
+--
+20:  String get id => 'magic_constants';
+21-
+22-  @override
+23-  Future<GateResult> run(GateContext context) async {
+24-    final config = context.config.gates.magicConstants;
+25-    final violations = <GateViolation>[];

@@ -1,0 +1,71 @@
+diff --git a/test/release_hygiene_test.dart b/test/release_hygiene_test.dart
+index e98f70341..4170200f2 100644
+--- a/test/release_hygiene_test.dart
++++ b/test/release_hygiene_test.dart
+@@ -49,8 +49,9 @@ List<CreateBlock> extractCreates(String runText) {
+       l.contains('#') && !l.contains('"#') ? l.split('#').first : l;
+ 
+   for (var i = 0; i < lines.length; i++) {
+-    if (!RegExp(r'gh\s+release\s+create\b').hasMatch(stripComment(lines[i])))
++    if (!RegExp(r'gh\s+release\s+create\b').hasMatch(stripComment(lines[i]))) {
+       continue;
++    }
+     final cmdLines = <String>[lines[i]];
+     var j = i;
+     while (j < lines.length - 1 &&
+@@ -112,8 +113,11 @@ List<String> draftGuardSteps(dynamic job) {
+   final guards = <String>[];
+   if (job is! Map || !job.containsKey('steps')) return guards;
+   for (final step in (job['steps'] as YamlList)) {
+-    if (step is! YamlMap || !step.containsKey('if') || !step.containsKey('run'))
++    if (step is! YamlMap ||
++        !step.containsKey('if') ||
++        !step.containsKey('run')) {
+       continue;
++    }
+     final cond = step['if'].toString();
+     final body = step['run'].toString();
+     final isAlways = cond.contains('always()') || cond.contains('failure()');
+@@ -430,12 +434,8 @@ class AutoReleaseRun {
+   ]);
+ 
+   /// All tags on origin, sorted.
+-  List<String> originTags() => _git([
+-    '--git-dir',
+-    _originGitDir,
+-    'tag',
+-    '--sort=v:refname',
+-  ]).split('\n');
++  List<String> originTags() =>
++      _git(['--git-dir', _originGitDir, 'tag', '--sort=v:refname']).split('\n');
+ 
+   /// Whether [tag] exists on origin.
+   bool originTagExists(String tag) =>
+@@ -547,8 +547,9 @@ String fixtureRepo(
+     'user.name',
+     't',
+   ], workingDirectory: dir.path);
+-  if (changelog != null)
++  if (changelog != null) {
+     File('${dir.path}/CHANGELOG.md').writeAsStringSync(changelog);
++  }
+   var i = 0;
+   for (final group in [commitSubjects, postTagSubjects]) {
+     for (final subject in group) {
+@@ -770,8 +771,9 @@ GuardRun runGuard(
+   )..createSync(recursive: true);
+   final bin = stubGh(dir.path);
+   File('${dir.path}/release-state.txt').writeAsStringSync(state);
+-  if (body != null)
++  if (body != null) {
+Dart SDK version: 3.13.3 (stable) (Tue Sep 1 01:07:17 2026 -0700) on "macos_arm64"
+.github/workflows/ci.yml:229:          sdk: stable
+.github/workflows/ci.yml:276:          sdk: stable
+.github/workflows/ci.yml:340:            grep -Eq "flutter-version: '3\.47\.[0-9]+'" "$wf" || { echo "::error::$wf unpinned Flutter SDK (#1100 parity + #1431 exact-patch rule, pages + bundle must share it)"; exit 1; }
+.github/workflows/ci.yml:504:          sdk: stable
+.github/workflows/ci.yml:611:          sdk: stable
+.github/workflows/ci.yml:663:          sdk: stable
+.github/workflows/ci.yml:707:          sdk: stable
+.github/workflows/ci.yml:813:          sdk: stable
+.github/workflows/ci.yml:1164:          sdk: stable
+.github/workflows/ci.yml:1216:          sdk: stable

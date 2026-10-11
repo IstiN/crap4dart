@@ -1,0 +1,8 @@
+
+Failing tests:
+  test/gates/mutation_cache_test.dart: fnv1a64Hex is deterministic and 16 hex chars
+  test/gates/mutation_engine_cache_test.dart: digest-incremental engine cache an edit inside a method re-executes only its mutants
+  test/gates/mutation_gate_cache_test.dart: identical verdicts across runs with survivors re-executed
+
+Consider enabling the flag chain-stack-traces to receive more detailed exceptions.
+For example, 'dart test --chain-stack-traces'.

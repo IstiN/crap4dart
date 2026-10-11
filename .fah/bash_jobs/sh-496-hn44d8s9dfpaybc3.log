@@ -1,0 +1,59 @@
+# crap4dart self-configuration (dogfooding).
+# This repository is a pure Dart package, so Flutter-specific gates
+# (golden, accessibility, hardcoded_strings) are disabled.
+sources: [lib, bin, test]
+
+crap:
+  enabled: true
+  threshold: 8.0
+
+coverage:
+  lcov_path: coverage/lcov.info
+  run_tests: false
+  required: false
+  branch_coverage: true
+
+gates:
+  loc:
+    enabled: true
+    max_lines: 800
+    exclude:
+      - '**.g.dart'
+      - '**.freezed.dart'
+      - '**.mocks.dart'
+  test_coverage:
+    enabled: true
+    min_percent: 70.0
+    per_file: false
+  golden:
+    enabled: false
+  hardcoded_strings:
+    enabled: false
+  accessibility:
+    enabled: false
+  complexity:
+    enabled: true
+    max_complexity: 12
+  method_size:
+    enabled: true
+    max_lines: 80
+    max_params: 8
+    # Dogfooding `entries`: GatesConfig aggregates 16 gate configs, so
+    # its constructor legitimately needs more params than a method.
+    entries:
+      - max_params: 20
+        paths: ['lib/src/config/config.dart']
+  public_docs:
+    enabled: true
+    exclude:
+      - 'test/**'
+  broken_goldens:
+    enabled: true
+    dirs: [test]
+  test_assertions:
+    enabled: true
+    exclude:
+      - 'test/**'
+  folder_structure:
+    enabled: true
+    dirs: [lib/src]

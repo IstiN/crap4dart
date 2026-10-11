@@ -1,0 +1,11 @@
+lib/src/cli/reasoning_liveness.dart L54: Use an initializing formal to assign a parameter to a field.
+lib/src/cli/reasoning_liveness.dart L166: Use an initializing formal to assign a parameter to a field.
+lib/src/cli/tool_liveness.dart L141: Use an initializing formal to assign a parameter to a field.
+lib/src/cli/tool_liveness.dart L142: Use an initializing formal to assign a parameter to a field.
+lib/src/cli/waiting_heartbeat.dart L246: Use an initializing formal to assign a parameter to a field.
+lib/src/env/io_execution_env.dart L969: Use an initializing formal to assign a parameter to a field.
+test/cli/agent_cli_headless_shell_job_liveness_test.dart L45: Use an initializing formal to assign a parameter to a field.
+test/cli/agent_cli_headless_shell_job_liveness_test.dart L46: Use an initializing formal to assign a parameter to a field.
+test/cli/agent_cli_headless_shell_job_liveness_test.dart L216: Use an initializing formal to assign a parameter to a field.
+test/cli/agent_cli_headless_shell_job_liveness_test.dart L217: Use an initializing formal to assign a parameter to a field.
+test/cli/agent_cli_headless_shell_job_liveness_test.dart L218: Use an initializing formal to assign a parameter to a field.

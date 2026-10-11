@@ -1,0 +1,4 @@
+Formatted 71 files (1 changed) in 0.06 seconds.
+00:00 +0 -1: loading test/gates/mutation_runner_test.dart [E]
+00:00 +0 -2: loading test/gates/mutation_gate_coverage_test.dart [E]
+00:00 +0 -2: Some tests failed.

@@ -1,0 +1,34 @@
+final class RegularFormalParameterImpl extends FormalParameterImpl
+    implements RegularFormalParameter {
+  @generated
+  RegularFormalParameterImpl({
+    required super.comment,
+    required super.metadata,
+    required super.kind,
+    required super.requiredKeyword,
+    required super.covariantKeyword,
+    required super.constFinalOrVarKeyword,
+    required super.type,
+    required super.name,
+    required super.functionTypedSuffix,
+    required super.defaultClause,
+  });
+
+  @generated
+  @override
+  Token get endToken {
+    if (defaultClause case var defaultClause?) {
+      return defaultClause.endToken;
+    }
+    if (functionTypedSuffix case var functionTypedSuffix?) {
+      return functionTypedSuffix.endToken;
+    }
+    if (name case var name?) {
+      return name;
+    }
+    if (type case var type?) {
+      return type.endToken;
+    }
+    if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
+      return constFinalOrVarKeyword;
+=== FormalParameter interface ===

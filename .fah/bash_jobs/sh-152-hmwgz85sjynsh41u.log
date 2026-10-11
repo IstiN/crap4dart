@@ -1,0 +1,49 @@
+10-
+11-/// File size gate settings (`loc`).
+12:class LocGateConfig {
+13-  /// Creates a [LocGateConfig].
+14-  const LocGateConfig({
+15-    this.enabled = true,
+16-    this.severity = GateSeverity.error,
+17-    this.ignorable = false,
+18-    this.maxLines = 800,
+19-    this.entries = const [],
+20-    this.exclude = const [_generatedGlob, _freezedGlob, _mocksGlob],
+21-  });
+22-
+23-  /// Whether the gate is enabled.
+24-  final bool enabled;
+25-
+26-  /// Whether violations fail the run or are reported as warnings.
+27-  final GateSeverity severity;
+28-
+29-  /// Whether `// crap:ignore` comments may suppress violations of this
+30-  /// gate. Disabled by default — suppression must be opted into.
+31-  final bool ignorable;
+32-
+33-  /// Maximum lines per file.
+34-  final int maxLines;
+35-
+36-  /// Per-path threshold overrides; the first entry whose `paths` glob
+37-  /// matches the file wins.
+16:  static LocGateConfig readLoc(Object? node, LocGateConfig base, String path) {
+17-    return _ConfigScalars.readGateConfig(
+18-      node,
+19-      base,
+20-      path,
+21-      'gates.loc',
+22-      const {
+23-        _enabledKey,
+24-        _severityKey,
+25-        _ignorableKey,
+26-        _maxLinesKey,
+27-        _entriesKey,
+28-        _excludeKey
+29-      },
+30-      (map, base, path, ctx) {
+31-        final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
+32-        return LocGateConfig(
+33-          enabled: flags.enabled,
+34-          severity: flags.severity,
+35-          ignorable: flags.ignorable,
+36-          maxLines: _ConfigScalars.readInt(

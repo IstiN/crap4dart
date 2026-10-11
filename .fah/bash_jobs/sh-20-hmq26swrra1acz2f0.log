@@ -1,0 +1,4 @@
+done
+  error - lib/src/gates/unused_code_gate.dart:91:23 - The getter 'namePart' isn't defined for the type 'MethodDeclaration'. Try importing the library that defines 'namePart', correcting the name to the name of an existing getter, or defining a getter or field named 'namePart'. - undefined_getter
+
+2 issues found.

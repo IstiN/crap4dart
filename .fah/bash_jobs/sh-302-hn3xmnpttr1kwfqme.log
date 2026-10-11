@@ -1,0 +1,22 @@
+00:00 +0 -1: loading test/gates/mutation_engine_test.dart [E]
+  Failed to load "test/gates/mutation_engine_test.dart":
+  test/gates/mutation_engine_test.dart:6:1: Error: Type 'MutationSite' not found.
+  MutationSite site(String file, {String mutant = 'X', int offset = 0}) =>
+  ^^^^^^^^^^^^
+  test/gates/mutation_engine_test.dart:7:5: Error: Method not found: 'MutationSite'.
+      MutationSite(
+      ^^^^^^^^^^^^
+  test/gates/mutation_engine_test.dart:87:22: Error: Method not found: 'MutationSite'.
+00:00 +0 -1: binary operator detection equality and logical rows match [E]
+  Expected: ['==->!=', '&&->||', '!=->==']
+    Actual: ['==->!=', '&&->||', '!=->==', '0->1']
+     Which: at location [3] is ['==->!=', '&&->||', '!=->==', '0->1'] which longer than expected
+  
+  package:matcher                               expect
+  test/gates/mutation_operators_test.dart 31:7  main.<fn>.<fn>
+  
+00:00 +0 -1: Some tests failed.
+
+Failing tests:
+  test/gates/mutation_operators_test.dart: binary operator detection equality and logical rows match
+

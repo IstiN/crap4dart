@@ -1,0 +1,44 @@
+          break;
+        }
+      }
+    }
+  }
+
+  // Constructors are not part of the documented public API surface.
+  @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {}
+
+  bool _isPublic(String name) => !name.startsWith('_');
+
+  // Members of private containers are not public API.
+  bool _enclosingIsPublic(AstNode node) {
+    final clazz = node.thisOrAncestorOfType<ClassDeclaration>();
+    if (clazz != null) return _isPublic(clazz.namePart.typeName.lexeme);
+    final enumDecl = node.thisOrAncestorOfType<EnumDeclaration>();
+    if (enumDecl != null) {
+      return _isPublic(enumDecl.namePart.typeName.lexeme);
+    }
+    final mixinDecl = node.thisOrAncestorOfType<MixinDeclaration>();
+    if (mixinDecl != null) return _isPublic(mixinDecl.name.lexeme);
+    final extType = node.thisOrAncestorOfType<ExtensionTypeDeclaration>();
+    if (extType != null) {
+      return _isPublic(extType.namePart.typeName.lexeme);
+    }
+    final extension = node.thisOrAncestorOfType<ExtensionDeclaration>();
+    if (extension != null) {
+      final name = extension.name?.lexeme;
+      return name != null && _isPublic(name);
+    }
+    return true;
+  }
+
+  bool _hasOverride(AnnotatedNode node) => node.metadata.any(
+        (a) => a.name.name == 'override',
+      );
+
+  void _checkNamed(CompilationUnitMember node, String name, String kind) {
+    if (_isPublic(name)) _check(node, name, kind);
+  }
+106:        _enclosingIsPublic(node) &&
+115:        _enclosingIsPublic(node) &&
+133:  bool _enclosingIsPublic(AstNode node) {

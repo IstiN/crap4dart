@@ -1,0 +1,85 @@
+   7 test/web_search/web_gate_test.dart import
+   5 test/integration/wire_serve_cli_test.dart a
+   4 test/release_hygiene_test.dart in
+   4 test/cli/agent_cli_headless_over_window_test.dart interpolation
+   3 lib/src/compaction/structured/engine.dart interpolation
+   2 test/session/session_streamed_open_test.dart the
+   2 test/session/session_repair_test.dart the
+   2 test/hosts/extension_host_parity_test.dart the
+   2 test/cli/session_repair_cli_test.dart import
+   2 lib/src/cli/tui_theme.dart of
+   2 lib/src/cli/tool_liveness.dart an
+   2 lib/src/cli/reasoning_liveness.dart an
+   2 bin/fah_wire_serve.dart a
+   1 tool/profile_boot.dart import
+   1 test/web_search/web_gate_test.dart library
+   1 test/skills/builtin_js_apps_skill_test.dart brackets
+   1 test/session/session_whole_file_open_test.dart the
+   1 test/cli/tui_role_sweep_test.dart import
+   1 test/cli/load_mode_cli_test.dart a
+   1 lib/src/tools/builtin_tools_bash.dart the
+   1 lib/src/env/io_execution_env.dart an
+   1 lib/src/cli/waiting_heartbeat.dart an
+   1 lib/src/cli/tui_theme_palette.dart of
+   1 lib/src/cli/tui_editor.dart use
+   1 lib/src/cli/tui_chrome.dart of
+   1 lib/src/cli/provider_models.dart in
+   1 lib/src/cli/fa_tui.dart import
+   1 lib/src/cli/agent_hub_panel.dart brackets
+   1 lib/src/cli/agent_cli.dart import
+===FULL===
+bin/fah_wire_serve.dart:258:13 a
+bin/fah_wire_serve.dart:289:9 a
+lib/src/cli/agent_cli.dart:217:8 import
+lib/src/cli/agent_hub_panel.dart:554:5 brackets
+lib/src/cli/fa_tui.dart:13:8 import
+lib/src/cli/provider_models.dart:150:9 in
+lib/src/cli/reasoning_liveness.dart:54:8 an
+lib/src/cli/reasoning_liveness.dart:166:8 an
+lib/src/cli/tool_liveness.dart:139:8 an
+lib/src/cli/tool_liveness.dart:140:8 an
+lib/src/cli/tui_chrome.dart:27:8 of
+lib/src/cli/tui_editor.dart:70:14 use
+lib/src/cli/tui_theme.dart:53:8 of
+lib/src/cli/tui_theme.dart:70:8 of
+lib/src/cli/tui_theme_palette.dart:9:8 of
+lib/src/cli/waiting_heartbeat.dart:246:7 an
+lib/src/compaction/structured/engine.dart:922:17 interpolation
+lib/src/compaction/structured/engine.dart:922:63 interpolation
+lib/src/compaction/structured/engine.dart:922:92 interpolation
+lib/src/env/io_execution_env.dart:969:8 an
+lib/src/tools/builtin_tools_bash.dart:337:28 the
+test/cli/agent_cli_headless_over_window_test.dart:207:17 interpolation
+test/cli/agent_cli_headless_over_window_test.dart:207:46 interpolation
+test/cli/agent_cli_headless_over_window_test.dart:210:19 interpolation
+test/cli/agent_cli_headless_over_window_test.dart:210:47 interpolation
+test/cli/load_mode_cli_test.dart:201:15 a
+test/cli/session_repair_cli_test.dart:5:8 import
+test/cli/session_repair_cli_test.dart:6:8 import
+test/cli/tui_role_sweep_test.dart:23:8 import
+test/hosts/extension_host_parity_test.dart:364:9 the
+test/hosts/extension_host_parity_test.dart:365:9 the
+test/integration/wire_serve_cli_test.dart:234:17 a
+test/integration/wire_serve_cli_test.dart:293:17 a
+test/integration/wire_serve_cli_test.dart:381:17 a
+test/integration/wire_serve_cli_test.dart:435:15 a
+test/integration/wire_serve_cli_test.dart:468:15 a
+test/release_hygiene_test.dart:51:7 in
+test/release_hygiene_test.dart:114:7 in
+test/release_hygiene_test.dart:547:5 in
+test/release_hygiene_test.dart:770:5 in
+test/session/session_repair_test.dart:30:9 the
+test/session/session_repair_test.dart:43:5 the
+test/session/session_streamed_open_test.dart:131:9 the
+test/session/session_streamed_open_test.dart:148:5 the
+test/session/session_whole_file_open_test.dart:108:9 the
+test/skills/builtin_js_apps_skill_test.dart:5:10 brackets
+test/web_search/web_gate_test.dart:1:1 library
+test/web_search/web_gate_test.dart:15:8 import
+test/web_search/web_gate_test.dart:16:8 import
+test/web_search/web_gate_test.dart:17:8 import
+test/web_search/web_gate_test.dart:18:8 import
+test/web_search/web_gate_test.dart:19:8 import
+test/web_search/web_gate_test.dart:20:8 import
+test/web_search/web_gate_test.dart:21:8 import
+tool/profile_boot.dart:9:8 import

@@ -1,0 +1,8 @@
+quality	UNKNOWN STEP	2026-09-30T11:41:03.6920145Z   N/A    N/A  N/A   1  (top-level).main                                   /home/runner/work/crap4dart/crap4dart/test/profile/source_instrumenter_test.dart:4          
+quality	UNKNOWN STEP	2026-09-30T11:41:03.6920605Z   N/A    N/A  N/A   1  (top-level).main                                   /home/runner/work/crap4dart/crap4dart/test/profile/workspace_pubspec_test.dart:6            
+quality	UNKNOWN STEP	2026-09-30T11:41:03.6921061Z   N/A    N/A  N/A   2  (top-level).main                                   /home/runner/work/crap4dart/crap4dart/test/source_finder_test.dart:7                        
+quality	UNKNOWN STEP	2026-09-30T11:41:03.6921526Z   N/A    N/A  N/A   1  (top-level).parseMethods                           /home/runner/work/crap4dart/crap4dart/test/test_utils.dart:6                                
+quality	UNKNOWN STEP	2026-09-30T11:41:03.6922008Z   N/A    N/A  N/A   1  (top-level).complexityOf                           /home/runner/work/crap4dart/crap4dart/test/test_utils.dart:13                               
+quality	UNKNOWN STEP	2026-09-30T11:41:03.6922592Z Max CRAP: 27.67 — FAIL (threshold: 8.00)
+quality	UNKNOWN STEP	2026-09-30T11:41:03.6922800Z CRAP threshold exceeded: 27.67 > 8.0
+quality	UNKNOWN STEP	2026-09-30T11:41:03.7610827Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/crap4dart/crap4dart

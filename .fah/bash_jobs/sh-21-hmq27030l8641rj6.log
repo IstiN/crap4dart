@@ -1,0 +1,8 @@
+  @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    final name = node.name.lexeme;
+    if (name.startsWith('_')) {
+      _declare(name, node);
+Analyzing crap4dart...
+No issues found!
+00:17 +319: All tests passed!

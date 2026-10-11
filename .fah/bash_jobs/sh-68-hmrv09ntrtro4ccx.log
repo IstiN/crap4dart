@@ -1,0 +1,1 @@
+  error - lib/src/gates/duplication_gate.dart:367:9 - Undefined name '_ignoreLocals'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier

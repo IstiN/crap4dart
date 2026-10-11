@@ -1,0 +1,4 @@
+17:  /// Operator category (one of [mutationOperatorCategories]).
+80:  /// Operator category (one of [mutationOperatorCategories]).
+109:      : _categories = categories ?? mutationOperatorCategories;
+125:  bool _has(String category) => _categories.contains(category);

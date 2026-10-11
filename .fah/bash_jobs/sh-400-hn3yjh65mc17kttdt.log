@@ -1,0 +1,4 @@
+[FAIL] method_size: 1 violations in 857 methods over their size limits
+  test/gates/public_docs_gate_test.dart:60: main has 92 lines > max 80
+[PASS] nesting: 707 methods within nesting 5
+[PASS] class_size: 100 classes within 25 methods/WMC 80

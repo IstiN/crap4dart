@@ -1,0 +1,28 @@
+T1: None
+T2: None
+
+NEW files (invisible to Type-1): 80
+  + 89.7pp  packages/fa_ui/lib/fa_ui.dart
+  + 71.9pp  lib/src/cube/cube.dart
+  + 71.0pp  flutter_app/lib/l10n/app_localizations_ru.dart
+  + 70.8pp  flutter_app/lib/l10n/app_localizations_en.dart
+  + 69.3pp  lib/flutter_agent_harness.dart
+  + 69.1pp  packages/fa_ui/lib/src/chat/chat_strings.dart
+  + 64.9pp  packages/fa_ui/lib/src/trajectory/trajectory_strings.dart
+  + 43.3pp  lib/src/model_roles/vision_models.dart
+  + 34.9pp  lib/src/cli/tui_theme_palette.dart
+  + 30.3pp  flutter_app/lib/sandbox/sandbox_registry.dart
+  + 26.9pp  lib/src/cli/tui_key_hints.dart
+  + 25.0pp  lib/src/overflow.dart
+  + 23.9pp  lib/src/web_search/html_text.dart
+  + 21.6pp  lib/src/cli/agent_cli_provider_presets.dart
+  + 19.9pp  packages/fa_ui/lib/src/providers/voice_presets.dart
+  + 19.2pp  lib/src/approval/bash_interceptor.dart
+
+Biggest jumps on already-flagged:
+  + 79.5pp  lib/src/cli/tui_symbols.dart (8.1->87.6)
+  + 53.7pp  packages/fa_ui/lib/src/strings/fa_ui_strings.dart (2.2->55.9)
+  + 38.3pp  lib/src/memory/memory_tools.dart (5.2->43.5)
+  + 29.3pp  flutter_app/lib/webllm/webllm_types.dart (2.3->31.7)
+  + 26.2pp  flutter_app/lib/services/notify_tool.dart (15.5->41.8)
+  + 20.0pp  flutter_app/lib/network/ws_connector_web.dart (40.0->60.0)

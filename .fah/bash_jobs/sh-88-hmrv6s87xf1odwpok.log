@@ -1,0 +1,4 @@
+  error - test/gates/duplication_normalization_test.dart:122:10 - Undefined name 'gate'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+warning - test/gates/duplication_normalization_fixtures.dart:1:8 - Unused import: 'dart:io'. Try removing the import directive. - unused_import
+warning - test/gates/duplication_normalization_fixtures.dart:3:8 - Unused import: 'gate_test_utils.dart'. Try removing the import directive. - unused_import
+warning - test/gates/duplication_normalization_test.dart:12:9 - The value of the local variable 'gate' isn't used. Try removing the variable or using it. - unused_local_variable

@@ -1,0 +1,38 @@
+00:00 +0: fnv1a64Hex is deterministic and 16 hex chars
+00:00 +0 -1: fnv1a64Hex is deterministic and 16 hex chars [E]
+  Expected: an object with length of <16>
+    Actual: '-51e593d120dcd51b'
+     Which: has length of <17>
+  
+  package:matcher                           expect
+  test/gates/mutation_cache_test.dart 24:7  main.<fn>.<fn>
+  
+00:00 +0 -1: Some tests failed.
+
+Failing tests:
+00:00 +0: digest-incremental engine cache an edit inside a method re-executes only its mutants
+00:00 +0 -1: digest-incremental engine cache an edit inside a method re-executes only its mutants [E]
+  Expected: <1>
+    Actual: <2>
+  only add changed; zero replays from cache
+  
+  package:matcher                                   expect
+  test/gates/mutation_engine_cache_test.dart 210:7  main.<fn>.<fn>
+  
+00:00 +0 -1: Some tests failed.
+
+Failing tests:
+  test/gates/mutation_engine_cache_test.dart: digest-incremental engine cache an edit inside a method re-executes only its mutants
+00:00 +0: identical verdicts across runs with survivors re-executed
+00:00 +0 -1: identical verdicts across runs with survivors re-executed [E]
+  Expected: <2>
+    Actual: <0>
+  survivors re-run even with matching digests
+  
+  package:matcher                                expect
+  test/gates/mutation_gate_cache_test.dart 83:5  main.<fn>
+  
+00:00 +0 -1: Some tests failed.
+
+Failing tests:
+  test/gates/mutation_gate_cache_test.dart: identical verdicts across runs with survivors re-executed

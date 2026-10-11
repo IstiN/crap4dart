@@ -1,0 +1,3 @@
+06:44 +10228 ~6 -8: Some tests failed.
+====
+39a094d16 gh-1538 [GOAL] Slim nightly to builds + integration-only: drop test legs duplicated by the pre-merge gate (#1540)

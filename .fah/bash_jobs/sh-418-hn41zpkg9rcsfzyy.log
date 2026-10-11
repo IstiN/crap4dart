@@ -1,0 +1,51 @@
+    final coverageByFile = _loadCoverage(lcovPath, projectRoot);
+    final parser = DartParser();
+    const extractor = MethodExtractor();
+    final complexityCalculator =
+        ComplexityCalculator(countLambdas: countLambdas);
+    const coverageCalculator = MethodCoverageCalculator();
+
+    final results = <MethodMetrics>[];
+    for (final filePath in filePaths) {
+      final content = File(filePath).readAsStringSync();
+      final parsed = parser.parse(content: content, path: filePath);
+      final methods = extractor.extractWithNodes(
+        parsed.unit,
+        parsed.lineInfo,
+        filePath: filePath,
+      );
+      final fileCoverage = _coverageFor(coverageByFile, filePath, projectRoot);
+      for (final extracted in methods) {
+        final method = extracted.info;
+        final complexity = complexityCalculator.compute(extracted.node);
+        final coverage = fileCoverage == null
+            ? null
+            : coverageCalculator.lineCoverage(method, fileCoverage);
+        final branchCoverage = fileCoverage == null
+            ? null
+            : coverageCalculator.branchCoverage(method, fileCoverage);
+        results.add(
+          MethodMetrics(
+            method: method,
+            complexity: complexity,
+12:class MethodInfo {
+13-  /// Creates a [MethodInfo].
+14-  const MethodInfo({
+15-    required this.className,
+16-    required this.methodName,
+17-    required this.startLine,
+18-    required this.endLine,
+19-    required this.filePath,
+20-  });
+21-
+22-  /// Name of the containing class, mixin, enum or extension, or
+23-  /// [topLevelClassName] for top-level functions.
+24-  final String className;
+25-
+26-  /// Name of the method or function.
+27-  final String methodName;
+28-
+29-  /// First line of the declaration (1-based, excluding doc comments and
+30-  /// annotations).
+31-  final int startLine;
+32-

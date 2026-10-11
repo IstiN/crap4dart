@@ -1,0 +1,20 @@
+?? .fah/packages.yaml
+?? flutter_app/tool/network_send_probe.dart
+?? memory/note/n_0772_aab8.md
+?? memory/note/n_0972_4a03.md
+?? memory/note/n_0973_7ab8.md
+9408e81d8 chore(release): v1.0.546
+06ead0c57 chore(factory): flip engine pin to agents-rel-20261009-181034 (206a8c62) (#1474)
+===
+.github/workflows/ci.yml:389:      - name: dart analyze (full)
+.github/workflows/ci.yml:391:        run: dart analyze
+.github/workflows/ci.yml:393:      - name: dart analyze (docs-only scope)
+.github/workflows/ci.yml:395:        run: dart analyze lib test bin
+.github/workflows/ci.yml:420:          # `dart analyze` ever surfaced (issue #613). Errors fail the
+.github/workflows/ci.yml:422:          (cd /tmp/pr-dry-run-stage && dart pub get && dart analyze)
+.github/workflows/ci.yml:1212:          dart pub global run crap4dart analyze
+.github/workflows/ci.yml:1368:        run: cd flutter_app && flutter analyze --no-fatal-infos --no-fatal-warnings
+.github/workflows/ci.yml:1598:          cd flutter_app && dart pub global run crap4dart analyze --format json > crap_report.json
+.github/workflows/ci.yml:1853:        # compile errors fail via the exit code — same fatal semantics as
+.github/workflows/ci.yml:2375:          # Vendored third-party code: analyze keeps ERRORS fatal (the
+.github/workflows/ci.yml:2378:          # Plain `dart analyze` has no --no-fatal-infos (that flag is the

@@ -1,0 +1,3 @@
+nae_test.dart:6:43: Error: A value of type 'String?' can't be assigned to a variable of type 'String'.
+  final b = <String, String>{?'parentId': nil};
+                                          ^

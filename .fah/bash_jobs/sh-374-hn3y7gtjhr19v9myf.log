@@ -1,0 +1,25 @@
+ M AGENTS.md
+ M CHANGELOG.md
+ M README.md
+ M lib/src/config/config.dart
+ M lib/src/config/config_loader.dart
+ M lib/src/config/config_template.dart
+ M lib/src/config/gate_config_readers_extra.dart
+ M lib/src/gates/gate_runner.dart
+ M spec.md
+?? .fah/
+?? lib/src/config/gate_config_mutation.dart
+?? lib/src/gates/mutation_engine.dart
+?? lib/src/gates/mutation_gate.dart
+?? lib/src/gates/mutation_operators.dart
+?? test/config_loader_mutation_test.dart
+?? test/gates/mutation_engine_score_test.dart
+?? test/gates/mutation_engine_test.dart
+?? test/gates/mutation_gate_coverage_test.dart
+?? test/gates/mutation_gate_fixtures.dart
+?? test/gates/mutation_gate_options_test.dart
+?? test/gates/mutation_gate_scoring_test.dart
+?? test/gates/mutation_gate_skip_test.dart
+?? test/gates/mutation_gate_verdict_test.dart
+?? test/gates/mutation_literals_test.dart
+?? test/gates/mutation_operators_test.dart

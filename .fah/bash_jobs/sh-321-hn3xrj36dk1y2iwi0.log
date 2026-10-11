@@ -1,0 +1,7 @@
+HEAD is now at 39a094d16 gh-1538 [GOAL] Slim nightly to builds + integration-only: drop test legs duplicated by the pre-merge gate (#1540)
+  test/publish_staging_test.dart: gh-1522 rework — stamp_staged_release.sh behavior a curated ## <version> section for the same version never duplicates
+  test/publish_staging_test.dart: gh-1522 rework — stamp_staged_release.sh behavior folds the curated Unreleased body under the tag section; no Unreleased header survives
+  ... and 4 more
+
+Consider enabling the flag chain-stack-traces to receive more detailed exceptions.
+For example, 'dart test --chain-stack-traces'.

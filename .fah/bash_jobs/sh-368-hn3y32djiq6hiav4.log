@@ -1,0 +1,23 @@
+24:typedef MutantTestRunner = Future<MutantOutcome> Function(
+31:class MutationTestUnavailableException implements Exception {
+}
+
+/// The result of running every mutant of one engine invocation.
+class MutationRunResult {
+  /// Creates a [MutationRunResult].
+  MutationRunResult(this.outcomes);
+
+  /// Per-site outcomes; every input site appears exactly once.
+  final List<({MutationSite site, MutantOutcome outcome})> outcomes;
+
+  /// Mutants killed by the test suite (compile errors included).
+  int get killed =>
+      outcomes.where((o) => o.outcome == MutantOutcome.killed).length;
+
+  /// Mutants the suite noticed nothing about, timeouts included.
+  int get survived =>
+      outcomes.where((o) => o.outcome != MutantOutcome.killed).length;
+
+  /// Mutation score: killed / (killed + survived); `1.0` when no mutant
+  /// was executed.
+  double get score =>

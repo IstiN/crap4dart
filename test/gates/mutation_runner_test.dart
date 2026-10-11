@@ -36,13 +36,17 @@ class FakeProcess implements Process {
   }
 }
 
+late Directory dir;
+
 void main() {
-  late Directory dir;
-
   setUp(() => dir = Directory.systemTemp.createTempSync('crap4dart_runner_'));
-
   tearDown(() => dir.deleteSync(recursive: true));
+  outcomeAndSpawnTests();
+  timeoutTests();
+  unavailableTests();
+}
 
+void outcomeAndSpawnTests() {
   test('exit code zero survives, non-zero kills', () async {
     final survived = await runMutantTests(
       dir.path,
@@ -83,6 +87,30 @@ void main() {
     expect(seen!.workingDirectory, dir.path);
   });
 
+  test('forwards custom test args to the test invocation', () async {
+    ({
+      String executable,
+      List<String> arguments,
+      String? workingDirectory
+    })? seen;
+    await runMutantTests(
+      dir.path,
+      const Duration(seconds: 5),
+      testArgs: const ['test', 'test/copilot'],
+      spawn: (executable, arguments, {workingDirectory}) {
+        seen = (
+          executable: executable,
+          arguments: arguments,
+          workingDirectory: workingDirectory
+        );
+        return Future.value(FakeProcess());
+      },
+    );
+    expect(seen!.arguments, ['test', 'test/copilot']);
+  });
+}
+
+void timeoutTests() {
   test('a hanging suite times out and is killed', () async {
     final process = FakeProcess(hang: true);
     final outcome = await runMutantTests(
@@ -93,7 +121,9 @@ void main() {
     expect(outcome, MutantOutcome.timeout);
     expect(process.killed, isTrue);
   });
+}
 
+void unavailableTests() {
   test('a missing executable raises MutationTestUnavailableException',
       () async {
     expect(

@@ -1,0 +1,40 @@
+8:- `lib/` — the `flutter_agent_harness` package (pure Dart core). `test/`
+17:  (crap4dart `loc` gate, `max_lines: 2800` — issue #1234 migrated the
+19:  pre-commit hook. Scope: core `lib bin` via `crap4dart.yaml` +
+20:  `test example` via the `crap4dart.loc-scope.yaml` companion config
+22:  `flutter_app/crap4dart.yaml`).
+180:  the latest ledger into `snapshot.taskLedger` (legacy sessions degrade to
+332:  `ModelRolesResolver` chain entry, pre-commit stalls only, #964 kept).
+345:  keep-alive pool is test-exonerated for every watchdog-window class).
+587:  file layer — byte-identical legacy listing (REG test
+588:  test/messaging/fabric_kill_switch_reg_test.dart).
+614:  (bin/fah.dart builds the file store; tests inject fakes). CLI sessions
+638:  `.fah/config.yaml` points at the COMMITTED `memory/` directory — clone
+642:  .last_maintenance — rebuilt on load, never committed) and
+653:  skills/packages); logs/sessions/bash_jobs stay local. Commit memory/
+655:  memory-only commits).
+674:  docs/hep.md; byte shape pinned by golden tests (test/cli/hep_test.dart).
+767:  tests can drive them line-mode (see `test/cli/settings_flow_test.dart`).
+825:  `test/integration/fa_cube_integration_test.dart` (8 scenarios,
+831:  `test/cli/cli_help_test.dart` (update BOTH).
+842:  (`test/build_filter/provider_filter_test.dart`).
+932:  back to the stored preset key). The editor's `modelsFetcher` is a test
+993:  `resetTrajectoryTabHistory()` test seam), and `FaTrajectoryPanel`
+995:  (broadcast snapshot stream that replays `latest` to new listeners).
+1001:  baselines: `test/trajectory/golden/` (regenerate with
+1002:  `flutter test test/trajectory/golden/ --update-goldens`, verify without
+1003:  the flag) — `golden_test_setup.dart` loads the real `Inter` and
+1004:  `JetBrainsMono` families from `test/assets/fonts/` (test-only copies
+1047:  `SandboxVideoController` abstractions (tests/goldens inject fakes via
+1070:  `asrTranscriber`/`clipboardImageReader` test fakes) and bridges it to the
+1162:  test fakes (`composerBuilder` → the app's `ChatComposer` adapter).
+1167:  `test/l10n_guard_test.dart` hard-fails on hardcoded widget strings, en/ru
+1171:- `flutter_app/test/golden/` — golden tests (see MANDATORY section below).
+1172:- `flutter_app/test/cli_visual/` — CLI visual integration tests
+1173:  (integration-tagged, excluded from the pre-commit `flutter test`): the
+1177:  `test/integration/screenshots/NN_name.png` + a `.txt` twin with the exact
+1178:  xterm screen text. Run: `flutter test test/cli_visual --tags
+1180:  `test/integration/pty_harness.dart` (see its README for the PTY/pty2
+1200:  from the app shell (tests: wrap ABOVE the MaterialApp — pushed routes
+1272:  `test/apps/demo_assets_declared_test.dart`): calculator,
+1286:  `integration_test/fitness_coach_screenshot_test.dart` screenshot-verifies

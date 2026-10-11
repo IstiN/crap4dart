@@ -1,0 +1,22 @@
+
+  Uri _uri(String path) => Uri.parse(
+    '${baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl}$path',
+  );
+
+      );
+      final response = await _client.send(request);
+      if (attempt == 0 &&
+          (response.statusCode == 401 || response.statusCode == 403)) {
+        currentToken = await refresh();
+      contextWindow: int.tryParse(envKey('CONTEXT_WINDOW') ?? ''),
+      temperature:
+          temperature ?? double.tryParse(envKey('TEMPERATURE') ?? '') ?? -1,
+      maxTokensParamName:
+          maxTokensParamName ??
+          (envKey('MAX_TOKENS_PARAM_NAME')?.isNotEmpty == true
+              ? envKey('MAX_TOKENS_PARAM_NAME')!
+  Future<void> wait(Duration d) => delay != null ? delay(d) : Future.delayed(d);
+  var waited = Duration.zero;
+  while (expiresIn == null || waited.inSeconds < expiresIn) {
+    final response = await (client ?? http.Client()).post(
+      Uri.parse('https://github.com/login/oauth/access_token'),

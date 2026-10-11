@@ -1,0 +1,16 @@
+Changed bin/fah_wire_serve.dart
+Changed lib/src/cli/tui_chrome.dart
+Changed lib/src/cli/tui_editor.dart
+Changed lib/src/compaction/structured/engine.dart
+Changed test/cli/agent_cli_headless_over_window_test.dart
+Changed test/cli/agent_cli_headless_shell_job_liveness_test.dart
+Changed test/cli/load_mode_cli_test.dart
+Changed test/cli/session_repair_cli_test.dart
+Changed test/hosts/extension_host_parity_test.dart
+Changed test/integration/wire_serve_cli_test.dart
+Changed test/release_hygiene_test.dart
+Changed test/session/session_repair_test.dart
+Changed test/session/session_streamed_open_test.dart
+Changed test/session/session_whole_file_open_test.dart
+Changed test/web_search/web_gate_test.dart
+Formatted 28 files (15 changed) in 0.12 seconds.

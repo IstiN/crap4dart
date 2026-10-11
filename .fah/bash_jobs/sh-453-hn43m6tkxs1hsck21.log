@@ -1,0 +1,4 @@
+715:are excluded. The gate fails when the score is below `min_score`
+12:2. **Quality gates** (`check`) — 22 configurable gates: `loc`,
+80:lib/src/gates/               # Gate framework + 22 gates
+106:  per test (see `test/gates/gate_test_utils.dart`, `test/cli/`).

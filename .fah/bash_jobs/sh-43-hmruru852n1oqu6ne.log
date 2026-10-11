@@ -1,0 +1,111 @@
+  Future<GateResult> run(GateContext context) async {
+    final config = context.config.gates.duplication;
+    final files = _collectFiles(context, config);
+
+    if (files.isEmpty) {
+      return GateResult.pass(id, summary: 'no files with enough tokens');
+    }
+
+    _detectDuplicates(files, config.minTokens, config.minLines);
+    final result = _buildResult(files, config, context);
+
+    return result.violations.isEmpty
+        ? GateResult.pass(id, summary: result.summary)
+        : GateResult.fail(id, result.violations, summary: result.summary);
+  }
+
+  /// Loads and tokenizes the files that participate in duplicate detection.
+  ///
+  /// Beyond the analyzed source set, the gate's [DuplicationGateConfig.sources]
+  /// paths are unioned in — that is what makes cross-module duplication
+  /// visible without widening the CRAP analysis scope.
+  List<_FileTokens> _collectFiles(
+    GateContext context,
+    DuplicationGateConfig config,
+  ) {
+    final files = <String>[...context.files];
+    for (final source in _expandSources(context, config.sources)) {
+      if (!files.contains(source)) files.add(source);
+    }
+    files.sort();
+    final tokens = <_FileTokens>[];
+    for (final file in files) {
+      if (context.matchesAnyGlob(file, config.exclude)) continue;
+      final parsed = context.parsed(file);
+      final fileTokens = _extractFileTokens(parsed);
+      if (fileTokens.length >= config.minTokens) {
+        final totalLines = _lineCount(File(file).readAsStringSync());
+        tokens.add(_FileTokens(file, fileTokens, totalLines));
+      }
+    }
+    return tokens;
+  }
+
+  /// Resolves the gate's additional [sources] against the project root:
+  /// directories are scanned recursively for `.dart` files, files are
+  /// taken directly, missing paths are skipped silently.
+  List<String> _expandSources(GateContext context, List<String> sources) {
+    final result = <String>[];
+    for (final source in sources) {
+      final absolute = p.join(context.projectRoot, source);
+      final type = FileSystemEntity.typeSync(absolute);
+      if (type == FileSystemEntityType.file) {
+        if (absolute.endsWith('.dart')) result.add(absolute);
+      } else if (type == FileSystemEntityType.directory) {
+        for (final entity in Directory(absolute).listSync(recursive: true)) {
+          if (entity is File && entity.path.endsWith('.dart')) {
+            result.add(entity.path);
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  /// Builds the gate result from marked token streams.
+  _Result _buildResult(
+    List<_FileTokens> files,
+    DuplicationGateConfig config,
+    GateContext context,
+  ) {
+    final violations = <GateViolation>[];
+    var checkedLines = 0;
+    var duplicatedLines = 0;
+    for (final file in files) {
+      final dupLineSet = <int>{};
+      for (final token in file.tokens) {
+        if (token.duplicated) dupLineSet.add(token.line);
+      }
+      checkedLines += file.totalLines;
+      duplicatedLines += dupLineSet.length;
+      final violation = _violationFor(file, dupLineSet, config, context);
+      if (violation != null) violations.add(violation);
+    }
+
+    final totalPercent =
+        checkedLines == 0 ? 0.0 : (duplicatedLines / checkedLines) * 100.0;
+    final summary = violations.isEmpty
+        ? '${files.length} files, ${totalPercent.toStringAsFixed(2)}% duplicated lines'
+        : '${violations.length}/${files.length} files over ${config.threshold}% duplication';
+    return _Result(violations, summary);
+  }
+
+  /// Returns a violation when the file exceeds the duplication threshold.
+  GateViolation? _violationFor(
+    _FileTokens file,
+    Set<int> dupLineSet,
+    DuplicationGateConfig config,
+    GateContext context,
+  ) {
+    if (file.totalLines == 0) return null;
+    final percent = (dupLineSet.length / file.totalLines) * 100.0;
+    if (percent <= config.threshold) return null;
+    final firstLine = dupLineSet.isEmpty ? null : dupLineSet.reduce(min);
+    return GateViolation(
+      file: context.relativePath(file.file),
+      line: firstLine,
+      message: '${percent.toStringAsFixed(2)}% duplicated lines > '
+          '${config.threshold}%',
+    );
+  }
+

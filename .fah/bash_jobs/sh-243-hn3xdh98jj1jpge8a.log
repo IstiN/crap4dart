@@ -1,0 +1,27 @@
+              },
+            );
+      }
+      _output.add(chunk);
+    }
+
+    _stdoutSub = process.stdout
+        .transform(utf8.decoder)
+        .listen(
+          fanOut,
+          onError: (_) {},
+          onDone: () {
+            if (!stdoutDone.isCompleted) stdoutDone.complete();
+          },
+        );
+    _stderrSub = process.stderr
+        .transform(utf8.decoder)
+        .listen(
+          fanOut,
+          onError: (_) {},
+          onDone: () {
+94:        _undoStack: _undoStack,
+109:      _undoStack: steps.length > undoLimit
+199:      _undoStack: pushed._undoStack,
+226:      _undoStack: pushed._undoStack,
+240:      _undoStack: _undoStack,
+288:      _undoStack: steps,

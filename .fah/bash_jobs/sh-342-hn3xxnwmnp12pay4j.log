@@ -1,0 +1,4 @@
+[FAIL] method_size: 1 violations in 843 methods over their size limits
+  test/gates/mutation_gate_scoring_test.dart:9: main has 112 lines > max 80
+[SKIP] mutation: disabled in config
+Gates: 19 passed, 1 failed, 0 warned, 6 skipped

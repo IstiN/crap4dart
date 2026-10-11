@@ -1,0 +1,60 @@
+  /// line mode prints the grep-friendly `… reasoning Ns` line on the
+  /// waiting cadence; the watch disarms the moment the first event lands.
+  /// Active only while the thinking stream is OFF — with `--stream-
+  /// thinking`/`output.streamThinking` the deltas print live (tier 1 owns
+  /// visibility), and the TUI streams thinking regardless (its paint
+  /// freeze is #1197's).
+  late final ReasoningLivenessTracker reasoning = ReasoningLivenessTracker(
+    onRemind: (elapsed) => _printLiveness(reasoningLivenessLine(elapsed)),
+    clock: _clock,
+    livenessSeconds: () => _cli.config.waiting.toolLivenessSeconds,
+    tickSeconds: () => _cli.config.waiting.toolLivenessTickSeconds,
+  );
+
+  /// Streaming-phase liveness (gh-1430): the fifth waiting horizon — a
+  /// provider request whose events flow but render NOTHING in the current
+  /// output mode (thinking deltas with `--stream-thinking` off, the
+  /// headless default). Tier 2 disarms at the first event, which is
+  /// exactly when a reasoning burst starts, so the pane used to go
+  /// byte-silent for minutes of healthy streaming. The heartbeat prints
+  /// `… reasoning Ns (streaming)` on the same waiting cadence — and never
+  /// for a stream that stopped emitting, so fa's stream-idle watchdog
+  /// stays the sole arbiter of stream death.
+  late final StreamLivenessHeartbeat streamHeartbeat = StreamLivenessHeartbeat(
+    onRemind: (elapsed) => _printLiveness(streamLivenessLine(elapsed)),
+    clock: _clock,
+    livenessSeconds: () => _cli.config.waiting.toolLivenessSeconds,
+====
+  int lostJobs = 0;
+
+  /// When the current waiting stretch began — the heartbeat's elapsed base.
+  DateTime? waitingSince;
+
+  late final WaitingHeartbeat heartbeat = WaitingHeartbeat(
+    onBeat: _deliverHeartbeat,
+    minutes: () => _cli.config.waiting.waitHeartbeatMinutes,
+  );
+
+  DateTime Function() get _clock => _cli._waitingClock;
+
+  ShellJobRegistry get _jobs => _cli._shellJobs;
+
+  ScheduledMessageQueue get _timers => _cli._scheduledMessages;
+
+====
+  void recordLine(int elapsed) => lines.add(streamLivenessLine(elapsed));
+  int cadenceSeconds() => 60;
+  int tickCadenceSeconds() => 60;
+
+  StreamLivenessHeartbeat build({
+    int Function()? cadence,
+    int Function()? tick,
+  }) => StreamLivenessHeartbeat(
+    onRemind: recordLine,
+    livenessSeconds: cadence ?? cadenceSeconds,
+    tickSeconds: tick ?? tickCadenceSeconds,
+    clock: clockForTest,
+  );
+
+  setUp(() {
+    now = DateTime.utc(2026, 1, 1, 12);

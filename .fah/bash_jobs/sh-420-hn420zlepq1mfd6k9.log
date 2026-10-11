@@ -1,0 +1,60 @@
+import 'package:path/path.dart' as p;
+
+/// A single branch coverage data point from a `BRDA` record.
+class BranchHit {
+  /// Creates a [BranchHit].
+  const BranchHit({
+    required this.line,
+    required this.block,
+    required this.branch,
+    required this.taken,
+  });
+
+  /// Line number of the branch (1-based).
+  final int line;
+
+  /// Block identifier from the LCOV record.
+  final int block;
+
+  /// Branch identifier from the LCOV record.
+  final int branch;
+
+  /// Number of times the branch was taken, or `null` when the LCOV record
+  /// reports `-` (not executed instrument).
+  final int? taken;
+
+  /// Whether the branch was taken at least once.
+  bool get isCovered => taken != null && taken! > 0;
+}
+
+/// Coverage data for a single source file.
+class FileCoverage {
+  /// Creates a [FileCoverage] for [path].
+  FileCoverage({required this.path});
+
+  /// Source file path, normalized relative to the project root.
+  final String path;
+
+  /// Line hits: line number (1-based) → execution count.
+  final Map<int, int> lineHits = {};
+
+  /// Branch hits from `BRDA` records.
+  final List<BranchHit> branches = [];
+}
+
+/// Parser for LCOV trace files (`lcov.info`).
+class LcovParser {
+  /// Creates an [LcovParser].
+  ///
+  /// [projectRoot], when given, is used to strip absolute path prefixes so
+  /// that [FileCoverage.path] is relative to the project root.
+  const LcovParser({this.projectRoot});
+
+  /// Project root used to relativize absolute `SF` paths.
+  final String? projectRoot;
+
+  /// Parses LCOV [content] into a list of [FileCoverage].
+  ///
+  /// Only `SF`, `DA` and `BRDA` records are interpreted; everything else is
+  /// ignored.
+  List<FileCoverage> parse(String content) {

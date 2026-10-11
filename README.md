@@ -350,6 +350,10 @@ gates:
     # Operator categories to enable (default: all).
     operators: [arithmetic, boundary, equality, logical, boolean,
                 constant, unary]
+    # Digest-incremental cache: replay kills of unchanged methods.
+    cache: true
+    # Per-mutant test invocation args (`dart <args...>`).
+    test_args: ['test']
     # Glob patterns excluded from the gate.
     exclude:
       - '**.g.dart'
@@ -570,6 +574,16 @@ gates:
   once per mutant, so enable it only on fast suites. `operators`
   selects a category subset; `max_mutants` (default 500) caps the
   executed sites; `timeout_seconds` (default 60) guards each mutant.
+  `cache` (default true) enables the digest-incremental
+  killed-stays-killed cache (`.crap-mutation-cache.json`): mutants of
+  methods whose exact source span is unchanged since the last run and
+  that were previously killed are replayed, not re-executed (survivors
+  always re-run, because the suite may have improved); a
+  mutation-relevant config change (operators, `test_args`, tool
+  version) wipes the cache. `test_args` (default `['test']`) is the
+  full per-mutant test invocation argument list — scope the suite to
+  relevant test paths yourself, knowing that a mutant is killed only if
+  the scoped suite would kill it.
 
 ## Baseline
 

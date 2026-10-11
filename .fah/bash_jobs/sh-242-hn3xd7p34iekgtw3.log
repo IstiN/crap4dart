@@ -1,0 +1,9 @@
+exit=3
+ERROR|COMPILE_TIME_ERROR|UNDEFINED_NAMED_PARAMETER|lib/src/cli/tui_editor.dart|94|9|10|The named parameter '_undoStack' should use the corresponding public name 'undoStack' at the callsite.
+ERROR|COMPILE_TIME_ERROR|UNDEFINED_NAMED_PARAMETER|lib/src/cli/tui_editor.dart|109|7|10|The named parameter '_undoStack' should use the corresponding public name 'undoStack' at the callsite.
+ERROR|COMPILE_TIME_ERROR|UNDEFINED_NAMED_PARAMETER|lib/src/cli/tui_editor.dart|199|7|10|The named parameter '_undoStack' should use the corresponding public name 'undoStack' at the callsite.
+ERROR|COMPILE_TIME_ERROR|UNDEFINED_NAMED_PARAMETER|lib/src/cli/tui_editor.dart|226|7|10|The named parameter '_undoStack' should use the corresponding public name 'undoStack' at the callsite.
+ERROR|COMPILE_TIME_ERROR|UNDEFINED_NAMED_PARAMETER|lib/src/cli/tui_editor.dart|240|7|10|The named parameter '_undoStack' should use the corresponding public name 'undoStack' at the callsite.
+ERROR|COMPILE_TIME_ERROR|UNDEFINED_NAMED_PARAMETER|lib/src/cli/tui_editor.dart|288|7|10|The named parameter '_undoStack' should use the corresponding public name 'undoStack' at the callsite.
+ERROR|COMPILE_TIME_ERROR|UNDEFINED_IDENTIFIER|lib/src/env/io_execution_env.dart|1011|18|7|Undefined name 'process'.
+ERROR|COMPILE_TIME_ERROR|UNDEFINED_IDENTIFIER|lib/src/env/io_execution_env.dart|1020|18|7|Undefined name 'process'.

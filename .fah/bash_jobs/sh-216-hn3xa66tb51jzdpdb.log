@@ -1,0 +1,14 @@
+done lib/src/cli/agent_hub_panel.dart
+done test/skills/builtin_js_apps_skill_test.dart
+done test/release_hygiene_test.dart
+done test/release_hygiene_test.dart
+done test/release_hygiene_test.dart
+done test/release_hygiene_test.dart
+done lib/src/cli/provider_models.dart
+done lib/src/compaction/structured/engine.dart
+done test/cli/agent_cli_headless_over_window_test.dart
+done test/cli/agent_cli_headless_over_window_test.dart
+Traceback (most recent call last):
+  File "<stdin>", line 60, in <module>
+  File "<stdin>", line 3, in sub1
+AssertionError: ('test/web_search/web_gate_test.dart', '/// - `REG-NET-1` — with no cube (no gate) the recorded requests are t', 0)

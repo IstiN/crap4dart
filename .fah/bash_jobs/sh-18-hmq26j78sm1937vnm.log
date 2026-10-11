@@ -1,0 +1,15 @@
+  error - lib/src/gates/unused_code_gate.dart:76:23 - The getter 'name' isn't defined for the type 'ClassDeclaration'. Try importing the library that defines 'name', correcting the name to the name of an existing getter, or defining a getter or field named 'name'. - undefined_getter
+  error - lib/src/gates/unused_code_gate.dart:109:15 - The getter 'name' isn't defined for the type 'ClassDeclaration'. Try importing the library that defines 'name', correcting the name to the name of an existing getter, or defining a getter or field named 'name'. - undefined_getter
+  error - test/gates/external_tool_fixture.dart:33:1 - Undefined class 'GateContext'. Try changing the name to the name of an existing class, or creating a class with the name 'GateContext'. - undefined_class
+warning - lib/src/gates/accessibility_gate.dart:82:32 - 'arguments2' is experimental and could be removed or changed at any time. - experimental_member_use
+warning - lib/src/gates/test_assertions_gate.dart:92:36 - 'arguments2' is experimental and could be removed or changed at any time. - experimental_member_use
+76:    final name = node.name.lexeme;
+91:    final name = node.name.lexeme;
+126:    if (node.name.lexeme.startsWith('_')) {
+127:      _declare(node.name.lexeme, node);
+134:    references.add(node.name);
+}
+
+/// A gate context config running [tool] as the `external` rule `fake`.
+GateContext externalContext(Directory project, String tool) => makeContext(
+      project,

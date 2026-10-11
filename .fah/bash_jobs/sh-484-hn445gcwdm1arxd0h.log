@@ -1,0 +1,40 @@
+8:  });
+12:  });
+14:  test('flags a golden with overflow stripes', () async {
+21:    });
+26:  });
+28:  test('flags a golden with the red error screen', () async {
+34:  });
+36:  test('passes clean goldens and ignores non-PNG files', () async {
+44:  });
+46:  test('honors the exclude globs', () async {
+52:    });
+62:  });
+void main() {
+  const gate = BrokenGoldensGate();
+
+  late Directory project;
+
+  setUp(() {
+    project = createTempProject();
+  });
+
+  tearDown(() {
+    project.deleteSync(recursive: true);
+  });
+
+  test('flags a golden with overflow stripes', () async {
+    // Checkerboard yellow/black stripe band across the middle.
+    writePng(project, 'test/goldens/overflow.png', 100, 60, (x, y) {
+      if (y >= 25 && y < 35) {
+        return (x ~/ 4) % 2 == 0 ? _yellow : _black;
+      }
+      return _white;
+    });
+    final result = await gate.run(makeContext(project, const []));
+    expect(result.passed, isFalse);
+    expect(result.violations.single.file, 'test/goldens/overflow.png');
+    expect(result.violations.single.message, contains('overflow stripes'));
+  });
+
+  test('flags a golden with the red error screen', () async {

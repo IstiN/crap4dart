@@ -1,0 +1,6 @@
+00:00 +20 -1: test/gates/gate_runner_diff_test.dart: violations on unchanged lines are filtered out
+00:00 +21 -1: test/gates/duplication_gate_sources_test.dart: per-gate sources pull in files outside the analyzed source set
+00:00 +21 -1: test/gates/duplication_normalization_test.dart: ignore_literals masks string and numeric literals [E]
+00:00 +22 -1: test/gates/duplication_gate_sources_test.dart: per-gate sources pull in files outside the analyzed source set
+00:00 +23 -1: test/gates/duplication_gate_sources_test.dart: per-gate sources pull in files outside the analyzed source set
+grep: stdout: Broken pipe

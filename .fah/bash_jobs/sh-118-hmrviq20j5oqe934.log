@@ -1,0 +1,2 @@
+fixed
+wait — entry + log.length vs entry + 1: not identical!

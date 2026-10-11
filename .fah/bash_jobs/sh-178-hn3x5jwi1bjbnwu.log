@@ -1,0 +1,9 @@
+/Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/tools/builtin_tools_bash.dart:337
+/Users/Uladzimir_Klyshevich/git/flutter_agent/test/hosts/extension_host_parity_test.dart:364
+/Users/Uladzimir_Klyshevich/git/flutter_agent/test/hosts/extension_host_parity_test.dart:365
+/Users/Uladzimir_Klyshevich/git/flutter_agent/test/session/session_repair_test.dart:30
+/Users/Uladzimir_Klyshevich/git/flutter_agent/test/session/session_repair_test.dart:43
+/Users/Uladzimir_Klyshevich/git/flutter_agent/test/session/session_streamed_open_test.dart:131
+/Users/Uladzimir_Klyshevich/git/flutter_agent/test/session/session_streamed_open_test.dart:148
+/Users/Uladzimir_Klyshevich/git/flutter_agent/test/session/session_whole_file_open_test.dart:108
+21:INFO|LINT|USE_NULL_AWARE_ELEMENTS|/Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/tools/builtin_tools_bash.dart|337|28|2|Use the null-aware marker '?' rather than a null check via an 'if'.

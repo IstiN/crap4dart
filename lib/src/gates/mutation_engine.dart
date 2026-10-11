@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import '../files/flutter_project.dart';
+import 'mutation_cache.dart';
 import 'mutation_operators.dart';
 
 /// Outcome of running the test suite against a single mutant.
@@ -19,8 +20,18 @@ enum MutantOutcome {
   timeout,
 }
 
+/// One row of a [MutationRunResult.outcomes] list: the [site], its
+/// [outcome], and whether the kill was replayed from the cache instead
+/// of executed.
+typedef MutantOutcomeRecord = ({
+  MutationSite site,
+  MutantOutcome outcome,
+  bool fromCache
+});
+
 /// Signature of the per-mutant test runner — inject a fake in tests
-/// instead of running real test suites.
+/// instead of running real test suites. The test invocation arguments
+/// (`test_args`) are bound when the engine is created, not per call.
 typedef MutantTestRunner = Future<MutantOutcome> Function(
   String projectRoot,
   Duration timeout,
@@ -53,11 +64,14 @@ class MutationRunResult {
   MutationRunResult(this.outcomes);
 
   /// Per-site outcomes; every input site appears exactly once.
-  final List<({MutationSite site, MutantOutcome outcome})> outcomes;
+  final List<MutantOutcomeRecord> outcomes;
 
   /// Mutants killed by the test suite (compile errors included).
   int get killed =>
       outcomes.where((o) => o.outcome == MutantOutcome.killed).length;
+
+  /// Kills replayed from the digest cache instead of re-executed.
+  int get fromCacheCount => outcomes.where((o) => o.fromCache).length;
 
   /// Mutants the suite noticed nothing about, timeouts included.
   int get survived =>
@@ -81,13 +95,18 @@ class MutationRunResult {
 
 /// Applies single-token mutations one at a time and runs the project's
 /// test command against each mutant, restoring the file afterwards.
+///
+/// With a [MutationCacheSession], mutants of unchanged methods whose
+/// previous outcome was `killed` are replayed from the cache (counted
+/// killed, marked `fromCache`); survivors are always re-executed. The
+/// merged cache is persisted after the run.
 class MutationEngine {
-  /// Creates a [MutationEngine]; [runner] defaults to
-  /// [defaultMutantTestRunner] and is injected in tests.
-  MutationEngine({MutantTestRunner? runner})
-      : _runner = runner ?? defaultMutantTestRunner;
+  /// Creates a [MutationEngine]; [runner] overrides the per-mutant
+  /// test runner (injected in tests); without it the suite runs as
+  /// `dart <testArgs>` (or `flutter <testArgs>`) per mutant.
+  MutationEngine({MutantTestRunner? runner}) : _injected = runner;
 
-  final MutantTestRunner _runner;
+  final MutantTestRunner? _injected;
 
   /// Runs every [site] of the project at [projectRoot], giving each
   /// mutant up to [timeout].
@@ -98,39 +117,89 @@ class MutationEngine {
     required String projectRoot,
     required List<MutationSite> sites,
     required Duration timeout,
+    List<String> testArgs = const ['test'],
+    MutationCacheSession? caching,
   }) async {
-    final outcomes = <({MutationSite site, MutantOutcome outcome})>[];
+    final runner = _injected ??
+        (root, duration) => runMutantTests(root, duration, testArgs: testArgs);
+    final outcomes = <MutantOutcomeRecord>[];
+    final fresh = <String, ({String digest, List<CachedOutcome> outcomes})>{};
     for (final site in sites) {
-      final file = File(site.file);
-      final original = file.readAsStringSync();
-      file.writeAsStringSync(site.applyTo(original));
-      MutantOutcome outcome;
-      try {
-        outcome = await _runner(projectRoot, timeout);
-      } finally {
-        // Always restore the file, also after timeouts and errors.
-        file.writeAsStringSync(original);
+      final method = caching?.siteMethods[site];
+      final replayed =
+          method == null ? null : caching!.cache.replayKill(method, site);
+      if (method != null && replayed != null) {
+        outcomes
+            .add((site: site, outcome: MutantOutcome.killed, fromCache: true));
+        _accumulate(fresh, method, replayed);
+        continue;
       }
-      outcomes.add((site: site, outcome: outcome));
+      final outcome = await _executeSite(site, projectRoot, timeout, runner);
+      outcomes.add((site: site, outcome: outcome, fromCache: false));
+      if (method != null) {
+        _accumulate(fresh, method, _cached(site, outcome, method));
+      }
     }
+    _persist(caching, fresh);
     return MutationRunResult(outcomes);
+  }
+
+  Future<MutantOutcome> _executeSite(
+    MutationSite site,
+    String projectRoot,
+    Duration timeout,
+    MutantTestRunner runner,
+  ) async {
+    final file = File(site.file);
+    final original = file.readAsStringSync();
+    file.writeAsStringSync(site.applyTo(original));
+    try {
+      return await runner(projectRoot, timeout);
+    } finally {
+      // Always restore the file, also after timeouts and errors.
+      file.writeAsStringSync(original);
+    }
+  }
+
+  void _accumulate(
+    Map<String, ({String digest, List<CachedOutcome> outcomes})> fresh,
+    MethodRef method,
+    CachedOutcome outcome,
+  ) {
+    final entry = fresh.putIfAbsent(
+        method.key, () => (digest: method.digest, outcomes: []));
+    entry.outcomes.add(outcome);
+  }
+
+  CachedOutcome _cached(
+          MutationSite site, MutantOutcome outcome, MethodRef method) =>
+      CachedOutcome(
+        offset: site.offset - method.start,
+        line: site.line,
+        category: site.category,
+        original: site.original,
+        mutant: site.mutant,
+        status: outcome.name,
+      );
+
+  void _persist(
+    MutationCacheSession? caching,
+    Map<String, ({String digest, List<CachedOutcome> outcomes})> fresh,
+  ) {
+    if (caching == null) return;
+    caching.cache.mergeRun(fresh, caching.liveKeys);
+    caching.cache.save(caching.cacheFile);
   }
 }
 
-/// The default per-mutant runner: spawns `dart test` (or `flutter test`
-/// in Flutter projects) with a kill-on-timeout guard.
-Future<MutantOutcome> defaultMutantTestRunner(
-  String projectRoot,
-  Duration timeout,
-) =>
-    runMutantTests(projectRoot, timeout);
-
 /// Runs the test suite of [projectRoot] once, killing the process when
-/// it outlives [timeout]. [spawn] defaults to [Process.start] and is
-/// injected in tests.
+/// it outlives [timeout]. [testArgs] is the full argument list of the
+/// test invocation (default `['test']`). [spawn] defaults to
+/// [Process.start] and is injected in tests.
 Future<MutantOutcome> runMutantTests(
   String projectRoot,
   Duration timeout, {
+  List<String> testArgs = const ['test'],
   MutantProcessSpawner spawn = Process.start,
 }) async {
   final isFlutter = isFlutterProject(projectRoot);
@@ -138,7 +207,7 @@ Future<MutantOutcome> runMutantTests(
   try {
     process = await spawn(
       isFlutter ? 'flutter' : 'dart',
-      const ['test'],
+      testArgs,
       workingDirectory: projectRoot,
     );
   } on ProcessException catch (e) {

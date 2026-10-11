@@ -1,0 +1,10 @@
+== crap4dart.yaml
+65:    ignorable: true # enables `// crap:ignore` for justified structural twins
+== lib/flutter_agent_harness.dart
+238:export 'src/utils/path_text.dart';
+== flutter_app/lib/services/home_tool.dart
+52:        'temperature).', // crap:ignore: tool-execute closure guard prologue twinned across the service tools (structural registration shape, not shared logic) — gh-1106.
+== lib/src/cli/slash_args.dart
+== lib/src/cube/config/fs_policy.dart
+368:    if (_escapesRoot(target)) return null;
+375:  static bool _escapesRoot(String path) {

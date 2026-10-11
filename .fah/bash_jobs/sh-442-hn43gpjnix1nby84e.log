@@ -1,0 +1,4 @@
+5:part 'gate_config_mutation.dart';
+134:    this.mutation = const MutationGateConfig(),
+192:  /// Mutation testing gate (`mutation`).
+193:  final MutationGateConfig mutation;

@@ -1,0 +1,10 @@
+ M .gitignore
+ M AGENTS.md
+ M CHANGELOG.md
+ M README.md
+ M lib/src/config/config_template.dart
+ M lib/src/config/gate_config_mutation.dart
+ M lib/src/config/gate_config_readers_extra.dart
+ M lib/src/crap/crap_report.dart
+-rw-r--r--@ 1 Uladzimir_Klyshevich  staff  7918 Oct 11 17:17 .crap-mutation-cache.json
+0

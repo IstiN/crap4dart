@@ -1,0 +1,17 @@
+31:- **21 quality gate**: `loc`, `test_coverage`, `golden`,
+34:  `unused_files`, `banned_imports`, `public_docs`, `duplication`,
+302:  duplication:
+306:    # Minimum number of tokens in a block to count as duplication.
+308:    # Minimum number of lines in a block to count as duplication.
+321:    # Extra file/directory paths scanned for duplication (cross-module
+455:- **duplication** — detects exact copy-paste token blocks across Dart
+460:  Cross-module duplication can be gated with `sources`: extra
+----
+434:`public_docs`, `duplication`, `file_naming`, `magic_constants`,
+440:`complexity`, `method_size`, `nesting`, `class_size`, `duplication`,
+541:### 11.11 duplication
+----
+12:2. **Quality gates** (`check`) — 21 configurable gates: `loc`,
+16:   `public_docs`, `duplication`, `file_naming`, `magic_constants`,
+78:lib/src/gates/               # Gate framework + 21 gates
+104:  per test (see `test/gates/gate_test_utils.dart`, `test/cli/`).

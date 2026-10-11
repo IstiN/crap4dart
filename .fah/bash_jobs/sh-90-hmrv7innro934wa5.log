@@ -1,0 +1,7 @@
+[FAIL] loc: 1/174 files over their limit
+  lib/src/config/gate_configs.dart: 801 lines > max 800
+[SKIP] test_coverage: no coverage data at coverage/lcov.info
+--
+[FAIL] method_size: 1 violations in 783 methods over their size limits
+  test/gates/duplication_normalization_test.dart:13: main has 98 lines > max 80
+[PASS] nesting: 644 methods within nesting 5

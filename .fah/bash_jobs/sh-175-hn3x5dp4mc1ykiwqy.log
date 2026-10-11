@@ -1,0 +1,88 @@
+import '../messaging/inbox_wake_policy.dart';
+import '../messaging/messaging_repository.dart';
+import '../messaging/scheduled_messages.dart';
+import '../messaging/scheduled_receipts.dart';
+import '../plugins/plugin.dart';
+import '../redact/redaction_cli.dart';
+import '../redact/redaction_hooks.dart';
+import '../redact/redaction_pipeline.dart';
+import '../redact/redaction_types.dart';
+import '../spill/spill.dart';
+import '../ttsr/ttsr.dart';
+import '../types.dart';
+import '../usage/usage_chain.dart';
+import '../usage/usage_ledger.dart';
+import '../usage/usage_ledger_io.dart';
+import '../usage/usage_log_line.dart';
+====
+import 'dart:async';
+import 'dart:math' as math;
+import 'dart:convert' show latin1, utf8;
+import 'dart:io'
+    show IOSink, Platform, Process, ProcessException, ProcessResult, stdin;
+
+// The composer's editor types come from the vendored tui_editor.dart
+// (issue #613): hosted dart_tui exports none, so this file compiles
+// against BOTH resolutions.
+// The vendored dart_tui exports no Style surface (issue #613) — same
+// direct-src import tui_theme.dart uses.
+// ignore: implementation_imports
+import 'package:dart_tui/src/bubbles/style.dart' show Style;
+import 'package:dart_tui/dart_tui.dart' hide stripAnsi;
+import 'package:meta/meta.dart';
+
+import 'composer_overlay.dart';
+import 'termios_guard.dart' show kTermiosClearArgs;
+import 'ansi_markdown.dart';
+import 'agent_hub_tui.dart';
+====
+import 'dart:convert';
+
+import 'package:flutter_agent_harness/flutter_agent_harness.dart';
+import 'package:flutter_agent_harness/src/cli/session_repair_command.dart';
+import 'package:flutter_agent_harness/src/env/memory_execution_env.dart';
+import 'package:flutter_agent_harness/src/session/session_repo.dart';
+import 'package:test/test.dart';
+
+/// Output sink for the repair command (a CliIO tear-off pair shape).
+final class _RepairIo {
+  final buffer = StringBuffer();
+  void write(String text) => buffer.write(text);
+====
+library;
+
+import 'dart:io' as io;
+
+import 'package:dart_tui/src/bubbles/style.dart' show RgbColor, Style;
+import 'package:dart_tui/src/msg.dart' show ColorProfile;
+import 'package:flutter_agent_harness/src/cli/ansi_markdown.dart';
+import 'package:flutter_agent_harness/src/cli/fa_tui.dart';
+import 'package:flutter_agent_harness/src/cli/tui_text_width.dart'
+    show tuiFitWidth;
+import 'package:flutter_agent_harness/src/cli/tool_rows.dart';
+====
+/// Tool-level integration tests for the cube network gate (issue #682):
+///
+/// - `IT-NET-1` — a denied URL answers with the clean `fa_cube[<name>]:`
+///   note as a NORMAL tool result and the fake client records ZERO sends
+///   (AC1, AC5, AC7 for search).
+/// - `IT-NET-2` — an allowed URL rides through with its request untouched
+///   (AC2).
+/// - Q1 — `web_search` endpoints are gated: only providers whose endpoint
+///   the live policy allows run.
+/// - `REG-NET-1` — with no cube (no gate) the recorded requests are the
+///   pre-gate golden (AC4).
+import 'package:flutter_agent_harness/flutter_agent_harness.dart';
+import 'dart:async';
+
+import 'package:flutter_agent_harness/src/agent/agent_loop.dart';
+import 'package:flutter_agent_harness/src/cube/config/cube_spec.dart';
+import 'package:flutter_agent_harness/src/cube/config/network_policy.dart';
+import 'package:flutter_agent_harness/src/cube/config/tool_policy.dart';
+import 'package:flutter_agent_harness/src/cube/network_gate.dart';
+import 'package:flutter_agent_harness/src/secrets/secrets_store.dart';
+import 'package:flutter_agent_harness/src/web_search/web_search.dart';
+import 'package:http/http.dart' as http;
+import 'package:test/test.dart';
+
+CubeSpec cube({

@@ -1,0 +1,3 @@
+766:    this.operators = mutationOperatorCategories,
+lib/src/config/config.dart:190:  /// Mutation testing gate (`mutation`).
+lib/src/config/config.dart:191:  final MutationGateConfig mutation;

@@ -1,0 +1,7 @@
+Could not format because the source could not be parsed:
+
+line 146, column 24 of test/gates/duplication_normalization_fixtures.dart: Expected an identifier.
+    ╷
+146 │     return $helper('\\$$count');
+    │                        ^
+    ╵

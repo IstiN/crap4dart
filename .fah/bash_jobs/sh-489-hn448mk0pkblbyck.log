@@ -1,0 +1,29 @@
+206:      expect(otherArgs.methods, isEmpty);
+209:    test('mergeRun prunes vanished methods and supersedes old outcomes', () {
+211:      cache.mergeRun({
+      expect(loaded.methods['lib/a.dart#C.add']!.digest, 'd1');
+      expect(loaded.methods['lib/b.dart#C.add']!.digest, 'd2');
+    });
+
+    test('missing, corrupt or version-mismatched file yields a fresh cache',
+        () {
+      expect(MutationCache.load(path: path, meta: meta).methods, isEmpty);
+      File(path).writeAsStringSync('not json {{{');
+      expect(MutationCache.load(path: path, meta: meta).methods, isEmpty);
+      File(path).writeAsStringSync('{"version": 999, "meta": {}, '
+          '"methods": {}}');
+      expect(MutationCache.load(path: path, meta: meta).methods, isEmpty);
+    });
+
+    test('meta mismatch (operators or test_args) wipes the cache', () {
+      populated().save(path);
+      final otherOperators = MutationCache.load(
+        path: path,
+        meta: MutationCacheMeta.current(
+          operators: const ['boundary'],
+          testArgs: const ['test'],
+        ),
+      );
+      expect(otherOperators.methods, isEmpty);
+      final otherArgs = MutationCache.load(
+        path: path,

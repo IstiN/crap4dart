@@ -1,0 +1,159 @@
+Files matching the gate's `exclude` list (default generated files) are
+skipped.
+
+### 11.10 banned_imports
+
+Enforces architectural rules `{from, forbid, message}`. For every file
+matching the rule's `from` glob, each import whose URI — or, for
+relative and `package:<self>` imports, its resolved project-relative
+path — matches any `forbid` glob is a violation. The optional
+`message` is appended to the violation. With no rules the gate passes.
+
+### 11.11 duplication
+
+Detects exact copy-paste duplicates across Dart source files. Each file is
+tokenized with `package:analyzer` (comments and synthetic tokens are
+ignored). A duplicated block is a sequence of tokens that appears at least
+twice, is at least `min_tokens` long (default 50) and spans at least
+`min_lines` source lines (default 5). The gate reports each file whose
+percentage of duplicated lines exceeds `threshold` (default 1.0). Files
+matching the gate's `exclude` list (default generated files and `test/**`)
+are skipped.
+
+Detection is cross-file: every file in the scan is indexed together, so a
+block copied between files (including files in different modules) is
+marked in both. The gate's `sources` key lists additional file/directory
+paths (resolved against the project root) that are unioned into the scan
+beyond the analyzed source set.
+
+Two opt-in normalizations extend detection to renamed clones
+("Type-2"):
+
+- `ignore_locals` (default `false`): identifiers declared inside a
+  function — parameters (except `this.x` field formals, which reference
+  API state), local variables, loop and catch variables, type
+  parameters, local functions, and pattern variables — are renamed to
+  placeholders in first-use order before hashing. Renamed clones hash
+  identically, while locals swapped against each other keep different
+  placeholders and never match. The API surface — called method names,
+  type names, field references — keeps its lexeme. Interpolated string
+  literals become opaque placeholders in this mode, because their raw
+  lexeme embeds local identifiers. Detection is a union of two passes:
+  the raw-lexeme pass always runs alongside the masked one, so exact
+  copies are never lost when enclosing scopes shift placeholder
+  numbering.
+- `ignore_literals` (default `false`): string and numeric literal
+  tokens are replaced with `$STR`/`$NUM` placeholders before hashing.
+
+With both keys left off the gate reports exact copy-paste only.
+### 11.12 file_naming
+
+Flags Dart files whose names indicate a mechanical split instead of a
+domain boundary. A file is flagged when its stem (name without the `.dart`
+extension), lower-cased, either ends in digits preceded by a letter or
+underscore (`jira_batch1`, `report2`, `day_1`, `configv3`) or equals a
+generic dumping-ground stem (`common`, `core`, `general`, `helper`,
+`helpers`, `misc`, `shared`, `stuff`, `temp`, `tmp`, `types`, `util`,
+`utils`, `utilities`, `utility`, `various`). Whole technical stems ending
+in digits (`base64`, `sha256`, `utf8`, `oauth2`, ...) are accepted by
+default; additional stems may be allowlisted via `allow` (matched
+case-insensitively against the whole stem). Files matching the gate's
+`exclude` list (default generated files and `test/**`) are skipped.
+
+### 11.13 magic_constants
+
+Flags magic literals in Dart files. Two checks: (a) hex color integer
+literals (`0xRRGGBB` / `0xAARRGGBB`) outside named constant
+declarations — lines that initialize a `const` variable (including
+constructor/method call arguments in the initializer) are exempt;
+(b) numeric or string literals (including adjacent strings) whose value
+repeats at least `min_duplicates` (default 3) times in one file — every
+occurrence is reported. String literals shorter than `min_length`
+(default 4) are ignored. `flag_hex_colors: false` disables check (a).
+Files matching the gate's `exclude` list (default generated files and
+`test/**`) are skipped.
+
+### 11.14 broken_goldens
+
+Scans golden PNG files under `dirs` (default `test`, recursively) for
+rendered Flutter error artifacts. Three detectors: (a) overflow stripes —
+a run of at least `min_stripe_run` (default 8) yellow-or-black stripe
+pixels in a row or column; (b) build-error screens — at least 15% of
+the image being the dark-red ErrorWidget background; (c) tofu icon placeholders —
+a bordered square with a diagonal cross (>= 14 px wide), confirmed by
+its side walls and converging-then-crossing diagonals against the
+dominant background. Non-PNG files are
+ignored; files matching `exclude` (default none) are skipped. Golden
+tests themselves do not fail on these errors — the snapshot silently
+records the broken frame.
+
+### 11.15 test_assertions
+
+1:# crap4dart Specification
+3:## 1. Purpose
+23:## 2. Scope
+44:## 3. Terminology
+64:## 4. Command-Line Interface
+66:### 4.1 Commands
+78:### 4.2 analyze Options
+111:### 4.3 check Options
+130:### 4.4 init
+137:### 4.5 install
+146:### 4.6 profile Options
+179:### 4.7 Invalid Usage
+184:## 5. File Selection Rules
+186:### 5.1 Default Source Discovery
+194:### 5.2 Changed-File Discovery
+203:### 5.3 Explicit Paths
+207:### 5.4 Empty Selection
+213:## 6. Coverage Pipeline
+215:### 6.1 LCOV Input
+222:### 6.2 Test Execution
+237:### 6.3 Missing Coverage Data
+246:### 6.4 Coverage Attribution
+258:## 7. Dart Method Parsing
+263:### 7.1 Exclusions
+269:### 7.2 Complexity Counting
+278:## 8. CRAP Formula
+287:## 9. Reports
+289:### 9.1 Console Report
+300:### 9.2 JSON Report
+314:### 9.3 Diff Mode
+341:### 9.4 Badge
+356:### 9.5 Profile Report
+406:## 10. Configuration
+408:### 10.1 File Location and Defaults
+415:### 10.2 Strict Validation
+429:### 10.3 Gate Identifiers
+437:## 11. Quality Gates
+449:### 11.0 Framework
+467:### 11.1 loc
+472:### 11.2 test_coverage
+481:### 11.3 complexity
+487:### 11.4 method_size
+493:### 11.5 nesting
+500:### 11.6 class_size
+507:### 11.7 weight_of_class
+514:### 11.8 unused_code
+523:### 11.9 unused_files
+533:### 11.10 banned_imports
+541:### 11.11 duplication
+578:### 11.12 file_naming
+592:### 11.13 magic_constants
+605:### 11.14 broken_goldens
+619:### 11.15 test_assertions
+628:### 11.16 folder_structure
+636:### 11.17 external
+648:### 11.18 public_docs
+656:### 11.19 hardcoded_strings
+666:### 11.20 accessibility
+673:### 11.21 golden
+683:## 12. Baseline
+693:## 13. Threshold
+702:## 13. Exit Codes
+711:## 14. Hook and CI Installation
+713:### 14.1 Git Hook
+726:### 14.2 CI Workflow
+734:## 15. Error Handling
+741:## 16. Non-Goals
+750:## 17. Conformance

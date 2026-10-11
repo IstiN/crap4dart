@@ -1,0 +1,124 @@
+diff --git a/lib/src/approval/bash_interceptor.dart b/lib/src/approval/bash_interceptor.dart
+index 40edc4787..29d6a64bf 100644
+--- a/lib/src/approval/bash_interceptor.dart
++++ b/lib/src/approval/bash_interceptor.dart
+@@ -9,6 +9,8 @@
+ /// positives remain actionable (the user can still approve the prompt).
+ library;
+ 
++import '../utils/path_text.dart';
++
+ /// The canonical name of the shell tool the interceptor applies to
+ /// (`shellTool` in `builtin_tools.dart` registers under this name).
+ const bashToolName = 'bash';
+@@ -244,7 +246,7 @@ String _unquote(String word) {
+ bool _isRootLikePath(String target) {
+   if (_isHomeRoot(target)) return true;
+   if (RegExp(r'^[A-Za-z]:[\\/]?[*]?$').hasMatch(target)) return true;
+-  return _isRootAbsolute(_stripTrailingSlashes(target));
++  return _isRootAbsolute(stripTrailingSlashes(target));
+ }
+ 
+ /// `~`, `~/`, `~/*`, `$HOME`, `${HOME}` and their `/` and `/*` suffixes.
+@@ -255,14 +257,6 @@ bool _isHomeRoot(String target) {
+   return home.contains(target) || homeChildren.contains(target);
+ }
+ 
+-String _stripTrailingSlashes(String path) {
+-  var stripped = path;
+-  while (stripped.length > 1 && stripped.endsWith('/')) {
+-    stripped = stripped.substring(0, stripped.length - 1);
+-  }
+-  return stripped;
+-}
+-
+ /// Root-likeness of a trailing-slash-free [path] (see
+ /// [_recursiveRootInvocation]).
+ bool _isRootAbsolute(String path) {
+======================================================================
+diff --git a/lib/src/model_roles/roles_config.dart b/lib/src/model_roles/roles_config.dart
+index 94b6df614..4a9eca480 100644
+--- a/lib/src/model_roles/roles_config.dart
++++ b/lib/src/model_roles/roles_config.dart
+@@ -28,6 +28,7 @@ import 'package:yaml/yaml.dart';
+ 
+ import '../exceptions.dart';
+ import '../providers/thinking.dart';
++import '../utils/path_text.dart';
+ import 'provider_catalog.dart'
+     show catalogProvider, parseAuthHeaderName, validateAuthHeaderDialect;
+ 
+@@ -482,7 +483,7 @@ String _chainsToYaml(Map<String, List<ModelRef>> roles, {int indent = 0}) {
+ bool pathPatternMatches(String pattern, String cwd, {String? homeDir}) {
+   final pat = _normalizePattern(pattern, homeDir);
+   if (pat == null) return false;
+-  final dir = _stripTrailingSlashes(cwd.trim());
++  final dir = stripTrailingSlashes(cwd.trim());
+   if (pat.isEmpty || dir.isEmpty) return false;
+ 
+   if (pat.contains('*')) {
+@@ -502,17 +503,7 @@ String? _normalizePattern(String pattern, String? homeDir) {
+     if (homeDir == null) return null;
+     pat = pat.length == 1 ? homeDir : '$homeDir${pat.substring(1)}';
+   }
+-  return _stripTrailingSlashes(pat);
+-}
+-
+-/// Strips redundant trailing slashes (matching is lexical; no filesystem
+-/// access). A lone `/` root is kept.
+-String _stripTrailingSlashes(String path) {
+-  var result = path;
+-  while (result.length > 1 && result.endsWith('/')) {
+-    result =
+======================================================================
+diff --git a/packages/fa_llm/lib/src/llm_config.dart b/packages/fa_llm/lib/src/llm_config.dart
+index 4e9556782..23f2baf2f 100644
+--- a/packages/fa_llm/lib/src/llm_config.dart
++++ b/packages/fa_llm/lib/src/llm_config.dart
+@@ -176,6 +176,7 @@ class LlmConfig {
+     String? accountType,
+     String? entryName,
+   }) {
++    // crap:ignore: hand-rolled copyWith boilerplate (the idiomatic Dart shape every immutable config type here shares); codegen is the real fix — gh-1106.
+     return LlmConfig(
+       providerName: providerName ?? this.providerName,
+       apiKey: apiKey ?? this.apiKey,
+======================================================================
+diff --git a/lib/src/types.dart b/lib/src/types.dart
+index 7794db5d4..fa2d09bed 100644
+--- a/lib/src/types.dart
++++ b/lib/src/types.dart
+@@ -249,6 +249,7 @@ final class Usage {
+     int? totalTokens,
+     UsageCost? cost,
+   }) {
++    // crap:ignore: hand-rolled copyWith boilerplate (the idiomatic Dart shape every immutable type here shares); codegen is the real fix — gh-1106.
+     return Usage(
+       input: input ?? this.input,
+       output: output ?? this.output,
+======================================================================
+diff --git a/flutter_app/lib/services/home_tool.dart b/flutter_app/lib/services/home_tool.dart
+index 5097f9fd4..7250f301f 100644
+--- a/flutter_app/lib/services/home_tool.dart
++++ b/flutter_app/lib/services/home_tool.dart
+@@ -49,7 +49,7 @@ AgentTool homeDevicesTool(HomeApi home) {
+         'Use for questions like "which lights are on?" and before '
+         'home_turn_on/home_turn_off/home_set. Returns rooms with their '
+         'accessories and current state (on/off, brightness, target '
+-        'temperature).',
++        'temperature).', // crap:ignore: tool-execute closure guard prologue twinned across the service tools (structural registration shape, not shared logic) — gh-1106.
+     parameters: const {'type': 'object', 'properties': {}},
+     execute: (arguments, cancelToken, onUpdate) async {
+       final unavailable = await _unavailable(home);
+======================================================================
+diff --git a/lib/flutter_agent_harness.dart b/lib/flutter_agent_harness.dart
+index 05122082e..963cb70a9 100644
+--- a/lib/flutter_agent_harness.dart
++++ b/lib/flutter_agent_harness.dart
+@@ -235,4 +235,5 @@ export 'src/prompts/prompt_overrides.dart';
+ export 'src/parity/settings_registry.dart';
+ export 'src/types.dart';
+ export 'src/usage_summary.dart';
++export 'src/utils/path_text.dart';
+ export 'src/web_search/web_search.dart';
+======================================================================

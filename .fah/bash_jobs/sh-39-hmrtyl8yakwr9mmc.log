@@ -1,0 +1,8 @@
+Running "dart test --coverage"...
+Warning: tests failed; coverage may be incomplete.
+
+Formatting coverage with "coverage:format_coverage"...
+Warning: format_coverage failed (is the "coverage" package activated with "dart pub global activate coverage"?):
+
+Warning: no coverage file produced at /private/tmp/duptest/coverage/lcov.info.
+Error: test run did not produce coverage data.

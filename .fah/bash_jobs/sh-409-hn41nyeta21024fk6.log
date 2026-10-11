@@ -1,0 +1,6 @@
+       2
+   5 /Users/Uladzimir_Klyshevich/development/flutter/bin/cache/dart-sdk/bin/dartvm --resolved_executable_name=/Users/Uladzimir_Klyshevich/development/flutter/bin/cache/dart-sdk/bin/dart --executable_name=/Users/Uladzimir_Klyshevich/development/flutter/bin/cache/dart-sdk/bin/dart
+   3 /Users/Uladzimir_Klyshevich/development/flutter/bin/cache/dart-sdk/bin/dartaotruntime /Users/Uladzimir_Klyshevich/development/flutter/bin/cache/dart-sdk/bin/snapshots/frontend_server_aot.dart.snapshot --sdk-root
+   2 /Users/Uladzimir_Klyshevich/development/flutter/bin/cache/artifacts/engine/darwin-x64/flutter_tester --disable-vm-service --enable-checked-mode
+   1 sh -c cd
+   1 /Users/Uladzimir_Klyshevich/development/flutter/bin/cache/dart-sdk/bin/dart development-service --vm-service-uri=http://127.0.0.1:50280/47uFgYLqYjY=/

@@ -1,0 +1,26 @@
+1436:sealed class Argument implements AstNode {
+1472:abstract final class ArgumentList implements AstNode {
+1505:final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
+6244:final class CascadeMethodInvocationImpl extends NamedFunctionInvocationImpl
+15677:final class DotShorthandMethodInvocationImpl extends NamedFunctionInvocationImpl
+16512:final class DynamicPropertyReadResolutionImpl extends NamedReadResolutionImpl
+16526:final class DynamicPropertyWriteResolutionImpl extends NamedWriteResolutionImpl
+16918:abstract final class EnumConstantArguments implements AstNode {
+16939:final class EnumConstantArgumentsImpl extends AstNodeImpl
+23758:final class FunctionCallTearOffResolutionImpl extends NamedReadResolutionImpl
+33022:abstract final class InvalidNamedReadResolution
+33029:final class InvalidNamedReadResolutionImpl extends NamedReadResolutionImpl
+33050:abstract final class InvalidNamedWriteResolution
+33060:final class InvalidNamedWriteResolutionImpl extends NamedWriteResolutionImpl
+38408:abstract final class NamedArgument implements Argument {
+===
+1472:abstract final class ArgumentList implements AstNode {
+1505:final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
+2:  /// The arguments in this list.
+4:  /// If there are no arguments the list will be empty.
+6:  /// Although the language requires that positional arguments appear before
+7:  /// named arguments unless the [Feature.named_arguments_anywhere] is enabled,
+9:  @ToBeDeprecated('Use arguments2 instead.')
+10:  NodeList<Argument> get arguments;
+13:  NodeList<Argument> get arguments2;
+26:      'arguments2',

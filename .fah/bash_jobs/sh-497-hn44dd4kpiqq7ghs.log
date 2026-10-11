@@ -1,0 +1,7 @@
+[PASS] mutation: score 94.1% (32 killed, 2 survived, 0 uncovered, 0 cached)
+Gates: 21 passed, 1 failed, 0 warned, 4 skipped
+
+real	8m7.721s
+user	18m33.817s
+sys	4m33.184s
+exit: 0

@@ -1,0 +1,19 @@
+== FormalParameter implements ==
+== FieldFormalParameter ==
+  Token get name;
+== AssignedVariablePattern ==
+  ChildEntities get _childEntities => ChildEntities()..addToken('name', name);
+== PatternVariableDeclaration ==
+  DartPattern get pattern;
+== TypeParameter  ==
+  Token get name;
+== VariableDeclaration  ==
+  Token get name;
+== CatchClauseParameter ==
+  Token get name;
+  ChildEntities get _childEntities => ChildEntities()..addToken('name', name);
+== ForEachPartsWithDeclaration ==
+== FunctionDeclarationStatement ==
+84:              _ConfigScalars.readBool(map, 'per_file', base.perFile, path, ctx),
+212:          countLambdas: _ConfigScalars.readBool(
+631:          flagHexColors: _ConfigScalars.readBool(

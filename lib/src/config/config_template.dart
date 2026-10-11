@@ -290,6 +290,14 @@ gates:
     # Operator categories to enable (default: all).
     operators: [arithmetic, boundary, equality, logical, boolean, constant,
                 unary]
+    # Digest-incremental cache (.crap-mutation-cache.json): killed
+    # mutants of unchanged methods are replayed, not re-executed;
+    # survivors always re-run. A config/operator change wipes it.
+    cache: true
+    # Per-mutant test invocation args (`dart <args...>`). Scoping the
+    # suite is your responsibility: a mutant is killed only if the
+    # scoped suite would kill it.
+    test_args: ['test']
     # Glob patterns excluded from the gate.
     exclude:
       - '**.g.dart'

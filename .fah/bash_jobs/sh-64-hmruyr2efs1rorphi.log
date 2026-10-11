@@ -1,0 +1,6 @@
+template done
+warning - lib/src/gates/duplication_gate.dart:467:8 - The method doesn't override an inherited method. Try updating this class to match the superclass, or removing the override annotation. - override_on_non_overriding_member
+warning - lib/src/gates/duplication_gate.dart:473:8 - The method doesn't override an inherited method. Try updating this class to match the superclass, or removing the override annotation. - override_on_non_overriding_member
+warning - lib/src/gates/duplication_gate.dart:479:8 - The method doesn't override an inherited method. Try updating this class to match the superclass, or removing the override annotation. - override_on_non_overriding_member
+
+32 issues found.

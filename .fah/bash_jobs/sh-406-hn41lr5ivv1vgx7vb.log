@@ -1,0 +1,9 @@
+crap_analyzer.dart
+crap_report.dart
+crap_score.dart
+config-written
+7:import '../coverage/lcov_parser.dart';
+41:    if (context.lcov == null) {
+42:      return GateResult.skip(id, 'no coverage data');
+99:    for (final coverage in context.lcov!) {
+100:      if (coverage.path == relative) return coverage;

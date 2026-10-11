@@ -1,0 +1,21 @@
+class _LivenessHarness {
+  _LivenessHarness._({
+    required this.cli,
+    required this.io,
+    required this.stream,
+    required this.shell,
+    required this.env,
+    required this.run,
+    required DateTime Function() clockOf,
+    required void Function(Duration) advanceClock,
+    required List<Completer<void>> gates,
+    required this.livenessScripts,
+    required this.runCode,
+    required this.runFailure,
+  }) : _clockOf = clockOf,
+       _advanceClock = advanceClock,
+       _gates = gates;
+
+  final AgentCli cli;
+  final FakeCliIO io;
+  final _LivenessRoutingStream stream;

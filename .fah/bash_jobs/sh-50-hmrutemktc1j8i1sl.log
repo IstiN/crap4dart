@@ -1,0 +1,20 @@
+13412:abstract final class DeclaredIdentifier implements Declaration {
+13444:final class DeclaredIdentifierImpl extends DeclarationImpl
+21757:abstract final class FormalParameterDefaultClause implements AstNode {
+22220:abstract final class FormalParameterList implements AstNode {
+  Token get name;
+---
+  Token get endToken {
+  Token get firstTokenAfterCommentAndMetadata {
+---
+  Token get separator;
+---
+  Token get leftParenthesis;
+---
+13430: abstract final class DeclaredIdentifier implements Declaration {
+20369: abstract final class FieldFormalParameter implements FormalParameter {
+20459: final class FieldFormalParameterImpl extends FormalParameterImpl
+51023: abstract final class SuperFormalParameter implements FormalParameter {
+51113: final class SuperFormalParameterImpl extends FormalParameterImpl
+56702: sealed class VariablePattern implements DartPattern {
+57188: abstract final class WildcardPattern implements DartPattern {

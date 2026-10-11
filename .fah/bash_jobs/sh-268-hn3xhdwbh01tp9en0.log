@@ -1,0 +1,4 @@
+wire-serve: client attached v=1
+wire-serve: client detached (pending=0)
+wire-serve: client detached (pending=0)
+00:00 +9: All tests passed!

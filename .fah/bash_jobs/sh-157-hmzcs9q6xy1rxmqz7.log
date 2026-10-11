@@ -1,0 +1,14 @@
+  12 unnecessary_import
+   8 prefer_function_declarations_over_variables
+   5 use_null_aware_elements
+   5 curly_braces_in_flow_control_structures
+   4 prefer_initializing_formals
+   4 implementation_imports
+   1 unintended_html_in_doc_comment
+   1 library_private_types_in_public_api
+   1 dangling_library_doc_comments
+===
+   info - bin/fah_wire_serve.dart:258:13 - Use a function declaration rather than a variable assignment to bind a function to a name. Try rewriting the closure assignment as a function declaration. - prefer_function_declarations_over_variables
+   info - bin/fah_wire_serve.dart:289:9 - Use a function declaration rather than a variable assignment to bind a function to a name. Try rewriting the closure assignment as a function declaration. - prefer_function_declarations_over_variables
+   info - lib/src/cli/fa_tui.dart:13:8 - The import of 'package:dart_tui/src/bubbles/style.dart' is unnecessary because all of the used elements are also provided by the import of 'package:dart_tui/dart_tui.dart'. Try removing the import directive. - unnecessary_import
+   info - lib/src/cli/provider_models.dart:150:9 - Statements in an if should be enclosed in a block. Try wrapping the statement in a block. - curly_braces_in_flow_control_structures

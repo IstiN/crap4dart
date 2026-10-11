@@ -1,0 +1,4 @@
+Failing tests:
+  test/gates/duplication_test.dart: loading test/gates/duplication_test.dart
+
+Max CRAP: 8.00 — OK (threshold: 8.00)

@@ -1,0 +1,11 @@
+3:import '../files/flutter_project.dart';
+10:  /// way, because `dart test` refuses to run).
+43:/// [Process.start] so tests can inject a fake process.
+45:  String executable,
+120:/// The default per-mutant runner: spawns `dart test` (or `flutter test`
+129:/// it outlives [timeout]. [spawn] defaults to [Process.start] and is
+134:  MutantProcessSpawner spawn = Process.start,
+140:      isFlutter ? 'flutter' : 'dart',
+141:      const ['test'],
+146:      '${isFlutter ? 'flutter' : 'dart'} not found on PATH: ${e.message}',
+2

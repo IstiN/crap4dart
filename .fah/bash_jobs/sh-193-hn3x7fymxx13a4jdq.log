@@ -1,0 +1,47 @@
+8 LUse an initializing formal to assign a parameter to a field.: len
+8 LUse an initializing formal to assign a parameter to a field.: len
+8 LUse an initializing formal to assign a parameter to a field.: len
+8 LUse an initializing formal to assign a parameter to a field.: len
+8 LUse an initializing formal to assign a parameter to a field.: len
+8 LInvalid use of a private type in a public API.: len
+
+/// Boots the gh-1459 drain shape under a fake clock: the model starts a
+/// long background job and ends its turn; the drain then parks on the
+/// gated sleeps. The caller populates [h.livenessScripts] (and
+/// [h.settleScript]) once the job id is known — the router pops them in
+/// order when the matching notices are steered.
+Future<_LivenessHarness> livenessShape({
+  HeadlessConfig headless = const HeadlessConfig(
+    shellJobDrainMs: 20 * 60 * 1000,
+  ),
+}) async {
+  final io = FakeCliIO();
+  final shell = _LivenessShell();
+  final env = MemoryExecutionEnv(cwd: '/work', shell: shell);
+  final livenessScripts = <List<AssistantMessageEvent>>[];
+  final stream = _LivenessRoutingStream(
+    leadScripts: [
+      toolTurn([
+        const ToolCall(
+          id: 't1',
+          name: 'bash',
+          arguments: {
+            'command': 'dart test --exclude-tags integration',
+            'background': true,
+          },
+        ),
+      ]),
+      textTurn('Started the suite in the background. Waiting on it.'),
+    ],
+    livenessScripts: livenessScripts,
+    settleScript: textTurn('suite finished green — response.md written'),
+  );
+  // The fake clock starts at real now — job.startedAt (real DateTime.now
+  // at registration) sits a few ms ahead, so each wake lands EXACTLY on
+  // its threshold (5m, 10m, …) regardless of the offset.
+  var clock = DateTime.now();
+  final gates = <Completer<void>>[];
+  final cli = AgentCli(
+    config: AgentCliConfig(
+      model: testModel,
+      apiKey: '[REDACTED:Sensitive Value]',

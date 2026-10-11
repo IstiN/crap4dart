@@ -6,6 +6,21 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- `mutation` gate hardening: digest-incremental killed-stays-killed
+  cache. Per-method outcomes persist to
+  `<projectRoot>/.crap-mutation-cache.json` (versioned envelope
+  `{version, meta, methods}`) keyed by method identity (file +
+  `className.methodName`) and an FNV-1a 64-bit digest of the method's
+  exact AST source span (zero new dependencies). On later runs,
+  covered mutants of unchanged methods with a matching site identity
+  that were previously `killed` are replayed, not re-executed, and
+  reported as `cached` in the summary; survivors always re-execute;
+  changed/new methods re-execute fully; coverage gating is re-derived
+  from fresh LCOV every run. The `meta` guard (tool version, operators,
+  `test_args`) wipes the cache on mismatch; entries of vanished methods
+  are pruned. New `gates.mutation` keys: `cache` (default true) and
+  `test_args` (default `['test']` — full per-mutant test invocation
+  args; strict validation: non-empty list of non-empty strings).
 - `mutation` gate (22nd gate, disabled by default): mutation testing
   adapted from the unclebob/mutator research conclusions. A
   declarative category-tagged operator table (`arithmetic`, `boundary`,

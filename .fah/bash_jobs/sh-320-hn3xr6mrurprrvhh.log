@@ -1,0 +1,42 @@
+06:42 +10199 ~6 -8: test/session/session_chunk_reader_test.dart: SessionChunkReader.readBlockBefore (issue #503 boundary walk) a missing file surfaces notFound
+06:42 +10200 ~6 -8: test/wasmrun_macos_pod_link_test.dart: wasm_run_flutter macOS pod stays linkable without a vendored framework podspec vendors no framework or library (AC4 size diet)
+06:42 +10201 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips MessageRecord with a user message
+06:42 +10202 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips MessageRecord with a user message
+06:42 +10203 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips MessageRecord with a user message
+06:42 +10204 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips MessageRecord with an assistant message
+06:42 +10205 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips ThinkingLevelChangeRecord
+06:42 +10206 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips ModelChangeRecord
+06:42 +10207 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips ModelChangeRecord carries the custom provider pin (gh-1000)
+06:42 +10208 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips ModelChangeRecord without the pin fields restores nulls (REG-5)
+06:42 +10209 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips ActiveToolsChangeRecord
+06:42 +10210 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips CompactionRecord with details and fromHook
+06:42 +10211 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips CompactionRecord omits null details/fromHook
+06:42 +10212 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips BranchSummaryRecord
+06:42 +10213 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips CheckpointRecord
+06:42 +10214 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips CheckpointRecord omits a null goal
+06:42 +10215 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips CustomRecord
+06:42 +10216 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips CustomMessageRecord with string content
+06:42 +10217 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips CustomMessageRecord with block content
+06:42 +10218 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips LabelRecord with label and label removal
+06:42 +10219 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips SessionInfoRecord
+06:42 +10220 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips LeafRecord with and without target
+06:42 +10221 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips fromJson rejects unknown types
+06:42 +10222 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips fromJson rejects missing id
+06:42 +10223 ~6 -8: test/session/session_record_test.dart: SessionRecord JSON round-trips fromJson rejects non-string parentId
+06:42 +10224 ~6 -8: test/session/session_record_test.dart: SessionHeader round-trips with all fields
+06:42 +10225 ~6 -8: test/session/session_record_test.dart: SessionHeader rejects unsupported version
+06:42 +10226 ~6 -8: test/session/session_record_test.dart: SessionHeader rejects wrong type and missing fields
+06:42 +10227 ~6 -8: test/session/session_record_test.dart: SessionHeader rejects non-object metadata
+06:44 +10228 ~6 -8: Some tests failed.
+
+Failing tests:
+  test/daily_publish_report_signal_test.dart: cancelled-run digest cancelled digest degrades gracefully without the workflow file
+  test/daily_publish_report_signal_test.dart: cancelled-run digest cancelled leg -> dedicated section with job, ceiling, elapsed
+  test/publish_staging_test.dart: gh-1522 rework — stamp_staged_release.sh behavior a curated ## <version> section for the same version never duplicates
+  test/publish_staging_test.dart: gh-1522 rework — stamp_staged_release.sh behavior folds the curated Unreleased body under the tag section; no Unreleased header survives
+  ... and 4 more
+
+Consider enabling the flag chain-stack-traces to receive more detailed exceptions.
+For example, 'dart test --chain-stack-traces'.
+...
+1

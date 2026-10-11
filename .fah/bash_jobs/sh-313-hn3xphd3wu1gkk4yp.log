@@ -1,0 +1,14 @@
+/opt/homebrew/share/flutter/bin/cache/dart-sdk/bin/dart development-service --vm-service-uri=http://127.0.0.1:56105/ryfJqisgaL8=/
+/opt/homebrew/share/flutter/bin/cache/dart-sdk/bin/dartaotruntime /opt/homebrew/share/flutter/bin/cache/dart-sdk/bin/snapshots/frontend_server_aot.dart.snapshot --sdk-root
+/opt/homebrew/share/flutter/bin/cache/dart-sdk/bin/dartvm --resolved_executable_name=/opt/homebrew/share/flutter/bin/cache/dart-sdk/bin/dart --executable_name=/opt/homebrew/share/flutter/bin/cache/dart-sdk/bin/dart
+/Users/Uladzimir_Klyshevich/development/flutter/bin/cache/artifacts/engine/darwin-x64/flutter_tester --disable-vm-service --enable-checked-mode
+/Users/Uladzimir_Klyshevich/development/flutter/bin/cache/dart-sdk/bin/dart development-service --vm-service-uri=http://127.0.0.1:50280/47uFgYLqYjY=/
+/Users/Uladzimir_Klyshevich/development/flutter/bin/cache/dart-sdk/bin/dartaotruntime /Users/Uladzimir_Klyshevich/development/flutter/bin/cache/dart-sdk/bin/snapshots/dds_aot.dart.snapshot --vm-service-uri=http://127.0.0.1:61126/RaV5PjRBaPU=/
+/Users/Uladzimir_Klyshevich/development/flutter/bin/cache/dart-sdk/bin/dartaotruntime /Users/Uladzimir_Klyshevich/development/flutter/bin/cache/dart-sdk/bin/snapshots/frontend_server_aot.dart.snapshot --sdk-root
+/Users/Uladzimir_Klyshevich/development/flutter/bin/cache/dart-sdk/bin/dartvm --resolved_executable_name=/Users/Uladzimir_Klyshevich/development/flutter/bin/cache/dart-sdk/bin/dart --executable_name=/Users/Uladzimir_Klyshevich/development/flutter/bin/cache/dart-sdk/bin/dart
+---
+  test/publish_staging_test.dart: gh-1522 rework — stamp_staged_release.sh behavior folds the curated Unreleased body under the tag section; no Unreleased header survives
+  ... and 4 more
+
+Consider enabling the flag chain-stack-traces to receive more detailed exceptions.
+For example, 'dart test --chain-stack-traces'.

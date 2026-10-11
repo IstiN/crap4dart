@@ -20,3 +20,6 @@ pubspec.lock
 # Profiling (crap4dart)
 profile-reports/
 .crap_profile_temp/
+
+# Mutation cache (crap4dart)
+.crap-mutation-cache.json

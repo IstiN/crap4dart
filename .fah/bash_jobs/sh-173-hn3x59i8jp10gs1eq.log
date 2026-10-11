@@ -1,0 +1,9 @@
+ bin/fah_wire_serve.dart                   |  6 ++--
+ memory/.obsidian/workspace.json           | 57 ++++++++++++++++++-------------
+ test/integration/wire_serve_cli_test.dart | 20 +++++------
+ 3 files changed, 47 insertions(+), 36 deletions(-)
+234:          void send(Map<String, dynamic> frame) {
+293:          void send(Map<String, dynamic> frame) {
+381:          void send(Map<String, dynamic> frame) {
+435:        void send(Map<String, dynamic> frame) {
+468:        void send(Map<String, dynamic> frame) {

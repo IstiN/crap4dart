@@ -1,0 +1,76 @@
+    enabled: true
+    # Maximum lines per method body.
+    max_lines: 60
+    # Maximum number of parameters per method.
+    max_params: 6
+  # Detect duplicated code blocks.
+  duplication:
+    enabled: true
+    # Maximum allowed duplicated line percentage per file.
+    threshold: 1.0
+    # Minimum number of tokens in a block to count as duplication.
+    min_tokens: 50
+    # Minimum number of lines in a block to count as duplication.
+    min_lines: 5
+    # Rename locally declared identifiers consistently before hashing so
+    # renamed (Type-2) clones are detected; API names stay visible.
+    # ignore_locals: false
+    # Replace string and numeric literals with placeholders before
+    # hashing so clones differing only in literal values are detected.
+    # ignore_literals: false
+    # Glob patterns excluded from the gate.
+    exclude:
+      - '**.g.dart'
+      - '**.freezed.dart'
+      - '**.mocks.dart'
+    # Extra file/directory paths scanned for duplication (cross-module
+    # checks), unioned with the analyzed source set.
+    # sources:
+    #   - 'flutter_app/lib'
+    #   - 'packages/fa_ui/lib'
+      - 'test/**'
+  # Forbid mechanical file names (numeric suffixes, generic names).
+  file_naming:
+    enabled: true
+    # Glob patterns excluded from the gate.
+    exclude:
+      - '**.g.dart'
+      - '**.freezed.dart'
+      - '**.mocks.dart'
+      - 'test/**'
+    # Extra whole-stem names allowed to end in digits (technical terms).
+    allow: []
+  # Require dartdoc comments on the public API.
+  public_docs:
+    enabled: true
+    # Glob patterns excluded from the gate.
+    exclude:
+      - 'test/**'
+
+# CPU profiling settings ("profile" command).
+profile:
+  # Enable profiling; when false, "profile" exits immediately.
+  enabled: true
+  # Warn on methods whose total time exceeds this value (milliseconds).
+  # Omit to disable the threshold check.
+  `ConsumerWidget`/`ConsumerStatefulWidget`) are referenced by a test that
+  calls `matchesGoldenFile`. Skipped for non-Flutter projects.
+- **hardcoded_strings** (Flutter) — flags string literals (Latin or
+  Cyrillic) passed to `Text(...)` or to the parameters in `check_params`.
+  Suppress per line with the `ignore_marker` comment or per file with
+  `// l10n:ignore-file` in the first 5 lines. When ARB files exist under
+  `lib/`, `l10n.<key>` references missing from `app_en.arb` are flagged too.
+  Skipped for non-Flutter projects.
+- **accessibility** (Flutter) — requires `tooltip` on `IconButton`,
+  `semanticLabel` on `Image`, and `semanticsLabel` (or a wrapping
+  `Semantics`) on `GestureDetector`/`InkWell`. Skipped for non-Flutter
+  projects.
+- **complexity** — fails methods whose cyclomatic complexity exceeds
+  `max_complexity` (default 10).
+- **method_size** — fails methods longer than `max_lines` (default 60) or
+  with more than `max_params` parameters (default 6). Constructors are
+  checked only for parameter count.
+- **nesting** — fails methods whose maximum block nesting level exceeds
+  `max_nesting` (default 5). The method body counts as level 1; every
+  nested block or control-flow statement adds one. Catches complexity
+  dodging via deeply nested early-return chains.

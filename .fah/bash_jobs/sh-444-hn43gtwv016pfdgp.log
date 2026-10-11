@@ -1,0 +1,48 @@
+279:  mutation:
+280:    # Enable mutation testing (requires coverage data and a test suite).
+282:    # Minimum required mutation score (killed / (killed + survived)).
+36:  `folder_structure`, `external`, `mutation`
+340:  mutation:
+342:    # Minimum required mutation score (killed / (killed + survived)).
+555:- **mutation** — mutation testing (adapted from the unclebob/mutator
+569:  directory. Disabled by default: mutation testing runs the test suite
+684:### 11.22 mutation
+19:   `mutation` (mutation testing: AST operator table + per-mutant test
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+## Unreleased
+
+### Added
+
+- `mutation` gate (22nd gate, disabled by default): mutation testing
+  adapted from the unclebob/mutator research conclusions. A
+  declarative category-tagged operator table (`arithmetic`, `boundary`,
+  `equality`, `logical`, `boolean`, `constant`, `unary`) is matched on
+  parsed ASTs (token offsets, never regex); covered sites are mutated
+  one at a time and the test suite re-runs per mutant (non-zero exit
+  kills — compile errors included; timeout counts as survived).
+  Uncovered sites are excluded from the score. New `gates.mutation`
+  keys: `min_score` (0.8), `max_survivors` (0), `timeout_seconds`
+  (60), `max_mutants` (500), `operators` (all), `exclude` (generated +
+  `test/**`), plus the standard `enabled`/`severity`/`ignorable`. One
+  `GateViolation(file, line)` is reported per survived mutant, so diff
+  mode and baselines work unchanged.
+
+## 0.10.0 - 2026-09-28
+
+### Added
+
+- `duplication` gate: new `sources` key — additional file/directory paths
+  (resolved against the project root) unioned into the duplication scan,
+  enabling cross-module duplicate detection in monorepos without widening
+  the CRAP analysis scope.
+
+### Changed
+
+- Dependencies refreshed: `analyzer` 7.3 -> 14.4 (new "parts" AST —
+  `ClassDeclaration.namePart.typeName`, `NamedType.name`,
+  `NamedArgument`/`Argument` model, `body.members`, `isComplete`),
+  `xml` 7.1, `test` 1.32, `lints` 6.1.
+

@@ -1,0 +1,28 @@
+
+  /// Path to the LCOV coverage file, relative to the project root.
+  final String lcovPath;
+
+  /// Whether to run the test suite to generate coverage before
+  /// analyzing (default true since 0.9.0 — CRAP without coverage is
+  /// all N/A; opt out with `run_tests: false`).
+  final bool runTests;
+
+  /// Whether missing coverage data is an error instead of N/A.
+  final bool required;
+
+  /// Whether branch coverage is reported in addition to line coverage.
+  final bool branchCoverage;
+}
+
+/// Settings of all quality gates.
+class GatesConfig {
+  /// Creates a [GatesConfig].
+  const GatesConfig({
+    this.loc = const LocGateConfig(),
+    this.testCoverage = const TestCoverageGateConfig(),
+    this.complexity = const ComplexityGateConfig(),
+    this.methodSize = const MethodSizeGateConfig(),
+    this.nesting = const NestingGateConfig(),
+    this.classSize = const ClassSizeGateConfig(),
+278:      mutation: _ExtendedGateConfigReaders.readMutation(
+279:          map['mutation'], base.mutation, path),

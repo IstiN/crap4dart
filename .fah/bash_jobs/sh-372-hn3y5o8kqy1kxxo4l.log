@@ -1,0 +1,5 @@
+HEAD is now at 9fa36e5 chore(release): 0.11.0 — Type-2 duplication detection
+ CRAP   COV%  BR%  CC  METHOD                                             FILE:LINE                                                                         
+-----  -----  ---  --  -------------------------------------------------  ----------------------------------------------------------------------------------
+27.67   25.0  N/A   7  _DocsVisitor._enclosingIsPublic                    /private/tmp/crap4dart-head/lib/src/gates/public_docs_gate.dart:133               
+12.00  100.0  N/A  12  _TokenMask.of                                      /private/tmp/crap4dart-head/lib/src/gates/duplication_gate.dart:384               

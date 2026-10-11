@@ -1,0 +1,5 @@
+done
+exit=3
+37
+WARNING|STATIC_WARNING|UNUSED_ELEMENT_PARAMETER|lib/src/env/io_execution_env.dart|967|10|8|A value for optional parameter 'redactor' isn't ever given.
+INFO|LINT|LIBRARY_PRIVATE_TYPES_IN_PUBLIC_API|lib/src/cli/tui_editor.dart|70|14|9|Invalid use of a private type in a public API.

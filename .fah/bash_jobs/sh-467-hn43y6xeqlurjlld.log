@@ -1,0 +1,17 @@
+Analyzing crap4dart...
+
+  error - test/gates/mutation_gate_cache_test.dart:40:55 - The argument type 'String?' can't be assigned to the parameter type 'String'.  - argument_type_not_assignable
+warning - test/gates/mutation_engine_cache_test.dart:119:13 - The value of the local variable 'path' isn't used. Try removing the variable or using it. - unused_local_variable
+
+2 issues found.
+    }
+
+    test('second run makes zero runner calls for unchanged killed mutants',
+        () async {
+      final path = writeSource('lib/a.dart', fileASource);
+      final sites = detectSites('lib/a.dart', fileASource);
+      expect(sites, hasLength(2));
+      var calls = 0;
+      MutantTestRunner counting() => (root, timeout) async {
+        calls++;
+        return MutantOutcome.killed;

@@ -1,0 +1,135 @@
+import 'dart:io';
+import 'dart:math';
+
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:path/path.dart' as p;
+
+import '../analysis/dart_parser.dart';
+import '../config/config.dart';
+import 'gate.dart';
+import 'gate_context.dart';
+
+/// A single normalized token together with its source line.
+class _NormalizedToken {
+  /// Creates a [_NormalizedToken].
+  _NormalizedToken(this.value, this.line);
+
+  final String value;
+  final int line;
+  bool duplicated = false;
+}
+
+/// Position of a token window inside a file's token stream.
+class _TokenPos {
+  /// Creates a [_TokenPos].
+  _TokenPos(this.fileIndex, this.tokenIndex);
+
+  final int fileIndex;
+  final int tokenIndex;
+}
+
+/// Token stream of a single file.
+class _FileTokens {
+  /// Creates a [_FileTokens].
+  _FileTokens(this.file, this.tokens, this.totalLines);
+
+  final String file;
+  final List<_NormalizedToken> tokens;
+  final int totalLines;
+}
+
+/// The `duplication` gate: fails files whose duplicated line percentage
+/// exceeds the configured threshold.
+///
+/// The detection tokenizes the whole Dart file with `package:analyzer`,
+/// normalizes string and numeric literals, skips comments, then indexes
+/// sliding windows of tokens with a Rabin-Karp hash, similar to jscpd.
+/// Any duplicated block of at least `min_tokens` tokens and `min_lines`
+/// lines is detected within or across files.
+class DuplicationGate implements Gate {
+  /// Creates a [DuplicationGate].
+  const DuplicationGate();
+
+  @override
+  String get id => 'duplication';
+
+  static const int _base = 0x9e3779b97f4a7c15;
+  static final int _mask = (1 << 64) - 1;
+
+  @override
+  Future<GateResult> run(GateContext context) async {
+    final lines = tokens.map((t) => t.line).toList();
+    final codes = tokens
+        .map((t) => t.value.hashCode.toUnsigned(64))
+        .toList(growable: false);
+    final pow = _modPow(_base, minTokens - 1);
+
+    var hash = 0;
+    for (var i = 0; i < minTokens; i++) {
+      hash = ((hash * _base) + codes[i]) & _mask;
+    }
+    _recordIfValid(occurrences, hash, fileIndex, 0, lines, minTokens, minLines);
+
+    for (var start = 1; start <= n - minTokens; start++) {
+      final removed = (codes[start - 1] * pow) & _mask;
+      hash = (hash - removed) & _mask;
+      hash = ((hash * _base) + codes[start + minTokens - 1]) & _mask;
+      _recordIfValid(
+        occurrences,
+        hash,
+        fileIndex,
+        start,
+        lines,
+        minTokens,
+        minLines,
+      );
+    }
+  }
+
+  /// Records a window only when it spans at least [minLines] lines.
+  void _recordIfValid(
+    Map<int, List<_TokenPos>> occurrences,
+    int hash,
+    int fileIndex,
+    int start,
+    List<int> lines,
+    int minTokens,
+    int minLines,
+  ) {
+    final firstLine = lines[start];
+    final lastLine = lines[start + minTokens - 1];
+    if (lastLine - firstLine + 1 < minLines) return;
+    occurrences.putIfAbsent(hash, () => <_TokenPos>[]).add(
+          _TokenPos(fileIndex, start),
+        );
+  }
+
+  /// Computes `base^exp mod 2^64`.
+  int _modPow(int base, int exp) {
+    var result = 1 & _mask;
+    var b = base & _mask;
+    var e = exp;
+    while (e > 0) {
+      if (e & 1 == 1) result = (result * b) & _mask;
+      b = (b * b) & _mask;
+      e >>= 1;
+    }
+    return result;
+  }
+
+  /// Counts lines in [content].
+  int _lineCount(String content) {
+    if (content.isEmpty) return 0;
+    final newlines = '\n'.allMatches(content).length;
+    return content.endsWith('\n') ? newlines : newlines + 1;
+  }
+}
+
+/// Intermediate result of [_buildResult].
+class _Result {
+  /// Creates a [_Result].
+  _Result(this.violations, this.summary);
+
+  final List<GateViolation> violations;
+  final String summary;
+}

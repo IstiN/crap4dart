@@ -1,0 +1,9 @@
+-rw-r--r--@ 1 Uladzimir_Klyshevich  staff  39450 Oct 11 13:28 coverage/lcov.info
+SF:/Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/analysis/complexity.dart
+DA:27,75
+DA:34,25
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import json,sys; d=json.load(sys.stdin); ms=d.get('methods',[]); top=sorted(ms,key=lambda m:-m.get('crap',0))[:3]; [print(m['method'],m['file'],m['crap'],'cov',m.get('coverage')) for m in top]
+                                                                         ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 1, in <lambda>

@@ -1,0 +1,20 @@
+   1 test/cli/waiting_heartbeat_test.dart L135 col35: The named parameter '_onBeat' should use the corresponding public name 'onBeat' at the callsite.
+   1 test/cli/waiting_heartbeat_test.dart L135 col18: The named parameter 'onBeat' is required, but there's no corresponding argument.
+   1 test/cli/waiting_heartbeat_test.dart L121 col35: The named parameter '_onBeat' should use the corresponding public name 'onBeat' at the callsite.
+   1 test/cli/waiting_heartbeat_test.dart L121 col18: The named parameter 'onBeat' is required, but there's no corresponding argument.
+   1 test/cli/waiting_heartbeat_test.dart L113 col35: The named parameter '_onBeat' should use the corresponding public name 'onBeat' at the callsite.
+   1 test/cli/waiting_heartbeat_test.dart L113 col18: The named parameter 'onBeat' is required, but there's no corresponding argument.
+   1 test/cli/waiting_heartbeat_test.dart L103 col35: The named parameter '_onBeat' should use the corresponding public name 'onBeat' at the callsite.
+   1 test/cli/waiting_heartbeat_test.dart L103 col18: The named parameter 'onBeat' is required, but there's no corresponding argument.
+   1 test/cli/tool_liveness_test.dart L305 col7: The named parameter '_onRemind' should use the corresponding public name 'onRemind' at the callsite.
+   1 test/cli/tool_liveness_test.dart L304 col11: The named parameter 'onRemind' is required, but there's no corresponding argument.
+   1 test/cli/tool_liveness_test.dart L148 col9: The named parameter '_onEscalate' should use the corresponding public name 'onEscalate' at the callsite.
+   1 test/cli/tool_liveness_test.dart L147 col9: The named parameter '_onRemind' should use the corresponding public name 'onRemind' at the callsite.
+   1 test/cli/tool_liveness_test.dart L146 col17: The named parameter 'onRemind' is required, but there's no corresponding argument.
+   1 test/cli/tool_liveness_test.dart L146 col17: The named parameter 'onEscalate' is required, but there's no corresponding argument.
+   1 test/cli/stream_liveness_test.dart L28 col5: The named parameter '_onRemind' should use the corresponding public name 'onRemind' at the callsite.
+   1 test/cli/stream_liveness_test.dart L27 col9: The named parameter 'onRemind' is required, but there's no corresponding argument.
+   1 test/cli/agent_cli_headless_shell_job_liveness_test.dart L369 col5: The named parameter '_gates' should use the corresponding public name 'gates' at the callsite.
+   1 test/cli/agent_cli_headless_shell_job_liveness_test.dart L368 col5: The named parameter '_advanceClock' should use the corresponding public name 'advanceClock' at the callsite.
+   1 test/cli/agent_cli_headless_shell_job_liveness_test.dart L367 col5: The named parameter '_clockOf' should use the corresponding public name 'clockOf' at the callsite.
+   1 test/cli/agent_cli_headless_shell_job_liveness_test.dart L357 col10: The named parameter 'gates' is required, but there's no corresponding argument.

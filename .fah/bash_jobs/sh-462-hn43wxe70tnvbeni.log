@@ -1,0 +1,3 @@
+58:    expect(cacheFile(), exists);
+79:    }, configYaml: 'gates:\n  mutation:\n    min_score: 0.0\n');
+92:    expect(cacheFile(), isNot(exists));

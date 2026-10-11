@@ -1,0 +1,10 @@
+lib/src/gates/gate_runner.dart:110:        MutationGate(),
+lib/src/gates/mutation_gate.dart:46:  MutationGate({MutantTestRunner? runner})
+lib/src/gates/mutation_gate.dart:47:      : _engine = MutationEngine(runner: runner);
+test/gates/mutation_gate_fixtures.dart:21:    MutationGate(runner: runner);
+test/gates/mutation_engine_score_test.dart:32:      MutationEngine(runner: (root, timeout) async => outcome).run(
+test/gates/mutation_engine_score_test.dart:41:    final engine = MutationEngine(
+test/gates/mutation_engine_score_test.dart:62:    final engine = MutationEngine(
+test/gates/mutation_engine_score_test.dart:76:    final engine = MutationEngine(runner: (root, timeout) async {
+test/gates/mutation_engine_test.dart:33:    final engine = MutationEngine(runner: (root, timeout) async {
+test/gates/mutation_engine_test.dart:52:    final engine = MutationEngine(

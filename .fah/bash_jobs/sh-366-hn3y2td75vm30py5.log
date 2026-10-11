@@ -1,0 +1,14 @@
+00:00 +0 -1: loading test/gates/mutation_runner_test.dart [E]
+  Failed to load "test/gates/mutation_runner_test.dart":
+  test/gates/mutation_runner_test.dart:108:15: Error: Expected an identifier, but got ','.
+  Try inserting an identifier before ','.
+        dir.path,
+                ^
+  test/gates/mutation_runner_test.dart:109:7: Error: Can't have modifier 'const' here.
+00:00 +0 -1: loading test/gates/mutation_gate_coverage_test.dart [E]
+  Failed to load "test/gates/mutation_gate_coverage_test.dart":
+  lib/src/gates/mutation_engine.dart:126:3: Error: Type 'MutantProcessSpawner' not found.
+    MutantProcessSpawner spawn = Process.start,
+    ^^^^^^^^^^^^^^^^^^^^
+  lib/src/gates/mutation_engine.dart:126:3: Error: 'MutantProcessSpawner' isn't a type.
+    MutantProcessSpawner spawn = Process.start,

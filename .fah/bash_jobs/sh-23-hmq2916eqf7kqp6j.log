@@ -1,0 +1,16 @@
+[PASS] loc: 172 files within 172 limits
+[SKIP] test_coverage: no coverage data at coverage/lcov.info
+[PASS] complexity: 616 methods within their CC limit
+[PASS] method_size: 752 methods within their size limits
+[PASS] nesting: 616 methods within nesting 5
+[PASS] class_size: 88 classes within 25 methods/WMC 80
+[PASS] duplication: 61 files, 0.00% duplicated lines
+[PASS] file_naming: 67 files have domain-meaningful names
+[PASS] magic_constants: 67 files free of magic constants
+[PASS] unused_code: 232 private declarations used
+[PASS] unused_files: 60 files in lib are used
+[PASS] public_docs: 469 public declarations documented
+ N/A   N/A  N/A   1  (top-level).complexityOf                        /Users/Uladzimir_Klyshevich/git/crap4dart/test/test_utils.dart:13                            
+
+Max CRAP: 0.00 — OK (threshold: 8.00)
+HEAD is now at dc64e9c feat: duplication gate per-gate sources — cross-module duplicate detection

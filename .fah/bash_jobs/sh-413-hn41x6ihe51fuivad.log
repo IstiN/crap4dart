@@ -1,0 +1,43 @@
+  /// enclosing method's complexity.
+  List<MethodMetrics> analyze(
+    List<String> filePaths, {
+    String? lcovPath,
+    String? projectRoot,
+    bool countLambdas = true,
+  }) {
+    final coverageByFile = _loadCoverage(lcovPath, projectRoot);
+    final parser = DartParser();
+    const extractor = MethodExtractor();
+    final complexityCalculator =
+    };
+  }
+
+  bool _isProjectRelative(String path) =>
+      !p.isAbsolute(path) && !path.startsWith('..');
+
+  FileCoverage? _coverageFor(
+    Map<String, FileCoverage> coverageByFile,
+    String filePath,
+  /// Maximum numeric CRAP score, or `0.0` when no numeric scores exist.
+  double get maxCrap {
+    var max = 0.0;
+    for (final m in metrics) {
+      final crap = m.crap;
+      if (crap != null && crap > max) max = crap;
+    }
+    return max;
+  }
+
+  /// Whether the maximum CRAP score exceeds [threshold].
+  bool isThresholdExceeded(double threshold) => maxCrap > threshold;
+
+  /// Renders the report table as a string, optionally prefixed with a
+  /// [header] line (e.g. the diff-mode marker).
+  String render({double threshold = defaultCrapThreshold, String? header}) {
+      ];
+
+  static String _percent(double? value) =>
+      value == null ? 'N/A' : (value * 100).toStringAsFixed(1);
+
+  static String _fmt(double value) => value.toStringAsFixed(2);
+}

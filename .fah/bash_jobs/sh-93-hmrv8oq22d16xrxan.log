@@ -1,0 +1,50 @@
+void main() {
+  late Directory project;
+
+  setUp(() => project = createTempProject());
+
+  tearDown(() => project.deleteSync(recursive: true));
+
+  test('ignore_locals detects renamed clone across files', () async {
+    final result = await _runPair(
+      project,
+      renamedMethod(
+          'process', 'value', 'i', 'item', 'prefix', 'suffix', 'result'),
+      renamedMethod('handle', 'data', 'idx', 'entry', 'start', 'end', 'out'),
+      ignoreLocals: true,
+    );
+    expect(result.passed, isFalse, reason: 'renamed clone must be detected');
+    expect(result.violations, hasLength(2));
+  });
+
+  test('renamed clone passes without ignore_locals (back-compat)', () async {
+    final result = await _runPair(
+      project,
+      renamedMethod(
+          'process', 'value', 'i', 'item', 'prefix', 'suffix', 'result'),
+      renamedMethod('handle', 'data', 'idx', 'entry', 'start', 'end', 'out'),
+    );
+    expect(result.passed, isTrue, reason: 'default mode is Type-1 only');
+  });
+
+  test('swapped locals never match', () async {
+    final result = await _runPair(
+      project,
+      swappable('calc', 'a', 'b', 'total'),
+      swapped('calc', 'x', 'y', 'sum'),
+      ignoreLocals: true,
+    );
+    expect(result.passed, isTrue,
+        reason: 'consistent renaming keeps a/b != y/x');
+  });
+
+  test('different called methods never match', () async {
+    final result = await _runPair(
+      project,
+      callee('process', 'value', 'result', 'add'),
+      callee('handle', 'data', 'out', 'push'),
+      ignoreLocals: true,
+    );
+    expect(result.passed, isTrue,
+        reason: 'API surface (called method names) stays visible');
+  });

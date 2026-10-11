@@ -1,0 +1,3 @@
+051c565 fix: restore self-CRAP <= 8.0 (main was red since 0.11.0)
+c865ec3 feat(gates): mutation gate — 22nd gate, mutation testing adapted from unclebob/mutator
+9fa36e5 chore(release): 0.11.0 — Type-2 duplication detection

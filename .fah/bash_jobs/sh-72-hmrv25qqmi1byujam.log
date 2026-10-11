@@ -1,0 +1,2 @@
+fixtures rewritten
+55:    writeFile(project, 'lib/a.dart', _callee('process', 'value', 'result'));

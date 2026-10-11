@@ -1,0 +1,75 @@
+
+  /// The catalog kind a provider id resolves to (issue #772: the KIND,
+  /// never the name — the remote catalog keys by adapter kind), else a
+  /// saved registry entry's resolved kind, else null.
+  String? _catalogKindForProviderName(String name) {
+    final spec = resolveCliProviderSpec(name);
+    if (spec != null) return spec.kind;
+    final registry = config.customProviders;
+    for (final entry in registry?.entries ?? const <CustomProviderEntry>[]) {
+      if (entry.name == name)
+        return resolveCliProviderSpec(entry.apiType)?.kind;
+    }
+    return null;
+  }
+
+  /// The resolved context window for [provider]/[modelId]: the active
+  /// provider's endpoint-reported window first (live values win), then the
+  /// remote catalog, then the provider spec default; null when nothing
+  /// resolves (renders `—`).
+  int? _resolvedContextWindow(String provider, String modelId) {
+    final activeProvider = _agent.state.model.provider;
+====
+  final lines = runText.split('\n');
+  final blocks = <CreateBlock>[];
+
+  String stripComment(String l) =>
+      l.contains('#') && !l.contains('"#') ? l.split('#').first : l;
+
+  for (var i = 0; i < lines.length; i++) {
+    if (!RegExp(r'gh\s+release\s+create\b').hasMatch(stripComment(lines[i])))
+      continue;
+    final cmdLines = <String>[lines[i]];
+    var j = i;
+    while (j < lines.length - 1 &&
+        stripComment(cmdLines.last).trimRight().endsWith(r'\')) {
+      j++;
+      cmdLines.add(lines[j]);
+    }
+/// deletes drafts (directly or via scripts/release_draft_guard.sh).
+List<String> draftGuardSteps(dynamic job) {
+  final guards = <String>[];
+  if (job is! Map || !job.containsKey('steps')) return guards;
+  for (final step in (job['steps'] as YamlList)) {
+    if (step is! YamlMap || !step.containsKey('if') || !step.containsKey('run'))
+      continue;
+    final cond = step['if'].toString();
+    final body = step['run'].toString();
+    final isAlways = cond.contains('always()') || cond.contains('failure()');
+    final deletesDraft =
+    't@t',
+  ], workingDirectory: dir.path);
+  Process.runSync(git, [
+    'config',
+    'user.name',
+    't',
+  ], workingDirectory: dir.path);
+  if (changelog != null)
+    File('${dir.path}/CHANGELOG.md').writeAsStringSync(changelog);
+  var i = 0;
+  for (final group in [commitSubjects, postTagSubjects]) {
+    for (final subject in group) {
+      File('${dir.path}/f$i.txt').writeAsStringSync('$i');
+  final dir = Directory(
+    '${_fixtureRoot.path}/guard-$name-${DateTime.now().microsecondsSinceEpoch}',
+  )..createSync(recursive: true);
+  final bin = stubGh(dir.path);
+  File('${dir.path}/release-state.txt').writeAsStringSync(state);
+  if (body != null)
+    File('${dir.path}/release-body.txt').writeAsStringSync(body);
+  File('${dir.path}/log').writeAsStringSync('');
+  final res = Process.runSync(
+    'bash',
+    ['scripts/release_draft_guard.sh', 'v1.2.3'],
+    workingDirectory: Directory.current.path,
+    environment: {

@@ -1,0 +1,64 @@
+// Stage-by-stage boot profiler for issue #503 round 3.
+// Times: windowed open, compaction walk, context build, trajectory build.
+import 'dart:async';
+import 'dart:io';
+
+import 'package:flutter_agent_harness/io.dart';
+import 'package:flutter_agent_harness/src/compaction/compaction.dart';
+import 'package:flutter_agent_harness/src/compaction/token_estimation.dart';
+import 'package:flutter_agent_harness/src/env/isolate_session_parse_executor.dart';
+import 'package:flutter_agent_harness/src/context.dart';
+import 'package:flutter_agent_harness/src/session/session_record.dart';
+import 'package:flutter_agent_harness/src/session/session_repo.dart';
+import 'package:flutter_agent_harness/src/trajectory/trajectory_snapshot_builder.dart';
+
+====
+/// gh-1164 Part A: the `js-apps` skill is a first-party core builtin
+/// (source of truth `prompts/skills/js-apps/SKILL.md`, compiled into
+/// `builtinSkillFiles` by `scripts/gen_prompts.dart`) — invocable on every
+/// host (CLI + app), with the incident-hardened content: the decisive
+/// apps/<id>-vs-dynamic_message routing table, the calculator anti-pattern
+/// named, and the pre-flight/error-channel contract taught.
+@TestOn('vm')
+library;
+
+import 'package:flutter_agent_harness/flutter_agent_harness.dart';
+====
+  return '${flat.substring(0, width - 1)}…';
+}
+
+/// Soft-wraps [text] into border-prefixed card body rows at [width]
+/// visible columns (gh-1433 AC9 log face): physical lines keep their
+/// breaks, long lines wrap, and the whole body stops at
+/// [logFaceCardMaxBodyChars] with an explicit `(+N more chars, see
+/// <log>)` pointer (E7) — never a silent ellipsis.
+List<String> _wrapCardBody(String text, int width) {
+  final rows = <String>[];
+  var emitted = 0;
+  var overflow = 0;
+  var capped = false;
+
+  void row(String chunk) {
+    rows.add('│ ${_pad(chunk, width)}');
+====
+class TuiLineEditor {
+  /// Kill ring capacity (readline default is 10; 8 keeps memory trivial).
+  static const int killRingSize = 8;
+
+  /// Undo stack cap: 100 grouped steps per session.
+  static const int undoLimit = 100;
+
+  final TuiLineBuffer buffer;
+  final List<String> killRing;
+  final int killIndex;
+  final List<_UndoStep> undoStack;
+  final bool lastActionWasYank;
+
+  const TuiLineEditor._(
+    this.buffer, {
+    this.killRing = const [],
+    this.killIndex = -1,
+    this.undoStack = const [],
+    this.lastActionWasYank = false,
+  });
+

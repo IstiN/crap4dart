@@ -1,0 +1,4 @@
+4 issues found.
+  test/gates/duplication_normalization_test.dart: loading test/gates/duplication_normalization_test.dart
+Gates: 18 passed, 2 failed, 0 warned, 5 skipped
+Max CRAP: 0.00 — OK (threshold: 8.00)

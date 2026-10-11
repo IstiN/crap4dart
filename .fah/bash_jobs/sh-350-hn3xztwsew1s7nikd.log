@@ -1,0 +1,5 @@
+30:06:44 +10228 ~6 -8: Some tests failed.
+  test/publish_staging_test.dart: gh-1522 rework — stamp_staged_release.sh behavior a curated ## <version> section for the same version never duplicates
+  test/publish_staging_test.dart: gh-1522 rework — stamp_staged_release.sh behavior folds the curated Unreleased body under the tag section; no Unreleased header survives
+  ... and 4 more
+40

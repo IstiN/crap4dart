@@ -1,0 +1,9 @@
+[SKIP] weight_of_class: disabled in config
+[SKIP] mutation: disabled in config
+Gates: 21 passed, 0 warned, 5 skipped
+ CRAP   COV%  BR%  CC  METHOD                                             FILE:LINE                                                                                       
+-----  -----  ---  --  -------------------------------------------------  ------------------------------------------------------------------------------------------------
+27.67   25.0  N/A   7  _DocsVisitor._enclosingIsPublic                    /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/gates/public_docs_gate.dart:133               
+12.00  100.0  N/A  12  _TokenMask.of                                      /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/gates/duplication_gate.dart:384               
+ 8.00  100.0  N/A   8  TofuDetector._rowHasTofuX                          /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/gates/tofu_detector.dart:35                   
+ 8.00  100.0  N/A   8  UnusedCodeGate.run                                 /Users/Uladzimir_Klyshevich/git/crap4dart/lib/src/gates/unused_code_gate.dart:22                

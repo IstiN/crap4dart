@@ -1,0 +1,3 @@
+Run the quality gates enabled in the config.
+Usage: crap4dart check [--all|--changed|--staged] [--only g1,g2] [--skip g3] [--config crap4dart.yaml]
+    --config           Path to a crap4dart.yaml config file.

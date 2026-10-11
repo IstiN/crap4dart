@@ -1,0 +1,3 @@
+[FAIL] method_size: 2 violations in 781 methods over their size limits
+  lib/src/config/gate_configs.dart:728: DuplicationGateConfig has 10 params > max 8
+  test/gates/duplication_normalization_test.dart:9: main has 116 lines > max 80

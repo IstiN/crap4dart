@@ -1,0 +1,8 @@
+Formatted test/gates/mutation_gate_test.dart
+Formatted 4 files (3 changed) in 0.01 seconds.
+  test/gates/mutation_engine_test.dart: loading test/gates/mutation_engine_test.dart
+  test/gates/mutation_gate_test.dart: loading test/gates/mutation_gate_test.dart
+  ... and 2 more
+
+Consider enabling the flag chain-stack-traces to receive more detailed exceptions.
+For example, 'dart test --chain-stack-traces'.

@@ -1,0 +1,207 @@
+diff --git a/lib/src/utils/path_text.dart b/lib/src/utils/path_text.dart
+new file mode 100644
+index 000000000..8d64b0d8a
+--- /dev/null
++++ b/lib/src/utils/path_text.dart
+@@ -0,0 +1,34 @@
++// Copyright (c) 2026, the Flutter Agent Harness authors.
++// Use of this source code is governed by a MIT license that can be found
++// in the LICENSE file.
++
++/// Lexical (string-math) POSIX path helpers shared across modules.
++///
++/// Pure text: no filesystem access, no symlink resolution.
++library;
++
++/// Collapses `.`, `..`, empty (duplicate-slash) and trailing segments of
++/// [path] against the root `/`, staying at the root when `..` climbs above
++/// it — the sandbox shells' normalizer semantics (`/a/../..` → `/`).
++String normalizeLexicalPath(String path) {
++  final segments = <String>[];
++  for (final part in path.split('/')) {
++    if (part.isEmpty || part == '.') continue;
++    if (part == '..') {
++      if (segments.isNotEmpty) segments.removeLast();
++      continue;
++    }
++    segments.add(part);
++  }
++  return '/${segments.join('/')}';
++}
++
++/// Strips redundant trailing slashes from [path]; a lone `/` root and a
++/// bare name are returned unchanged. Matching stays lexical.
++String stripTrailingSlashes(String path) {
++  var stripped = path;
++  while (stripped.length > 1 && stripped.endsWith('/')) {
++    stripped = stripped.substring(0, stripped.length - 1);
++  }
++  return stripped;
++}
+======================================================================
+diff --git a/lib/src/utils/list_equals.dart b/lib/src/utils/list_equals.dart
+new file mode 100644
+index 000000000..cc0bcc36a
+--- /dev/null
++++ b/lib/src/utils/list_equals.dart
+@@ -0,0 +1,16 @@
++// Copyright (c) 2026, the Flutter Agent Harness authors.
++// Use of this source code is governed by a MIT license that can be found
++// in the LICENSE file.
++
++/// Element-wise list equality (pure Dart; the flutter/foundation twin is
++/// unavailable to the core package).
++library;
++
++/// Whether [a] and [b] have the same length and equal elements.
++bool listEquals<T>(List<T> a, List<T> b) {
++  if (a.length != b.length) return false;
++  for (var i = 0; i < a.length; i++) {
++    if (a[i] != b[i]) return false;
++  }
++  return true;
++}
+======================================================================
+diff --git a/lib/src/trajectory/trajectory_record.dart b/lib/src/trajectory/trajectory_record.dart
+index ddf37d946..0b0541f13 100644
+--- a/lib/src/trajectory/trajectory_record.dart
++++ b/lib/src/trajectory/trajectory_record.dart
+@@ -396,6 +396,19 @@ final class TrajectoryAssistantRecord extends TrajectoryRecord {
+   /// Fallback row label when the message has no visible content.
+   final String displayText;
+ 
++  /// Identity/summary entries shared by the lossless JSON export
++  /// (`trajectory_export.dart`) and the UI cell JSON (fa_ui
++  /// `trajectory_cell.dart`); both extend this map with their own fields.
++  Map<String, dynamic> identityJson() => {
++    'messageId': messageId,
++    'turn': turn,
++    'step': step,
++    'provider': provider,
++    'model': model,
++    'usage': usage?.toJson(),
++    'thinkingDetail': thinkingDetail,
++  };
++
+   @override
+   TrajectoryCellKind get kind => TrajectoryCellKind.message;
+ }
+======================================================================
+diff --git a/packages/fa_ui/lib/src/trajectory/trajectory_cell.dart b/packages/fa_ui/lib/src/trajectory/trajectory_cell.dart
+index 2fce19373..5ea481c03 100644
+--- a/packages/fa_ui/lib/src/trajectory/trajectory_cell.dart
++++ b/packages/fa_ui/lib/src/trajectory/trajectory_cell.dart
+@@ -103,13 +103,6 @@ Map<String, Object?> trajectoryRecordJson(TrajectoryRecord record) {
+     'recordId': record.recordId,
+     ...switch (record) {
+       TrajectoryAssistantRecord(
+-        :final messageId,
+-        :final turn,
+-        :final step,
+-        :final provider,
+-        :final model,
+-        :final usage,
+-        :final thinkingDetail,
+         :final outputDetail,
+         :final timeSeconds,
+         :final isError,
+@@ -120,13 +113,7 @@ Map<String, Object?> trajectoryRecordJson(TrajectoryRecord record) {
+         :final requestDetail,
+       ) =>
+         {
+-          'messageId': messageId,
+-          'turn': turn,
+-          'step': step,
+-          'provider': provider,
+-          'model': model,
+-          'usage': usage?.toJson(),
+-          'thinkingDetail': thinkingDetail,
++          ...record.identityJson(),
+           'outputDetail': outputDetail,
+           'timeSeconds': timeSeconds?.inMilliseconds,
+           'isError': isError,
+======================================================================
+diff --git a/lib/src/cube/config/fs_policy.dart b/lib/src/cube/config/fs_policy.dart
+index e8cd94cf3..3d2ac2e44 100644
+--- a/lib/src/cube/config/fs_policy.dart
++++ b/lib/src/cube/config/fs_policy.dart
+@@ -33,6 +33,7 @@ library;
+ import 'package:yaml/yaml.dart';
+ 
+ import '../../exceptions.dart';
++import '../../utils/path_text.dart' show normalizeLexicalPath;
+ 
+ /// One symlink-probe result for a path component:
+ ///
+@@ -364,17 +365,21 @@ final class CubeFsPolicy {
+ 
+   /// Collapses `.` and `..` segments; `null` when the path escapes above `/`.
+   static String? _normalize(String target) {
+-    final stack = <String>[];
+-    for (final segment in target.split('/')) {
++    if (_escapesRoot(target)) return null;
++    return normalizeLexicalPath(target);
++  }
++
++  /// Whether [path] climbs above `/` — the shared lexical normalizer
++  /// clamps excess `..` at the root, but a policy must DENY the escape
++  /// instead, so the escape is detected before normalizing.
++  static bool _escapesRoot(String path) {
++    var depth = 0;
++    for (final segment in path.split('/')) {
+       if (segment.isEmpty || segment == '.') continue;
+-      if (segment == '..') {
+-        if (stack.isEmpty) return null; // traversal above the root
+-        stack.removeLast();
+-      } else {
+-        stack.add(segment);
+-      }
++      depth += segment == '..' ? -1 : 1;
++      if (depth < 0) return true;
+     }
+-    return '/${stack.join('/')}';
++    return false;
+   }
+ 
+   /// Whether [path] equals or lives under [prefix]. The root prefix
+======================================================================
+diff --git a/lib/src/cli/slash_args.dart b/lib/src/cli/slash_args.dart
+new file mode 100644
+index 000000000..546053ebf
+--- /dev/null
++++ b/lib/src/cli/slash_args.dart
+@@ -0,0 +1,17 @@
++// Copyright (c) 2026, the Flutter Agent Harness authors.
++// Use of this source code is governed by a MIT license that can be found
++// in the LICENSE file.
++
++/// Shared slash-command argument parsing (`/skills`, `/tools`, ...).
++library;
++
++/// Splits a slash-command [rest] into its subcommand token and the
++/// remaining positional parts (`"/skills access ask"` → `('access',
++/// ['access', 'ask'])`; an empty rest yields `('', [])`).
++(String sub, List<String> parts) splitSlashArgs(String rest) {
++  final parts = rest
++      .split(RegExp(r'\s+'))
++      .where((part) => part.isNotEmpty)
++      .toList();
++  return (parts.isEmpty ? '' : parts.first, parts);
++}
+======================================================================
+diff --git a/.github/workflows/nightly.yml b/.github/workflows/nightly.yml
+index 2ac88ffb6..8c5306940 100644
+--- a/.github/workflows/nightly.yml
++++ b/.github/workflows/nightly.yml
+@@ -112,7 +112,9 @@ jobs:
+         run: |
+           # gh-1061: >=0.10.0 — analyzer 7.3→14.4 refresh. Bounded: a
+           # floating >= would auto-adopt 0.11.0+ with no repo change.
+-          dart pub global activate crap4dart ">=0.10.0 <0.11.0"
++          # gh-1106: ceiling bumped to 0.12.0 — the root crap4dart.yaml
++          # duplication block now uses 0.11.0-only keys.
++          dart pub global activate crap4dart ">=0.11.0 <0.12.0"
+           dart pub global run crap4dart analyze
+ 
+       - name: Duplication guard (lib/ < 1%)
+======================================================================

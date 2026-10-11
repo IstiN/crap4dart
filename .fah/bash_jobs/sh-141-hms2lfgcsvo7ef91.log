@@ -1,0 +1,126 @@
+diff --git a/crap4dart.yaml b/crap4dart.yaml
+index 8963317e6..9fcc12c2c 100644
+--- a/crap4dart.yaml
++++ b/crap4dart.yaml
+@@ -54,10 +54,21 @@ gates:
+   unused_code: {enabled: false}
+   unused_files: {enabled: false}
+   banned_imports: {enabled: false}
+-  # own jscpd <1% guard (global %) — the gate's per-file semantics and the
+-  # 0.10.0 `duplication.sources` cross-module key stay available if the
+-  # jscpd guards are ever retired
+-  duplication: {enabled: false}
++  # Type-2 duplication gate (issue #1106, crap4dart 0.11.0). Renamed-clone
++  # detection on top of the Type-1 default; the union with the raw pass can
++  # only ADD findings, never lose exact copies. severity: warning starts
++  # soft — escalate to error once the 13-file triage debt is paid
++  # (follow-up, owner-side). The global jscpd <1% guards stay as-is.
++  duplication:
++    enabled: true
++    severity: warning
++    ignorable: true # enables `// crap:ignore` for justified structural twins
++    ignore_locals: true # Type-2: rename locals before hashing (API names stay)
++    ignore_literals: false # keeps l10n/theme/symbol tables out
++    sources: # cross-module scope from #487
++      - flutter_app/lib
++      - packages/fa_ui/lib
++      - packages/fa_llm/lib
+   file_naming: {enabled: false}
+   magic_constants: {enabled: false}
+   test_assertions: {enabled: false}
+======================================================================
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index ec8e7f1ba..32a286559 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -882,16 +882,19 @@ jobs:
+           # coverage.run_tests: false — the merged shard lcov above is the
+           # coverage source; gates must not re-run the suite.
+           # gh-1061: >=0.10.0 — analyzer 7.3→14.4 refresh + the
+-          # duplication.sources key (native cross-module scan; the
+-          # duplication gate stays jscpd-gated, see crap4dart.yaml).
+-          # Bounded (rework review): a floating >= would auto-adopt 0.11.0+
+-          # with no repo change — bump the ceiling deliberately.
+-          dart pub global activate crap4dart ">=0.10.0 <0.11.0"
++          # duplication.sources key (native cross-module scan).
++          # gh-1106: >=0.11.0 — Type-2 renamed-clone detection
++          # (duplication.ignore_locals) + gate baselines; the
++          # duplication gate config throws on older parsers (unknown
++          # keys are a ConfigException).
++          # Bounded (rework review): a floating >= would auto-adopt
++          # 0.12.0+ with no repo change — bump the ceiling deliberately.
++          dart pub global activate crap4dart ">=0.11.0 <0.12.0"
+           dart pub global run crap4dart analyze
+ 
+-      - name: Broken-goldens gate over core test/ goldens (issue 447)
++      - name: Quality gates (broken goldens + Type-2 duplication, issue 1106)
+         if: needs.changes.outputs.core == 'true' || needs.changes.outputs.shared == 'true'
+-        run: dart pub global run crap4dart check
++        run: dart pub global run crap4dart check --baseline
+ 
+       - name: Duplication guard (lib/ < 1%)
+         if: needs.changes.outputs.core == 'true' || needs.changes.outputs.shared == 'true'
+@@ -1186,9 +1189,11 @@ jobs:
+         run: |
+           # Issue #447: pin bumped 0.2.1 → >=0.9.5 for the gate framework.
+           # gh-1061: >=0.10.0 (analyzer 14.4 refresh).
++          # gh-1106: >=0.11.0 <0.12.0 — same bounded pin as the core job;
++          # 0.11.0 carries the Type-2 duplication gate the repo pins to.
+           # coverage.run_tests: false in both configs — the merged shard
+           # lcov above is the source; never re-run the suite here.
+-          dart pub global activate crap4dart ">=0.10.0"
++          dart pub global activate crap4dart ">=0.11.0 <0.12.0"
+           cd flutter_app && dart pub global run crap4dart analyze --format json > crap_report.json
+ 
+       # Issue #490 AC2: publish the ranked CRAP JSON even when the ratchet
+======================================================================
+diff --git a/packages/dap_hub/pubspec.yaml b/packages/dap_hub/pubspec.yaml
+index f1444d846..8bdecc5cf 100644
+--- a/packages/dap_hub/pubspec.yaml
++++ b/packages/dap_hub/pubspec.yaml
+@@ -22,7 +22,7 @@ dependencies:
+ 
+ dev_dependencies:
+   async: ^2.11.0
+-  crap4dart: ^0.10.0
++  crap4dart: ^0.11.0
+   lints: ^5.0.0
+   test: ^1.24.0
+ 
+======================================================================
+diff --git a/scripts/pre-commit b/scripts/pre-commit
+index 2522dff97..746996421 100755
+--- a/scripts/pre-commit
++++ b/scripts/pre-commit
+@@ -61,9 +61,16 @@ bash scripts/ci_fast_gate.sh --hook
+ if command -v dart >/dev/null 2>&1; then
+   C4D_VER=$(dart pub global list 2>/dev/null | awk '$1=="crap4dart"{print $2}')
+   case "$C4D_VER" in
+-    0.9.*|0.[1-9][0-9].*|[1-9].*)
++    # gh-1106: floor 0.11.0 — the root crap4dart.yaml duplication block
++    # uses 0.11.0-only keys (ignore_locals/ignorable); the strict config
++    # parser throws ConfigException on unknown keys, so older pins fail
++    # rather than silently run without Type-2 detection.
++    0.1[1-9].*|0.[2-9][0-9].*|[1-9].*)
+       echo "🧪 crap4dart gates (staged core files)..."
+-      if ! dart pub global run crap4dart check --staged; then
++      # gh-1106: --baseline — the Type-2 duplication gate ships with a
++      # committed snapshot of pre-existing findings; hooks must flag only
++      # NEW duplication, same contract as CI.
++      if ! dart pub global run crap4dart check --staged --baseline; then
+         echo "❌ QUALITY GATE FAILED — crap4dart gates" >&2
+         exit 1
+       fi
+@@ -71,8 +78,8 @@ if command -v dart >/dev/null 2>&1; then
+     "")
+       ;; # not activated — skip silently (CI and the fast gate cover it)
+     *)
+-      echo "⚠️  crap4dart $C4D_VER is too old for the gates (need >= 0.10.0);" \
+-           "skipping — run: dart pub global activate crap4dart '>=0.10.0 <0.11.0'" >&2
++      echo "⚠️  crap4dart $C4D_VER is too old for the gates (need >= 0.11.0);" \
++           "skipping — run: dart pub global activate crap4dart '>=0.11.0 <0.12.0'" >&2
+       ;;
+   esac
+ fi
+
+======================================================================

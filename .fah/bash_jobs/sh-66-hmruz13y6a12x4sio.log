@@ -1,0 +1,6 @@
+1:import 'package:analyzer/dart/ast/ast.dart';
+2:import 'package:analyzer/dart/ast/visitor.dart';
+3:import 'package:analyzer/source/line_info.dart';
+imports added
+Analyzing crap4dart...
+No issues found!

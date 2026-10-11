@@ -1,0 +1,58 @@
+   8 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/web_search/web_gate_test.dart
+   5 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/integration/wire_serve_cli_test.dart
+   4 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/release_hygiene_test.dart
+   4 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/cli/agent_cli_headless_over_window_test.dart
+   3 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/compaction/structured/engine.dart
+   2 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/session/session_streamed_open_test.dart
+   2 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/session/session_repair_test.dart
+   2 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/hosts/extension_host_parity_test.dart
+   2 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/cli/session_repair_cli_test.dart
+   2 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/tui_theme.dart
+   2 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/tool_liveness.dart
+   2 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/reasoning_liveness.dart
+   2 /Users/Uladzimir_Klyshevich/git/flutter_agent/bin/fah_wire_serve.dart
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/tool/profile_boot.dart
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/skills/builtin_js_apps_skill_test.dart
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/session/session_whole_file_open_test.dart
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/cli/tui_role_sweep_test.dart
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/cli/load_mode_cli_test.dart
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/tools/builtin_tools_bash.dart
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/env/io_execution_env.dart
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/waiting_heartbeat.dart
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/tui_theme_palette.dart
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/tui_editor.dart
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/tui_chrome.dart
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/provider_models.dart
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/fa_tui.dart
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/agent_hub_panel.dart
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/agent_cli.dart
+===
+   2 /Users/Uladzimir_Klyshevich/git/flutter_agent/bin/fah_wire_serve.dart PREFER_FUNCTION_DECLARATIONS_OVER_VARIABLES
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/agent_cli.dart UNNECESSARY_IMPORT
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/agent_hub_panel.dart UNINTENDED_HTML_IN_DOC_COMMENT
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/fa_tui.dart UNNECESSARY_IMPORT
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/provider_models.dart CURLY_BRACES_IN_FLOW_CONTROL_STRUCTURES
+   2 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/reasoning_liveness.dart PREFER_INITIALIZING_FORMALS
+   2 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/tool_liveness.dart PREFER_INITIALIZING_FORMALS
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/tui_chrome.dart IMPLEMENTATION_IMPORTS
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/tui_editor.dart LIBRARY_PRIVATE_TYPES_IN_PUBLIC_API
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/tui_theme_palette.dart IMPLEMENTATION_IMPORTS
+   2 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/tui_theme.dart IMPLEMENTATION_IMPORTS
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/cli/waiting_heartbeat.dart PREFER_INITIALIZING_FORMALS
+   3 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/compaction/structured/engine.dart PREFER_INTERPOLATION_TO_COMPOSE_STRINGS
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/env/io_execution_env.dart PREFER_INITIALIZING_FORMALS
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/lib/src/tools/builtin_tools_bash.dart USE_NULL_AWARE_ELEMENTS
+   4 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/cli/agent_cli_headless_over_window_test.dart PREFER_INTERPOLATION_TO_COMPOSE_STRINGS
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/cli/load_mode_cli_test.dart PREFER_FUNCTION_DECLARATIONS_OVER_VARIABLES
+   2 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/cli/session_repair_cli_test.dart UNNECESSARY_IMPORT
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/cli/tui_role_sweep_test.dart UNNECESSARY_IMPORT
+   2 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/hosts/extension_host_parity_test.dart USE_NULL_AWARE_ELEMENTS
+   5 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/integration/wire_serve_cli_test.dart PREFER_FUNCTION_DECLARATIONS_OVER_VARIABLES
+   4 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/release_hygiene_test.dart CURLY_BRACES_IN_FLOW_CONTROL_STRUCTURES
+   2 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/session/session_repair_test.dart USE_NULL_AWARE_ELEMENTS
+   2 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/session/session_streamed_open_test.dart USE_NULL_AWARE_ELEMENTS
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/session/session_whole_file_open_test.dart USE_NULL_AWARE_ELEMENTS
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/skills/builtin_js_apps_skill_test.dart UNINTENDED_HTML_IN_DOC_COMMENT
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/web_search/web_gate_test.dart DANGLING_LIBRARY_DOC_COMMENTS
+   7 /Users/Uladzimir_Klyshevich/git/flutter_agent/test/web_search/web_gate_test.dart UNNECESSARY_IMPORT
+   1 /Users/Uladzimir_Klyshevich/git/flutter_agent/tool/profile_boot.dart UNNECESSARY_IMPORT

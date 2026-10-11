@@ -1,0 +1,12 @@
+/// Tool-level integration tests for the cube network gate (issue #682):
+///
+/// - `IT-NET-1` — a denied URL answers with the clean `fa_cube[<name>]:`
+///   note as a NORMAL tool result and the fake client records ZERO sends
+///   (AC1, AC5, AC7 for search).
+/// - `IT-NET-2` — an allowed URL rides through with its request untouched
+///   (AC2).
+/// - Q1 — `web_search` endpoints are gated: only providers whose endpoint
+///   the live policy allows run.
+/// - `REG-NET-1` — with no cube (no gate) the recorded requests are the
+///   pre-gate golden (AC4).
+import 'package:flutter_agent_harness/flutter_agent_harness.dart';

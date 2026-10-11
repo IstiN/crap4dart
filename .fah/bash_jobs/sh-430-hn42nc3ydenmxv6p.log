@@ -1,0 +1,15 @@
+  lib/src/crap/crap_report.dart:40: survived constant mutant `-1` -> `0` in CrapReport.sorted
+  lib/src/crap/crap_report.dart:40: survived constant mutant `1` -> `0` in CrapReport.sorted
+Gates: 18 passed, 4 failed, 0 warned, 4 skipped
+EXIT:2
+    copy.sort((a, b) {
+      final aCrap = a.crap;
+      final bCrap = b.crap;
+      if (aCrap == null && bCrap == null) return _byLocation(a, b);
+      if (aCrap == null) return 1;
+      if (bCrap == null) return -1;
+      return bCrap.compareTo(aCrap);
+    });
+    return copy;
+  }
+

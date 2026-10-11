@@ -1,0 +1,5 @@
+CRAP  27.67  CC   7  lineCov  0.25  branchCov  None  public_docs_gate.dart:133  _DocsVisitor._enclosingIsPublic
+CRAP  12.00  CC  12  lineCov   1.0  branchCov  None  duplication_gate.dart:384  _TokenMask.of
+CRAP   8.00  CC   8  lineCov   1.0  branchCov  None  tofu_detector.dart:35  TofuDetector._rowHasTofuX
+CRAP   8.00  CC   8  lineCov   1.0  branchCov  None  unused_code_gate.dart:22  UnusedCodeGate.run
+CRAP   8.00  CC   8  lineCov   1.0  branchCov  None  coverage_runner.dart:47  CoverageRunner._run

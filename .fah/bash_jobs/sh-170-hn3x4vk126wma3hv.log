@@ -1,0 +1,51 @@
+    }
+    if (!tokenOk(request, token)) {
+      request.response.statusCode = HttpStatus.unauthorized;
+      await request.response.close();
+      return;
+    }
+    try {
+      final ws = await WebSocketTransformer.upgrade(request);
+      final send = (Map<String, dynamic> frame) =>
+          ws.add(AgentWireProtocol.frameLine(frame));
+      // Text frames arrive as String, binary frames as Uint8List (a
+      // List<int>) — both decode through the guarded path. (Invalid
+      // UTF-8 in a TEXT frame fails the socket inside dart:io per RFC
+      // 6455; that layer is not ours to guard.)
+      await server
+          .attach(decodeNdjson(server, ws.cast<Object>(), send), send)
+          .whenComplete(ws.close);
+    } on Object catch (error) {
+      // Upgrade raced a disconnect, or the attach raced shutdown —
+      // nothing to serve on a dead socket.
+      stderr.writeln('wire-serve: ws handler failed: $error');
+    }
+  });
+}
+
+/// Writes the one-time startup line to REAL stdout — the ONLY thing
+/// `fa wire-serve` WS mode ever puts there (the protocol stream carries
+/// frames only; `_log` diagnostics go to stderr).
+void writeStartupLine(WireServeStartupLine line) {
+  stdout.writeln(line.encode());
+  stdout.flush();
+}
+
+/// Serves [WireServeServer.attach] over NDJSON stdin/stdout until stdin
+/// EOF; the returned future IS the graceful-shutdown trigger in stdio
+/// mode. Bytes decode through [byteLines] + strict per-line UTF-8 — a
+/// malformed byte or an oversized line is a loud `bad_frame`, never a
+/// silent server death.
+Future<void> serveStdio(WireServeServer server) {
+  final send = (Map<String, dynamic> frame) {
+    stdout.writeln(AgentWireProtocol.frameLine(frame));
+    stdout.flush();
+  };
+  return server.attach(
+    decodeNdjson(
+      server,
+      byteLines(
+        stdin,
+        onOversize: (message) =>
+            server.protocolError('bad_frame', message, send),
+      ),

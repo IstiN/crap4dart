@@ -1,0 +1,9 @@
+total 144
+drwxr-xr-x@ 17 Uladzimir_Klyshevich  staff   544 Sep  2 15:38 .
+drwxr-xr-x@ 17 Uladzimir_Klyshevich  staff   544 Oct 11 12:55 ..
+-rwxr-xr-x@  1 Uladzimir_Klyshevich  staff  5651 Sep 19 23:31 pre-commit
+#!/usr/bin/env bash
+# ╔═══════════════════════════════════════════════════════════════════════════╗
+# ║  QUALITY GATE — DO NOT LOWER THESE THRESHOLDS WITHOUT TEAM APPROVAL       ║
+# ║  Every commit must pass: file size, analyze, tests, coverage ≥ 80%,       ║
+# ║  CRAP ratchet (crap4dart.yaml), duplication < 1%.                         ║

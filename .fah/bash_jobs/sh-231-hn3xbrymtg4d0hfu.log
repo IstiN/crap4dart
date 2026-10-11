@@ -1,0 +1,3 @@
+938:      _LocalShellJob(
+957:  _LocalShellJob({
+948:        redactor: options?.jobLogRedactor,

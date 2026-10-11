@@ -1,0 +1,12 @@
+scripts/ci_fast_gate.sh:228:  # dir; format_coverage merges the per-isolate files. Keep this list in
+scripts/ci_fast_gate.sh:308:  dart run coverage:format_coverage --lcov -i coverage -o coverage/lcov.info
+scripts/pre-commit:17:#   1. dart format SELF-HEAL of staged files (reformat + re-stage, blocking
+scripts/pre-commit:18:#      backstop when the formatter can't),
+scripts/pre-commit:29:echo "🎨 Auto-formatting staged Dart files..."
+scripts/pre-commit:30:# Format is SELF-HEALING with a BLOCKING backstop: reformat exactly the
+scripts/pre-commit:31:# Dart files in the index and re-stage them; anything still unformatted
+scripts/pre-commit:32:# after that (formatter crashed on syntax errors) blocks the commit with a
+scripts/pre-commit:34:# commits over a single unformatted line and (b) rewrote OTHER agents'
+scripts/pre-commit:39:  printf '%s\n' "$STAGED_DART" | xargs dart format >/dev/null 2>&1 || true
+scripts/pre-commit:41:  UNFORMATTED=$(dart format --output=none --set-exit-if-changed $STAGED_DART 2>/dev/null | grep '^Changed' || true)
+scripts/pre-commit:43:    echo "❌ dart format could not fix these files (syntax error?):"
