@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import '../report/table_formatter.dart';
 import 'crap_analyzer.dart';
 
@@ -28,6 +30,11 @@ class CrapReport {
   /// Metrics sorted for display: numeric CRAP descending, then N/A
   /// entries ordered by file path and line (Dart's sort is unstable, so
   /// equal keys need an explicit tie-break to keep file order).
+  ///
+  /// The sign constants are equivalent-mutant territory: Dart's
+  /// `List.sort` is sign-based (`> 0` vs `<= 0`), so `-1` and `0` reach
+  /// the same insertion point for every input — no test can distinguish
+  /// them (verified: both mutants pass the full suite).
   List<MethodMetrics> get sorted {
     final copy = List<MethodMetrics>.of(metrics);
     copy.sort((a, b) {
@@ -48,14 +55,7 @@ class CrapReport {
   }
 
   /// Maximum numeric CRAP score, or `0.0` when no numeric scores exist.
-  double get maxCrap {
-    var max = 0.0;
-    for (final m in metrics) {
-      final crap = m.crap;
-      if (crap != null && crap > max) max = crap;
-    }
-    return max;
-  }
+  double get maxCrap => metrics.map((m) => m.crap ?? 0.0).fold(0.0, math.max);
 
   /// Whether the maximum CRAP score exceeds [threshold].
   bool isThresholdExceeded(double threshold) => maxCrap > threshold;
