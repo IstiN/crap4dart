@@ -106,6 +106,62 @@ class _ExtendedGateConfigReaders {
     );
   }
 
+  static MutationGateConfig readMutation(
+    Object? node,
+    MutationGateConfig base,
+    String path,
+  ) {
+    return _ConfigScalars.readGateConfig(
+      node,
+      base,
+      path,
+      'gates.mutation',
+      const {
+        _enabledKey,
+        _severityKey,
+        _ignorableKey,
+        'min_score',
+        'max_survivors',
+        'timeout_seconds',
+        'max_mutants',
+        'operators',
+        _excludeKey,
+      },
+      (map, base, path, ctx) {
+        final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
+        final operators =
+            _ConfigScalars.strList(map, 'operators', base.operators, path, ctx);
+        for (final operator in operators) {
+          if (!mutationOperatorCategories.contains(operator)) {
+            throw ConfigException(
+              path,
+              '$ctx.operators',
+              'unknown operator category "$operator"',
+            );
+          }
+        }
+        return MutationGateConfig(
+          enabled: flags.enabled,
+          severity: flags.severity,
+          ignorable: flags.ignorable,
+          minScore: _ConfigScalars.readNum(
+              map, 'min_score', base.minScore, path, ctx),
+          maxSurvivors: _ConfigScalars.readInt(
+              map, 'max_survivors', base.maxSurvivors, path, ctx),
+          execution: MutationExecution(
+            timeoutSeconds: _ConfigScalars.readInt(map, 'timeout_seconds',
+                base.execution.timeoutSeconds, path, ctx),
+            maxMutants: _ConfigScalars.readInt(
+                map, 'max_mutants', base.execution.maxMutants, path, ctx),
+          ),
+          operators: operators,
+          exclude:
+              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+        );
+      },
+    );
+  }
+
   static ExternalGateConfig readExternal(
     Object? node,
     ExternalGateConfig base,

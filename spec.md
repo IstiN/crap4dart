@@ -432,7 +432,8 @@ Known gate ids: `loc`, `test_coverage`, `golden`, `hardcoded_strings`,
 `accessibility`, `complexity`, `method_size`, `nesting`, `class_size`,
 `weight_of_class`, `unused_code`, `unused_files`, `banned_imports`,
 `public_docs`, `duplication`, `file_naming`, `magic_constants`,
-`broken_goldens`, `test_assertions`, `folder_structure`, `external`.
+`broken_goldens`, `test_assertions`, `folder_structure`, `external`,
+`mutation`.
 
 ## 11. Quality Gates
 
@@ -442,8 +443,8 @@ Gates shall run in the fixed order: `loc`, `test_coverage`,
 `folder_structure`, `external`, `unused_code`, `unused_files`,
 `banned_imports`,
 `public_docs`, `hardcoded_strings`, `accessibility`, `golden`,
-`weight_of_class`. A gate disabled in the config shall produce a
-skipped result. The run shall fail when at least one gate fails;
+`weight_of_class`, `mutation`. A gate disabled in the config shall
+produce a skipped result. The run shall fail when at least one gate fails;
 skipped gates shall not fail the run.
 
 ### 11.0 Framework
@@ -679,6 +680,48 @@ Widgets are public classes in `widget_dirs` extending `StatelessWidget`,
 invokes `matchesGoldenFile` and references the widget by type or imports
 the widget's file. The gate fails when coverage is below
 `min_widget_coverage` (default 80.0).
+
+### 11.22 mutation
+
+Mutation testing adapted from the unclebob/mutator research
+conclusions. A declarative, category-tagged operator table is matched
+on parsed (unresolved) ASTs; replacement offsets come from analyzer
+token offsets, never regex:
+
+- `arithmetic`: `+`↔`-`, `*`↔`/`, `/`→`~/`
+- `boundary`: `>`↔`>=`, `<`↔`<=`, `>`↔`<`, `>=`↔`<=`
+- `equality`: `==`↔`!=`
+- `logical`: `&&`↔`||`
+- `boolean`: `true`↔`false`
+- `constant`: integer `0`↔`1`, `-1`→`0`
+- `unary`: delete a `!` prefix (`PrefixExpression` → operand)
+
+Binary rows match `BinaryExpression.operator` tokens; literal rows
+match boolean/integer literal tokens. Each match is a mutation site
+`{file, line, method, category, original, mutant}`.
+
+A site whose containing method has LCOV hits == 0 — or whose line has
+no positive hit when no method contains it — is `uncovered`: excluded
+from the score denominator and never executed. Every covered site is
+then mutated one at a time (one textual replacement at its exact token
+span) and the project's test command re-runs against it (`dart test`,
+or `flutter test` in Flutter projects) with a per-mutant timeout. A
+non-zero exit kills the mutant; a compile-error mutant is killed the
+same way because the test command refuses to run. A timeout counts as
+survived: the suite did not kill the mutant deterministically. The
+file is restored after every mutant.
+
+The mutation score is `killed / (killed + survived)`; uncovered sites
+are excluded. The gate fails when the score is below `min_score`
+(default 0.8) or when more than `max_survivors` (default 0) mutants
+survive, and reports one `GateViolation(file, line)` per survived
+mutant, so diff mode and baseline mode apply unchanged. Without
+coverage data or without a `test/` directory the gate skips itself.
+`timeout_seconds` (default 60) bounds each mutant, `max_mutants`
+(default 500) caps the executed sites deterministically (file order,
+then offset), `operators` selects an enabled category subset, and
+`exclude` (default generated files and `test/**`) skips files. The
+gate is disabled by default.
 
 ## 12. Baseline
 

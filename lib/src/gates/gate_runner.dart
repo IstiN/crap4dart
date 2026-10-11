@@ -18,6 +18,7 @@ import 'ignore_filter.dart';
 import 'loc_gate.dart';
 import 'magic_constants_gate.dart';
 import 'method_size_gate.dart';
+import 'mutation_gate.dart';
 import 'nesting_gate.dart';
 import 'public_docs_gate.dart';
 import 'test_assertions_gate.dart';
@@ -47,6 +48,7 @@ const String _publicDocsId = 'public_docs';
 const String _hardcodedStringsId = 'hardcoded_strings';
 const String _accessibilityId = 'accessibility';
 const String _goldenId = 'golden';
+const String _mutationId = 'mutation';
 
 /// Aggregated outcome of a [GateRunner] run.
 class GateRunResult {
@@ -105,6 +107,7 @@ class GateRunner {
         const AccessibilityGate(),
         const GoldenGate(),
         const WeightOfClassGate(),
+        MutationGate(),
       ];
 
   /// Runs every enabled gate against [context].
@@ -217,6 +220,7 @@ class GateRunner {
         _hardcodedStringsId => gates.hardcodedStrings.enabled,
         _accessibilityId => gates.accessibility.enabled,
         _goldenId => gates.golden.enabled,
+        _mutationId => gates.mutation.enabled,
         _ => false,
       };
 
@@ -242,6 +246,7 @@ class GateRunner {
         _hardcodedStringsId => gates.hardcodedStrings.ignorable,
         _accessibilityId => gates.accessibility.ignorable,
         _goldenId => gates.golden.ignorable,
+        _mutationId => gates.mutation.ignorable,
         _ => false,
       };
 
@@ -267,6 +272,7 @@ class GateRunner {
         _hardcodedStringsId => gates.hardcodedStrings.severity,
         _accessibilityId => gates.accessibility.severity,
         _goldenId => gates.golden.severity,
+        _mutationId => gates.mutation.severity,
         _ => GateSeverity.error,
       };
 

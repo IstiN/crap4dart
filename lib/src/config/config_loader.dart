@@ -67,6 +67,7 @@ class ConfigLoader {
     'test_assertions',
     'folder_structure',
     'external',
+    'mutation',
   };
 
   /// Loads the configuration for the project at [projectRoot].
@@ -275,6 +276,8 @@ class ConfigLoader {
           map['folder_structure'], base.folderStructure, path),
       external: _ExtendedGateConfigReaders.readExternal(
           map['external'], base.external, path),
+      mutation: _ExtendedGateConfigReaders.readMutation(
+          map['mutation'], base.mutation, path),
       flutter: FlutterGatesConfig(
         golden: _GateConfigReaders.readGolden(
             map['golden'], base.flutter.golden, path),

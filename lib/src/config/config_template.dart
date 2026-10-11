@@ -272,6 +272,30 @@ gates:
       # - id: swiftlint
       #   executable: swiftlint
       #   arguments: ['lint', '--reporter', 'checkstyle', '>'] # see docs
+  # Mutation testing: mutate one operator/literal at a time and re-run
+  # the test suite per mutant. Expensive — disabled by default; enable
+  # explicitly once the suite is fast. Sites in unexecuted code are
+  # excluded from the score.
+  mutation:
+    # Enable mutation testing (requires coverage data and a test suite).
+    enabled: false
+    # Minimum required mutation score (killed / (killed + survived)).
+    min_score: 0.8
+    # Maximum tolerated survived mutants, even above min_score.
+    max_survivors: 0
+    # Per-mutant timeout in seconds; a timeout counts as survived.
+    timeout_seconds: 60
+    # Performance cap: at most this many covered sites are executed.
+    max_mutants: 500
+    # Operator categories to enable (default: all).
+    operators: [arithmetic, boundary, equality, logical, boolean, constant,
+                unary]
+    # Glob patterns excluded from the gate.
+    exclude:
+      - '**.g.dart'
+      - '**.freezed.dart'
+      - '**.mocks.dart'
+      - 'test/**'
   # Require dartdoc comments on the public API.
   public_docs:
     enabled: true

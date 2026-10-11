@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Added
+
+- `mutation` gate (22nd gate, disabled by default): mutation testing
+  adapted from the unclebob/mutator research conclusions. A
+  declarative category-tagged operator table (`arithmetic`, `boundary`,
+  `equality`, `logical`, `boolean`, `constant`, `unary`) is matched on
+  parsed ASTs (token offsets, never regex); covered sites are mutated
+  one at a time and the test suite re-runs per mutant (non-zero exit
+  kills — compile errors included; timeout counts as survived).
+  Uncovered sites are excluded from the score. New `gates.mutation`
+  keys: `min_score` (0.8), `max_survivors` (0), `timeout_seconds`
+  (60), `max_mutants` (500), `operators` (all), `exclude` (generated +
+  `test/**`), plus the standard `enabled`/`severity`/`ignorable`. One
+  `GateViolation(file, line)` is reported per survived mutant, so diff
+  mode and baselines work unchanged.
+
 ## 0.10.0 - 2026-09-28
 
 ### Added

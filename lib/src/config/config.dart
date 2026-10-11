@@ -2,6 +2,7 @@
 library;
 
 part 'gate_configs.dart';
+part 'gate_config_mutation.dart';
 part 'threshold_entries.dart';
 
 /// Severity of a gate violation.
@@ -130,6 +131,7 @@ class GatesConfig {
     this.testAssertions = const TestAssertionsGateConfig(),
     this.folderStructure = const FolderStructureGateConfig(),
     this.external = const ExternalGateConfig(),
+    this.mutation = const MutationGateConfig(),
     this.flutter = const FlutterGatesConfig(),
   });
 
@@ -186,6 +188,9 @@ class GatesConfig {
 
   /// External tools gate (`external`).
   final ExternalGateConfig external;
+
+  /// Mutation testing gate (`mutation`).
+  final MutationGateConfig mutation;
 
   /// Flutter-specific gates grouped together.
   final FlutterGatesConfig flutter;

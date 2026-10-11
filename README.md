@@ -28,12 +28,12 @@ crap4dart is a Dart port of the Java tool
 ## Features
 
 - **CRAP analysis** per method, combining complexity and LCOV coverage
-- **21 quality gate**: `loc`, `test_coverage`, `golden`,
+- **22 quality gates**: `loc`, `test_coverage`, `golden`,
   `hardcoded_strings`, `accessibility`, `complexity`, `method_size`,
   `nesting`, `class_size`, `weight_of_class`, `unused_code`,
   `unused_files`, `banned_imports`, `public_docs`, `duplication`,
   `file_naming`, `magic_constants`, `broken_goldens`, `test_assertions`,
-  `folder_structure`, `external`
+  `folder_structure`, `external`, `mutation`
 - **Gate framework**: per-path thresholds (`entries`), warning
   severity, baseline mode, opt-in ignore markers
 - **Configuration** via `crap4dart.yaml` with strict validation
@@ -335,6 +335,27 @@ gates:
       - 'test/**'
     # Extra whole-stem names allowed to end in digits (technical terms).
     allow: []
+  # Mutation testing: mutate one operator/literal at a time and re-run
+  # the test suite per mutant. Expensive — disabled by default.
+  mutation:
+    enabled: false
+    # Minimum required mutation score (killed / (killed + survived)).
+    min_score: 0.8
+    # Maximum tolerated survived mutants, even above min_score.
+    max_survivors: 0
+    # Per-mutant timeout in seconds; a timeout counts as survived.
+    timeout_seconds: 60
+    # Performance cap: at most this many covered sites are executed.
+    max_mutants: 500
+    # Operator categories to enable (default: all).
+    operators: [arithmetic, boundary, equality, logical, boolean,
+                constant, unary]
+    # Glob patterns excluded from the gate.
+    exclude:
+      - '**.g.dart'
+      - '**.freezed.dart'
+      - '**.mocks.dart'
+      - 'test/**'
   # Require dartdoc comments on the public API.
   public_docs:
     enabled: true
@@ -531,6 +552,24 @@ gates:
   in files matching `from` (e.g. `lib/ui/**` must not import
   `**/data/**` or `dart:io`). Import URIs and their project-relative
   resolved paths are both matched. With no rules the gate passes.
+- **mutation** — mutation testing (adapted from the unclebob/mutator
+  research conclusions): a declarative, category-tagged operator table
+  (`arithmetic` `+`/`-`, `*`/`/`, `/`→`~/`; `boundary` `>`↔`>=`,
+  `<`↔`<=`, `>`↔`<`, `>=`↔`<=`; `equality` `==`↔`!=`; `logical`
+  `&&`↔`||`; `boolean` `true`↔`false`; `constant` `0`↔`1`, `-1`→`0`;
+  `unary` delete `!`) is matched on the parsed AST — offsets come from
+  analyzer tokens, never regex. Sites in unexecuted methods are
+  `uncovered` and excluded from the score denominator; every covered
+  site is mutated one at a time and the test suite re-runs per mutant
+  (a non-zero exit kills the mutant — compile-error mutants die the
+  same way because `dart test` refuses to run; a timeout counts as
+  survived). The gate fails below `min_score` (default 0.8) or above
+  `max_survivors` (default 0), reporting one violation per survived
+  mutant, and skips itself when there is no coverage data or no test
+  directory. Disabled by default: mutation testing runs the test suite
+  once per mutant, so enable it only on fast suites. `operators`
+  selects a category subset; `max_mutants` (default 500) caps the
+  executed sites; `timeout_seconds` (default 60) guards each mutant.
 
 ## Baseline
 
