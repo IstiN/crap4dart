@@ -18,9 +18,8 @@ void main() {
   tearDown(() => project.deleteSync(recursive: true));
 
   test('passes when every covered mutant is killed', () async {
-    final result =
-        await mutationGateWith((root, timeout) async => MutantOutcome.killed)
-            .run(
+    final result = await mutationGateWith(
+        (root, timeout, args) async => MutantOutcome.killed).run(
       makeContext(project, ['lib/a.dart'], lcov: mutationFixtureLcov()),
     );
     expect(result.passed, isTrue);
@@ -30,9 +29,8 @@ void main() {
   });
 
   test('fails with one violation per survived mutant', () async {
-    final result =
-        await mutationGateWith((root, timeout) async => MutantOutcome.survived)
-            .run(
+    final result = await mutationGateWith(
+        (root, timeout, args) async => MutantOutcome.survived).run(
       makeContext(project, ['lib/a.dart'], lcov: mutationFixtureLcov()),
     );
     expect(result.passed, isFalse);
@@ -48,9 +46,8 @@ void main() {
   });
 
   test('timeouts count as survived', () async {
-    final result =
-        await mutationGateWith((root, timeout) async => MutantOutcome.timeout)
-            .run(
+    final result = await mutationGateWith(
+        (root, timeout, args) async => MutantOutcome.timeout).run(
       makeContext(project, ['lib/a.dart'], lcov: mutationFixtureLcov()),
     );
     expect(result.passed, isFalse);
@@ -60,18 +57,16 @@ void main() {
   test('compile-error mutants are killed by the non-zero test exit', () async {
     // The runner contract maps any non-zero `dart test` exit —
     // including compilation failure — to `killed`.
-    final result =
-        await mutationGateWith((root, timeout) async => MutantOutcome.killed)
-            .run(
+    final result = await mutationGateWith(
+        (root, timeout, args) async => MutantOutcome.killed).run(
       makeContext(project, ['lib/a.dart'], lcov: mutationFixtureLcov()),
     );
     expect(result.passed, isTrue);
   });
 
   test('passes with no covered sites when everything is uncovered', () async {
-    final result =
-        await mutationGateWith((root, timeout) async => MutantOutcome.survived)
-            .run(
+    final result = await mutationGateWith(
+        (root, timeout, args) async => MutantOutcome.survived).run(
       makeContext(
         project,
         ['lib/a.dart'],

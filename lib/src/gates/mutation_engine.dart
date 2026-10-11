@@ -31,10 +31,12 @@ typedef MutantOutcomeRecord = ({
 
 /// Signature of the per-mutant test runner — inject a fake in tests
 /// instead of running real test suites. The test invocation arguments
-/// (`test_args`) are bound when the engine is created, not per call.
+/// are resolved per site by the engine ([MutationEngine.run]'s
+/// `testArgsFor`) and passed to every call.
 typedef MutantTestRunner = Future<MutantOutcome> Function(
   String projectRoot,
   Duration timeout,
+  List<String> testArgs,
 );
 
 /// Thrown when the test command cannot be spawned at all; the gate
@@ -61,7 +63,12 @@ typedef MutantProcessSpawner = Future<Process> Function(
 /// The result of running every mutant of one engine invocation.
 class MutationRunResult {
   /// Creates a [MutationRunResult].
-  MutationRunResult(this.outcomes, {this.integrityViolations = const []});
+  MutationRunResult(
+    this.outcomes, {
+    this.integrityViolations = const [],
+    this.scopedCount = 0,
+    this.confirmedCount = 0,
+  });
 
   /// Per-site outcomes; every input site appears exactly once.
   final List<MutantOutcomeRecord> outcomes;
@@ -72,6 +79,17 @@ class MutationRunResult {
   /// killed process) — the tree is healed, but the run must be treated
   /// as suspect.
   final List<String> integrityViolations;
+
+  /// Sites executed with test arguments other than the full invocation
+  /// (test-scoping); see [MutationEngine.run]'s `testArgsFor`.
+  final int scopedCount;
+
+  /// Scoped sites whose first (scoped) run survived but whose
+  /// confirmation run against the full invocation killed the mutant.
+  /// Scoped survival is not trustworthy on its own — a scoped run may
+  /// omit the killing test — so survivors are re-confirmed; only these
+  /// two counters tell how much scoping actually saved.
+  final int confirmedCount;
 
   /// Mutants killed by the test suite (compile errors included).
   int get killed =>
@@ -100,6 +118,45 @@ class MutationRunResult {
   }
 }
 
+/// Shared state of one [MutationEngine.run] invocation, bundling the
+/// invocation context with the mutable run accumulators so the loop
+/// helpers stay within the method-size limits.
+class _RunState {
+  /// Creates a [_RunState] for one run.
+  _RunState({
+    required this.projectRoot,
+    required this.timeout,
+    required this.runner,
+    required this.testArgs,
+    required this.caching,
+  });
+
+  /// Project root of the test invocations.
+  final String projectRoot;
+
+  /// Per-mutant timeout.
+  final Duration timeout;
+
+  /// The per-mutant test runner (injected or the real process spawn).
+  final MutantTestRunner runner;
+
+  /// The full test invocation argument list.
+  final List<String> testArgs;
+
+  /// The cache session, or `null` when caching is disabled.
+  final MutationCacheSession? caching;
+
+  /// Per-site outcomes; every input site appears exactly once.
+  final outcomes = <MutantOutcomeRecord>[];
+
+  /// Indices into [outcomes] whose scoped first run survived and that
+  /// still owe a confirmation run against [testArgs].
+  final scopedSurvivors = <int>[];
+
+  /// Fresh per-method outcomes to merge into the cache after the run.
+  final fresh = <String, ({String digest, List<CachedOutcome> outcomes})>{};
+}
+
 /// Applies single-token mutations one at a time and runs the project's
 /// test command against each mutant, restoring the file afterwards.
 ///
@@ -110,13 +167,23 @@ class MutationRunResult {
 class MutationEngine {
   /// Creates a [MutationEngine]; [runner] overrides the per-mutant
   /// test runner (injected in tests); without it the suite runs as
-  /// `dart <testArgs>` (or `flutter <testArgs>`) per mutant.
+  /// `dart <args...>` (or `flutter <args...>`) per mutant.
   MutationEngine({MutantTestRunner? runner}) : _injected = runner;
 
   final MutantTestRunner? _injected;
 
   /// Runs every [site] of the project at [projectRoot], giving each
   /// mutant up to [timeout].
+  ///
+  /// [testArgs] is the full test invocation (default `['test']`).
+  /// [testArgsFor] may resolve narrower per-site arguments (test
+  /// scoping): a scoped invocation is a SUBSET of the full suite, so a
+  /// scoped kill is monotone — the full suite kills that mutant too —
+  /// and is cached as a regular kill. Scoped survival is NOT monotone
+  /// (the scoped run may omit the killing test), so every scoped
+  /// survivor is re-executed once against [testArgs] before the outcome
+  /// is final (counted in [MutationRunResult.confirmedCount] when the
+  /// confirmation kills it).
   ///
   /// The first [MutationTestUnavailableException] propagates: the caller
   /// (the gate) converts it into a skipped result.
@@ -125,44 +192,99 @@ class MutationEngine {
     required List<MutationSite> sites,
     required Duration timeout,
     List<String> testArgs = const ['test'],
+    List<String>? Function(MutationSite site)? testArgsFor,
     MutationCacheSession? caching,
   }) async {
     final runner = _injected ??
-        (root, duration) => runMutantTests(root, duration, testArgs: testArgs);
-    final outcomes = <MutantOutcomeRecord>[];
-    final fresh = <String, ({String digest, List<CachedOutcome> outcomes})>{};
+        (root, duration, args) =>
+            runMutantTests(root, duration, testArgs: args);
     // Safety net: snapshot every file about to be mutated so the end of
     // the run can prove the tree is byte-identical to the start. A
     // real fa_llm run once ended with a leftover mutant on disk despite
     // the per-site finally-restore; silent tree corruption must become
     // a loud, self-healing error instead.
     final originals = _snapshotOriginals(sites);
+    final state = _RunState(
+      projectRoot: projectRoot,
+      timeout: timeout,
+      runner: runner,
+      testArgs: testArgs,
+      caching: caching,
+    );
     var integrityViolations = const <String>[];
+    var confirmedCount = 0;
     try {
-      for (final site in sites) {
-        final method = caching?.siteMethods[site];
-        final replayed =
-            method == null ? null : caching!.cache.replayKill(method, site);
-        if (method != null && replayed != null) {
-          outcomes.add(
-              (site: site, outcome: MutantOutcome.killed, fromCache: true));
-          _accumulate(fresh, method, replayed);
-          continue;
-        }
-        final outcome = await _executeSite(site, projectRoot, timeout, runner);
-        outcomes.add((site: site, outcome: outcome, fromCache: false));
-        if (method != null) {
-          _accumulate(fresh, method, _cached(site, outcome, method));
-        }
-      }
+      await _executeAll(sites, testArgsFor, state);
+      confirmedCount = await _confirmScoped(state);
     } finally {
       // End-of-run integrity check: restore any file that does not match
       // its snapshot, even when the loop died mid-mutant.
       integrityViolations = _verifyIntegrity(originals);
     }
-    _persist(caching, fresh);
-    return MutationRunResult(outcomes,
-        integrityViolations: integrityViolations);
+    _persist(caching, state.fresh);
+    return MutationRunResult(
+      state.outcomes,
+      integrityViolations: integrityViolations,
+      scopedCount: state.scopedSurvivors.length,
+      confirmedCount: confirmedCount,
+    );
+  }
+
+  /// Runs every site once: cache replays, scoped or full executions.
+  /// Scoped survivors are deferred (indices in [state.scopedSurvivors])
+  /// for [_confirmScoped]; everything else is accumulated into
+  /// [state.fresh].
+  Future<void> _executeAll(
+    List<MutationSite> sites,
+    List<String>? Function(MutationSite site)? testArgsFor,
+    _RunState state,
+  ) async {
+    for (final site in sites) {
+      final method = state.caching?.siteMethods[site];
+      final replayed =
+          method == null ? null : state.caching!.cache.replayKill(method, site);
+      if (method != null && replayed != null) {
+        state.outcomes
+            .add((site: site, outcome: MutantOutcome.killed, fromCache: true));
+        _accumulate(state.fresh, method, replayed);
+        continue;
+      }
+      final scopedArgs = testArgsFor?.call(site);
+      final outcome = await _executeSite(
+        site,
+        state.projectRoot,
+        state.timeout,
+        state.runner,
+        scopedArgs ?? state.testArgs,
+      );
+      state.outcomes.add((site: site, outcome: outcome, fromCache: false));
+      if (scopedArgs != null && outcome != MutantOutcome.killed) {
+        // Scoped survival is unverified: confirm against the full
+        // invocation before caching or reporting the outcome.
+        state.scopedSurvivors.add(state.outcomes.length - 1);
+      } else if (method != null) {
+        _accumulate(state.fresh, method, _cached(site, outcome, method));
+      }
+    }
+  }
+
+  /// Re-runs every deferred scoped survivor against the full
+  /// invocation; returns how many confirmations killed the mutant.
+  Future<int> _confirmScoped(_RunState state) async {
+    var confirmedCount = 0;
+    for (final index in state.scopedSurvivors) {
+      final record = state.outcomes[index];
+      final outcome = await _executeSite(record.site, state.projectRoot,
+          state.timeout, state.runner, state.testArgs);
+      state.outcomes[index] =
+          (site: record.site, outcome: outcome, fromCache: false);
+      if (outcome == MutantOutcome.killed) confirmedCount++;
+      final method = state.caching?.siteMethods[record.site];
+      if (method != null) {
+        _accumulate(state.fresh, method, _cached(record.site, outcome, method));
+      }
+    }
+    return confirmedCount;
   }
 
   /// Snapshots the current content of every file [sites] touch.
@@ -195,12 +317,13 @@ class MutationEngine {
     String projectRoot,
     Duration timeout,
     MutantTestRunner runner,
+    List<String> testArgs,
   ) async {
     final file = File(site.file);
     final original = file.readAsStringSync();
     file.writeAsStringSync(site.applyTo(original));
     try {
-      return await runner(projectRoot, timeout);
+      return await runner(projectRoot, timeout, testArgs);
     } finally {
       // Always restore the file, also after timeouts and errors.
       file.writeAsStringSync(original);

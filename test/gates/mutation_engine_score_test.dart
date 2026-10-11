@@ -29,7 +29,7 @@ void main() {
   tearDown(() => dir.deleteSync(recursive: true));
 
   Future<MutationRunResult> runWith(MutantOutcome outcome) =>
-      MutationEngine(runner: (root, timeout) async => outcome).run(
+      MutationEngine(runner: (root, timeout, args) async => outcome).run(
         projectRoot: dir.path,
         sites: [site(file), site(file)],
         timeout: const Duration(seconds: 5),
@@ -39,7 +39,7 @@ void main() {
     var call = 0;
     final outcomes = [MutantOutcome.killed, MutantOutcome.survived];
     final engine = MutationEngine(
-      runner: (root, timeout) async => outcomes[call++],
+      runner: (root, timeout, args) async => outcomes[call++],
     );
     final result = await engine.run(
       projectRoot: dir.path,
@@ -60,7 +60,7 @@ void main() {
 
   test('survivors are grouped by category', () async {
     final engine = MutationEngine(
-      runner: (root, timeout) async => MutantOutcome.survived,
+      runner: (root, timeout, args) async => MutantOutcome.survived,
     );
     final result = await engine.run(
       projectRoot: dir.path,
@@ -73,7 +73,7 @@ void main() {
   test('passes the project root and timeout to the runner', () async {
     Duration? seenTimeout;
     String? seenRoot;
-    final engine = MutationEngine(runner: (root, timeout) async {
+    final engine = MutationEngine(runner: (root, timeout, args) async {
       seenRoot = root;
       seenTimeout = timeout;
       return MutantOutcome.killed;

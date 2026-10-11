@@ -121,7 +121,8 @@ void replayTests() {
       final sites = detectSites('lib/a.dart', fileASource);
       expect(sites, hasLength(2));
       var calls = 0;
-      Future<MutantOutcome> counting(String root, Duration timeout) async {
+      Future<MutantOutcome> counting(
+          String root, Duration timeout, List<String> args) async {
         calls++;
         return MutantOutcome.killed;
       }
@@ -158,7 +159,7 @@ void replayTests() {
         sites: sites,
         refs: bindRefs('lib/a.dart', fileASource, sites),
         live: liveKeys('lib/a.dart', fileASource),
-        runner: (root, timeout) async =>
+        runner: (root, timeout, args) async =>
             ++call == 1 ? MutantOutcome.killed : MutantOutcome.survived,
       );
       expect(first.killed, 1);
@@ -169,7 +170,7 @@ void replayTests() {
         sites: sites,
         refs: bindRefs('lib/a.dart', fileASource, sites),
         live: liveKeys('lib/a.dart', fileASource),
-        runner: (root, timeout) async {
+        runner: (root, timeout, args) async {
           secondCalls++;
           return MutantOutcome.killed;
         },
@@ -191,7 +192,7 @@ void invalidationTests() {
         sites: sites,
         refs: bindRefs('lib/a.dart', fileASource, sites),
         live: liveKeys('lib/a.dart', fileASource),
-        runner: (root, timeout) async => MutantOutcome.killed,
+        runner: (root, timeout, args) async => MutantOutcome.killed,
       );
       expect(first.killed, 2);
 
@@ -207,7 +208,7 @@ void invalidationTests() {
         sites: editedSites,
         refs: bindRefs('lib/a.dart', edited, editedSites),
         live: liveKeys('lib/a.dart', edited),
-        runner: (root, timeout) async {
+        runner: (root, timeout, args) async {
           calls++;
           return MutantOutcome.killed;
         },
@@ -224,14 +225,14 @@ void invalidationTests() {
         sites: sites,
         refs: bindRefs('lib/a.dart', fileASource, sites),
         live: liveKeys('lib/a.dart', fileASource),
-        runner: (root, timeout) async => MutantOutcome.killed,
+        runner: (root, timeout, args) async => MutantOutcome.killed,
       );
       var calls = 0;
       final second = await runCached(
         sites: sites,
         refs: bindRefs('lib/a.dart', fileASource, sites),
         live: liveKeys('lib/a.dart', fileASource),
-        runner: (root, timeout) async {
+        runner: (root, timeout, args) async {
           calls++;
           return MutantOutcome.killed;
         },
@@ -262,7 +263,7 @@ void pruningTests() {
         ...liveKeys('lib/a.dart', fileASource),
         ...liveKeys('lib/b.dart', fileBSource),
       },
-      runner: (root, timeout) async => MutantOutcome.killed,
+      runner: (root, timeout, args) async => MutantOutcome.killed,
     );
     final cacheFile = p.join(dir.path, mutationCacheFileName);
     expect(MutationCache.load(path: cacheFile, meta: meta).methods.keys,
@@ -275,7 +276,7 @@ void pruningTests() {
       sites: sitesA,
       refs: bindRefs('lib/a.dart', fileASource, sitesA),
       live: liveKeys('lib/a.dart', fileASource),
-      runner: (root, timeout) async {
+      runner: (root, timeout, args) async {
         calls++;
         return MutantOutcome.killed;
       },
@@ -306,7 +307,7 @@ void crossFileKeyTests() {
       sites: [...sitesA, ...sitesB],
       refs: allRefs(),
       live: allLive(),
-      runner: (root, timeout) async => ++call <= sitesA.length
+      runner: (root, timeout, args) async => ++call <= sitesA.length
           ? MutantOutcome.killed
           : MutantOutcome.survived,
     );
@@ -316,7 +317,7 @@ void crossFileKeyTests() {
       sites: [...sitesA, ...sitesB],
       refs: allRefs(),
       live: allLive(),
-      runner: (root, timeout) async {
+      runner: (root, timeout, args) async {
         secondCalls++;
         return MutantOutcome.killed;
       },
@@ -346,7 +347,7 @@ void integrityTests() {
       ...detectSites('lib/b.dart', fileBSource),
     ];
     final result = await MutationEngine(
-      runner: (root, timeout) async => MutantOutcome.killed,
+      runner: (root, timeout, args) async => MutantOutcome.killed,
     ).run(
       projectRoot: dir.path,
       sites: sites,
@@ -365,7 +366,7 @@ void integrityTests() {
     var call = 0;
     await expectLater(
       MutationEngine(
-        runner: (root, timeout) async => ++call == 1
+        runner: (root, timeout, args) async => ++call == 1
             ? MutantOutcome.killed
             : throw MutationTestUnavailableException('gone'),
       ).run(

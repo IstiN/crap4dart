@@ -298,6 +298,12 @@ gates:
     # suite is your responsibility: a mutant is killed only if the
     # scoped suite would kill it.
     test_args: ['test']
+    # Per-mutant test scoping: narrow each mutant's run to the derived
+    # test file(s) of the mutated file (lib/src/foo/bar.dart ->
+    # test/src/foo/bar_test.dart, test/foo/bar_test.dart); falls back
+    # to test_args when no candidate exists. Scoped kills are cached;
+    # scoped survivors are re-confirmed against the full invocation.
+    scope_tests: false
     # Glob patterns excluded from the gate.
     exclude:
       - '**.g.dart'

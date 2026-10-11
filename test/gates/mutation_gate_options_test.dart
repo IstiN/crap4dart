@@ -19,7 +19,7 @@ void main() {
 
   test('honors the exclude globs', () async {
     var calls = 0;
-    await mutationGateWith((root, timeout) async {
+    await mutationGateWith((root, timeout, args) async {
       calls++;
       return MutantOutcome.killed;
     }).run(
@@ -35,7 +35,7 @@ void main() {
 
   test('restricts sites to the configured operator categories', () async {
     var calls = 0;
-    await mutationGateWith((root, timeout) async {
+    await mutationGateWith((root, timeout, args) async {
       calls++;
       return MutantOutcome.survived;
     }).run(

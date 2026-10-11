@@ -30,7 +30,7 @@ void main() {
 
   test('mutates one site at a time and restores the file', () async {
     final seen = <String>[];
-    final engine = MutationEngine(runner: (root, timeout) async {
+    final engine = MutationEngine(runner: (root, timeout, args) async {
       seen.add(File(file).readAsStringSync());
       return MutantOutcome.killed;
     });
@@ -50,7 +50,7 @@ void main() {
 
   test('restores the file when the runner throws', () async {
     final engine = MutationEngine(
-      runner: (root, timeout) => throw MutationTestUnavailableException(
+      runner: (root, timeout, args) => throw MutationTestUnavailableException(
         'dart not found on PATH: no such file',
       ),
     );

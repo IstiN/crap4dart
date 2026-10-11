@@ -19,18 +19,17 @@ void main() {
   tearDown(() => project.deleteSync(recursive: true));
 
   test('skips when there is no coverage data', () async {
-    final result =
-        await mutationGateWith((root, timeout) async => MutantOutcome.killed)
-            .run(makeContext(project, ['lib/a.dart']));
+    final result = await mutationGateWith(
+            (root, timeout, args) async => MutantOutcome.killed)
+        .run(makeContext(project, ['lib/a.dart']));
     expect(result.skipped, isTrue);
     expect(result.skipReason, contains('no coverage data'));
   });
 
   test('skips when the project has no test directory', () async {
     Directory('${project.path}/test').deleteSync(recursive: true);
-    final result =
-        await mutationGateWith((root, timeout) async => MutantOutcome.killed)
-            .run(
+    final result = await mutationGateWith(
+        (root, timeout, args) async => MutantOutcome.killed).run(
       makeContext(project, ['lib/a.dart'], lcov: mutationFixtureLcov()),
     );
     expect(result.skipped, isTrue);
@@ -39,7 +38,7 @@ void main() {
 
   test('skips when the test command cannot be spawned', () async {
     final result = await mutationGateWith(
-      (root, timeout) =>
+      (root, timeout, args) =>
           throw MutationTestUnavailableException('dart not found'),
     ).run(makeContext(project, ['lib/a.dart'], lcov: mutationFixtureLcov()));
     expect(result.skipped, isTrue);

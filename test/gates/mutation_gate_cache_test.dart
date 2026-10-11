@@ -29,9 +29,9 @@ Future<({bool passed, String summary, int calls, int cached})> runGate(
   String? configYaml,
 }) async {
   var calls = 0;
-  final result = await mutationGateWith((root, timeout) async {
+  final result = await mutationGateWith((root, timeout, args) async {
     calls++;
-    return runner(root, timeout);
+    return runner(root, timeout, args);
   }).run(
     makeContext(
       project,
@@ -53,7 +53,7 @@ Future<({bool passed, String summary, int calls, int cached})> runGate(
 void replayTests() {
   test('second gate run replays cached kills with zero runner calls', () async {
     final first = await runGate(
-      (root, timeout) async => MutantOutcome.killed,
+      (root, timeout, args) async => MutantOutcome.killed,
       configYaml: 'gates:\n  mutation:\n',
     );
     expect(first.calls, 2);
@@ -62,7 +62,7 @@ void replayTests() {
     expect(File(cacheFile()).existsSync(), isTrue);
 
     final second = await runGate(
-      (root, timeout) async => MutantOutcome.killed,
+      (root, timeout, args) async => MutantOutcome.killed,
       configYaml: 'gates:\n  mutation:\n',
     );
     expect(second.calls, 0, reason: 'killed mutants replay from the cache');
@@ -74,7 +74,7 @@ void replayTests() {
 
   test('identical verdicts across runs with survivors re-executed', () async {
     var firstCalls = 0;
-    final first = await runGate((root, timeout) async {
+    final first = await runGate((root, timeout, args) async {
       firstCalls++;
       return firstCalls == 1 ? MutantOutcome.killed : MutantOutcome.survived;
     },
@@ -85,7 +85,7 @@ void replayTests() {
     expect(first.passed, isTrue);
 
     var calls = 0;
-    final second = await runGate((root, timeout) async {
+    final second = await runGate((root, timeout, args) async {
       calls++;
       return MutantOutcome.survived;
     },
@@ -101,7 +101,7 @@ void replayTests() {
 void configSwitchTests() {
   test('cache: false disables load, replay and persistence', () async {
     final result = await runGate(
-      (root, timeout) async => MutantOutcome.killed,
+      (root, timeout, args) async => MutantOutcome.killed,
       configYaml: 'gates:\n  mutation:\n    cache: false\n',
     );
     expect(result.calls, 2);
@@ -111,11 +111,11 @@ void configSwitchTests() {
 
   test('a test_args change wipes the cache (meta guard)', () async {
     await runGate(
-      (root, timeout) async => MutantOutcome.killed,
+      (root, timeout, args) async => MutantOutcome.killed,
       configYaml: 'gates:\n  mutation:\n',
     );
     final second = await runGate(
-      (root, timeout) async => MutantOutcome.killed,
+      (root, timeout, args) async => MutantOutcome.killed,
       configYaml: 'gates:\n  mutation:\n'
           "    test_args: ['test', 'test/a_test.dart']\n",
     );

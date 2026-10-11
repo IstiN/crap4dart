@@ -127,6 +127,7 @@ class _ExtendedGateConfigReaders {
         'operators',
         'cache',
         'test_args',
+        'scope_tests',
         _excludeKey,
       },
       (map, base, path, ctx) {
@@ -159,6 +160,8 @@ class _ExtendedGateConfigReaders {
             cache: _ConfigScalars.readBool(
                 map, 'cache', base.execution.cache, path, ctx),
             testArgs: _testArgs(map, base, path, ctx),
+            testScope: _ConfigScalars.readBool(
+                map, 'scope_tests', base.execution.testScope, path, ctx),
           ),
           exclude:
               _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),

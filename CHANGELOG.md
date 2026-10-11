@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.12.2 — 2026-10-11
+
+### Added
+
+- `mutation` gate: diff-scoped execution — under `--diff` / `--diff-base`
+  only sites whose containing method intersects the changed lines are
+  executed at all (sites outside the diff are neither executed nor
+  counted), so a per-PR run pays only for the mutants of the changed
+  methods.
+- `mutation` gate: `scope_tests` (default false) — per-mutant test
+  scoping to the derived test file(s) of the mutated file
+  (`lib/src/foo/bar.dart` → `test/src/foo/bar_test.dart`,
+  `test/foo/bar_test.dart`), falling back to `test_args` when no
+  candidate exists. A scoped kill is monotone (the scoped invocation is
+  a subset of the full suite) and is cached as a regular kill; a scoped
+  survivor — a timeout included — is re-confirmed once against the full
+  invocation, and only the confirmed outcome is reported and cached.
+
 ## 0.12.1 — 2026-10-11
 
 ### Fixed

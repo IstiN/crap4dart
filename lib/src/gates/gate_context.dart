@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import '../analysis/dart_parser.dart';
 import '../config/config.dart';
 import '../coverage/lcov_parser.dart';
+import '../files/diff_parser.dart';
 import '../files/flutter_project.dart' as files_flutter;
 
 /// Shared input for all quality gates: project root, config, target files,
@@ -18,6 +19,7 @@ class GateContext {
     required this.files,
     this.lcov,
     this.partialSelection = false,
+    this.diff,
   });
 
   /// Absolute path of the project root.
@@ -37,6 +39,12 @@ class GateContext {
   /// (unused_code, unused_files) skip themselves in partial runs: their
   /// verdicts need every file's imports and references.
   final bool partialSelection;
+
+  /// Added/changed lines of the current diff run (`--diff` / `--diff-base`),
+  /// or `null` in full runs. Gates that can scope their work (the
+  /// mutation gate) intersect their candidate set with the diff BEFORE
+  /// executing instead of only filtering reported violations afterwards.
+  final DiffLineMap? diff;
 
   final Map<String, ParsedUnit> _astCache = {};
   final Map<String, List<String>> _linesCache = {};

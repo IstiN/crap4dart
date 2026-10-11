@@ -10,6 +10,7 @@ void main() {
   defaultsAndParsingTests();
   strictValidationTests();
   knownGateTests();
+  scopeTestsKeyTests();
 }
 
 void defaultsAndParsingTests() {
@@ -42,6 +43,7 @@ void defaultsAndParsingTests() {
       '    operators: [arithmetic, boundary]\n'
       '    cache: false\n'
       "    test_args: ['test', 'test/copilot']\n"
+      '    scope_tests: true\n'
       '    exclude: [lib/gen/**]\n',
     );
     expect(config.enabled, isTrue);
@@ -54,6 +56,7 @@ void defaultsAndParsingTests() {
     expect(config.operators, ['arithmetic', 'boundary']);
     expect(config.execution.cache, isFalse);
     expect(config.execution.testArgs, ['test', 'test/copilot']);
+    expect(config.execution.testScope, isTrue);
     expect(config.exclude, ['lib/gen/**']);
   });
 
@@ -114,5 +117,15 @@ void strictValidationTests() {
 void knownGateTests() {
   test('mutation is a known gate id for --only/--skip filtering', () {
     expect(ConfigLoader.knownGates, contains('mutation'));
+  });
+}
+
+void scopeTestsKeyTests() {
+  test('scope_tests defaults to off and rejects non-boolean strictly', () {
+    expect(load('gates:\n  mutation:\n').execution.testScope, isFalse);
+    expect(
+      () => load('gates:\n  mutation:\n    scope_tests: yes\n'),
+      throwsA(isA<ConfigException>()),
+    );
   });
 }

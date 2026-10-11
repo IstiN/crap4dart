@@ -747,6 +747,29 @@ only if the scoped suite would kill it. Validation is strict: a
 non-list, a non-string member or an empty list/string is a config
 error.
 
+Diff-scoped execution: when the run carries a diff (`--diff` /
+`--diff-base`), the gate intersects the candidate sites with the
+changed lines BEFORE executing, not merely filters reported violations
+afterwards: a site runs only when its containing method intersects the
+diff (falling back to the site's own line when no method contains
+it). Sites outside the diff are neither executed nor counted, so a
+per-PR run pays only for the mutants of the changed methods; post-hoc
+violation filtering stays in place and remains a subset of the
+executed sites.
+
+Per-mutant test scoping: `scope_tests` (default false) narrows each
+mutant's invocation to the derived test file(s) of the mutated file —
+`lib/…` mirrored under `test/` with and without a `src/` segment
+(`lib/src/foo/bar.dart` → `test/src/foo/bar_test.dart` and
+`test/foo/bar_test.dart`) — falling back to `test_args` when no
+candidate test file exists. A scoped invocation is a SUBSET of the
+full suite, so a scoped kill is monotone (the full suite kills that
+mutant too) and is cached as a regular kill; a scoped survivor — a
+timeout included — is NOT monotone, so it is re-confirmed once against
+the full invocation, and only the confirmed outcome is reported and
+cached. `scope_tests` is deliberately not part of the cache meta
+guard. The summary counts scoped sites and re-confirmed kills.
+
 ## 12. Baseline
 
 `check --save-baseline` shall run all enabled gates and write every

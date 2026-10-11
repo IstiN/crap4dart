@@ -51,7 +51,7 @@ Future<String> gitTopLevel(String dir) async {
 }
 
 /// Current crap4dart version.
-const String crap4dartVersion = '0.12.1';
+const String crap4dartVersion = '0.12.2';
 
 /// Shared CLI flag names used by multiple commands.
 const String _configFlag = 'config';
@@ -630,6 +630,7 @@ class CheckCommand extends Command<int> with CommandHelpers {
       files: files,
       lcov: loadLcov(projectRoot, config),
       partialSelection: prepared.partialSelection,
+      diff: prepared.diffMap,
     );
     final runner = GateRunner();
     var result = await runner.run(

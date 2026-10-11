@@ -25,7 +25,7 @@ void main() {
       () async {
     writeFile(project, 'lib/a.dart', mutationFixtureSource);
     var calls = 0;
-    final result = await mutationGateWith((root, timeout) async {
+    final result = await mutationGateWith((root, timeout, args) async {
       calls++;
       return MutantOutcome.killed;
     }).run(
@@ -44,7 +44,7 @@ void main() {
   test('sites outside methods fall back to line coverage', () async {
     writeFile(project, 'lib/t.dart', topLevelSource);
     var calls = 0;
-    final result = await mutationGateWith((root, timeout) async {
+    final result = await mutationGateWith((root, timeout, args) async {
       calls++;
       return MutantOutcome.killed;
     }).run(
@@ -63,7 +63,7 @@ void main() {
   test('uncovered lines outside methods exclude the site', () async {
     writeFile(project, 'lib/t.dart', topLevelSource);
     var calls = 0;
-    final result = await mutationGateWith((root, timeout) async {
+    final result = await mutationGateWith((root, timeout, args) async {
       calls++;
       return MutantOutcome.killed;
     }).run(

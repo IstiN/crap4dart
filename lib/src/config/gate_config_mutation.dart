@@ -21,6 +21,7 @@ class MutationExecution {
     this.maxMutants = 500,
     this.cache = true,
     this.testArgs = const ['test'],
+    this.testScope = false,
   });
 
   /// Per-mutant timeout in seconds; a timed-out mutant counts as
@@ -40,6 +41,17 @@ class MutationExecution {
   /// `['test']`. Scoping the suite is the consumer's responsibility: a
   /// mutant is killed only if the scoped suite would kill it.
   final List<String> testArgs;
+
+  /// Per-mutant test scoping: each mutant's invocation is narrowed to
+  /// the derived test file(s) for the mutated file
+  /// (`lib/src/foo/bar.dart` → `test/src/foo/bar_test.dart` and
+  /// `test/foo/bar_test.dart`, whichever exist), falling back to
+  /// [testArgs] when no candidate exists. A scoped invocation is a
+  /// SUBSET of the full suite, so a scoped kill also holds for the
+  /// full suite and is cached as a regular kill; a scoped survivor is
+  /// re-confirmed once against the full invocation before it counts
+  /// (a scoped run may omit the killing test). Off by default.
+  final bool testScope;
 }
 
 /// Mutation testing gate settings (`mutation`).

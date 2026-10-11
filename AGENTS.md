@@ -19,7 +19,9 @@ Guidance for AI agents and contributors working on crap4dart.
    `mutation` (mutation testing: AST operator table + per-mutant test
    re-runs with a digest-incremental killed-stays-killed cache —
    unchanged methods replay cached kills, survivors always re-run;
-   disabled by default).
+   diff-scoped under `--diff`, optional `scope_tests` per-mutant test
+   scoping with full-suite survivor re-confirmation; disabled by
+   default).
 3. **Gate framework** — per-gate `severity: error|warning`, opt-in
    `ignorable` (ignore comments are OFF by default), per-path
    thresholds (`entries`), baseline mode

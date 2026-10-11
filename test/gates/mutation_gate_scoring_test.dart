@@ -19,9 +19,8 @@ void main() {
 
   test('uncovered sites are excluded from the score denominator', () async {
     // Only `zero` is covered (one site); `add` is unexecuted.
-    final result =
-        await mutationGateWith((root, timeout) async => MutantOutcome.survived)
-            .run(
+    final result = await mutationGateWith(
+        (root, timeout, args) async => MutantOutcome.survived).run(
       makeContext(project, ['lib/a.dart'], lcov: mutationFixtureLcovHits(0, 1)),
     );
     expect(result.passed, isFalse);
@@ -32,9 +31,8 @@ void main() {
   });
 
   test('max_survivors fails the gate even above min_score', () async {
-    final result =
-        await mutationGateWith((root, timeout) async => MutantOutcome.survived)
-            .run(
+    final result = await mutationGateWith(
+        (root, timeout, args) async => MutantOutcome.survived).run(
       makeContext(
         project,
         ['lib/a.dart'],
@@ -51,7 +49,7 @@ void main() {
 
   test('low min_score passes with a lone survivor', () async {
     var call = 0;
-    final result = await mutationGateWith((root, timeout) async =>
+    final result = await mutationGateWith((root, timeout, args) async =>
         ++call == 1 ? MutantOutcome.killed : MutantOutcome.survived).run(
       makeContext(
         project,
@@ -68,7 +66,7 @@ void main() {
 
   test('caps executed mutants at max_mutants', () async {
     var calls = 0;
-    final result = await mutationGateWith((root, timeout) async {
+    final result = await mutationGateWith((root, timeout, args) async {
       calls++;
       return MutantOutcome.killed;
     }).run(

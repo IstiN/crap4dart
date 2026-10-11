@@ -354,6 +354,9 @@ gates:
     cache: true
     # Per-mutant test invocation args (`dart <args...>`).
     test_args: ['test']
+    # Narrow each mutant's run to the derived test file(s) of the
+    # mutated file; scoped survivors are re-confirmed with test_args.
+    scope_tests: false
     # Glob patterns excluded from the gate.
     exclude:
       - '**.g.dart'
@@ -583,7 +586,16 @@ gates:
   version) wipes the cache. `test_args` (default `['test']`) is the
   full per-mutant test invocation argument list — scope the suite to
   relevant test paths yourself, knowing that a mutant is killed only if
-  the scoped suite would kill it.
+  the scoped suite would kill it. `scope_tests` (default false) derives
+  that scoping automatically: each mutant's invocation is narrowed to
+  the test file(s) mirroring the mutated file (`lib/src/foo/bar.dart`
+  → `test/src/foo/bar_test.dart`, `test/foo/bar_test.dart`), falling
+  back to `test_args` when no candidate exists — a scoped kill is
+  monotone and cached as a regular kill, a scoped survivor is
+  re-confirmed against the full invocation before it counts. In a diff
+  run (`--diff` / `--diff-base`) only sites whose containing method
+  intersects the changed lines are executed at all: per-PR runs pay
+  only for the mutants of the changed methods.
 
 ## Baseline
 

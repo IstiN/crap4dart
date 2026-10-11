@@ -40,6 +40,14 @@ typedef MutationScan = ({
 /// replayed from `.crap-mutation-cache.json` (counted killed, reported
 /// as `cached`); survivors are always re-executed because the test
 /// suite may have improved.
+///
+/// Execution scoping: in a diff run (`--diff` / `--diff-base`) only
+/// sites whose containing method intersects the changed lines are
+/// executed — the rest are not mutants of this change. With
+/// `scope_tests` enabled, each mutant's invocation is narrowed to the
+/// derived test file(s) of the mutated file (a scoped kill is monotone
+/// and cached; a scoped survivor is re-confirmed against the full
+/// invocation before it counts).
 class MutationGate implements Gate {
   /// Creates a [MutationGate]; [runner] overrides the per-mutant test
   /// runner (injected in tests, real projects run `dart test`).
@@ -74,6 +82,10 @@ class MutationGate implements Gate {
         sites: scoped.sites,
         timeout: Duration(seconds: config.execution.timeoutSeconds),
         testArgs: config.execution.testArgs,
+        testArgsFor: config.execution.testScope
+            ? (site) =>
+                _scopedTestArgs(context, site) ?? config.execution.testArgs
+            : null,
         caching: _openCache(context, config, scoped),
       );
     } on MutationTestUnavailableException catch (e) {
@@ -92,6 +104,10 @@ class MutationGate implements Gate {
   ) {
     if (!config.execution.cache) return null;
     final cacheFile = p.join(context.projectRoot, mutationCacheFileName);
+    // scope_tests is deliberately NOT part of the meta guard: a scoped
+    // kill is monotone (the scoped invocation is a subset of the full
+    // suite), so cached kills stay valid no matter how the invocation
+    // was scoped.
     final cache = MutationCache.load(
       path: cacheFile,
       meta: MutationCacheMeta.current(
@@ -109,7 +125,10 @@ class MutationGate implements Gate {
 
   /// Detects sites in every analyzed file and keeps the covered ones,
   /// capped at [MutationExecution.maxMutants] (file order, then
-  /// offset — the cap is deterministic).
+  /// offset — the cap is deterministic). In a diff run only sites whose
+  /// containing method intersects the changed lines are kept at all;
+  /// everything outside the diff is not a mutant of this change and is
+  /// neither executed nor counted.
   MutationScan _coveredSites(
     GateContext context,
     MutationGateConfig config,
@@ -132,6 +151,48 @@ class MutationGate implements Gate {
     );
   }
 
+  /// Derives the scoped test invocation for [site] from the project
+  /// layout convention: `lib/…` mirrored under `test/` with and
+  /// without a `src/` segment (`lib/src/foo/bar.dart` →
+  /// `test/src/foo/bar_test.dart`, `test/foo/bar_test.dart`). Returns
+  /// `null` when no candidate test file exists — the caller falls back
+  /// to the full invocation.
+  List<String>? _scopedTestArgs(GateContext context, MutationSite site) {
+    final relative = context.relativePath(site.file);
+    const libPrefix = 'lib/';
+    if (!relative.startsWith(libPrefix)) return null;
+    final base = p.withoutExtension(relative.substring(libPrefix.length));
+    final candidates = <String>{
+      'test/${base}_test.dart',
+      if (base.startsWith('src/')) 'test/${base.substring(4)}_test.dart',
+    };
+    final existing = [
+      for (final candidate in candidates)
+        if (File(p.join(context.projectRoot, candidate)).existsSync())
+          candidate,
+    ];
+    return existing.isEmpty ? null : ['test', ...existing];
+  }
+
+  /// Whether [site]'s containing method intersects the diff. Falls back
+  /// to the site's own line when it sits outside every method.
+  bool _inDiff(
+    GateContext context,
+    String file,
+    MutationSite site,
+    List<ExtractedMethod> methods,
+  ) {
+    final diff = context.diff;
+    if (diff == null) return true;
+    final relative = context.relativePath(file);
+    final method = _containingMethod(
+        [for (final candidate in methods) candidate.info], site.line);
+    if (method != null) {
+      return diff.intersects(relative, method.startLine, method.endLine);
+    }
+    return diff.intersects(relative, site.line, site.line);
+  }
+
   /// Scans one file: records every method's cache identity (live keys),
   /// then keeps the covered sites up to the mutant cap.
   int _scanFile(
@@ -151,6 +212,7 @@ class MutationGate implements Gate {
     final fileCoverage = _fileCoverage(context, file);
     var uncovered = 0;
     for (final site in detector.detect(parsed)) {
+      if (!_inDiff(context, file, site, methods)) continue;
       if (covered.length >= config.execution.maxMutants) break;
       if (_isCovered(
           site, fileCoverage, [for (final method in methods) method.info])) {
@@ -261,6 +323,10 @@ class MutationGate implements Gate {
     var summary =
         'score $percent% (${result.killed} killed, ${result.survived} '
         'survived, $uncovered uncovered, ${result.fromCacheCount} cached)';
+    if (result.scopedCount > 0) {
+      summary = '$summary; test-scoped ${result.scopedCount} '
+          '(${result.confirmedCount} re-confirmed killed)';
+    }
     if (result.integrityViolations.isNotEmpty) {
       // The tree was healed, but the run is not trustworthy.
       summary = '$summary; INTEGRITY: re-restored after run: '
