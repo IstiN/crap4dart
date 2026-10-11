@@ -1,0 +1,2 @@
+sh: -c: line 0: syntax error near unexpected token `('
+sh: -c: line 0: `grep -E "mutation:" /tmp/fa_m1_cold.log /tmp/fa_m1_warm.log; grep -c "survived" /tmp/fa_m1_warm.log; diff <(grep "survived" /tmp/fa_m1_cold.log | sort) <(grep "survived" /tmp/fa_m1_warm.log | sort) && echo "VERDICTS-IDENTICAL"'

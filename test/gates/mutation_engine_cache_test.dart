@@ -39,6 +39,7 @@ void main() {
   invalidationTests();
   pruningTests();
   crossFileKeyTests();
+  integrityTests();
 }
 
 String writeSource(String name, String content) {
@@ -324,5 +325,57 @@ void crossFileKeyTests() {
         reason: 'only b.dart survivors re-execute; a.dart replays');
     expect(second.fromCacheCount, sitesA.length);
     expect(second.killed, sitesA.length + sitesB.length);
+  });
+}
+
+void integrityTests() {
+  // The fa_llm incident: a real run once ended with a leftover mutant on
+  // disk even though the in-process per-site finally-restore is
+  // airtight — the defeat must have been out-of-process (external write
+  // or a killed VM between apply and restore). The engine therefore
+  // snapshots every mutated file before the loop and re-verifies the
+  // whole tree in an outer finally. In-process the per-site restore
+  // always wins, so the non-empty-violations path cannot be triggered
+  // from a unit test; these tests pin the guarantees that can be.
+  test('multi-site run leaves every file byte-identical, no violations',
+      () async {
+    writeSource('lib/a.dart', fileASource);
+    writeSource('lib/b.dart', fileBSource);
+    final sites = [
+      ...detectSites('lib/a.dart', fileASource),
+      ...detectSites('lib/b.dart', fileBSource),
+    ];
+    final result = await MutationEngine(
+      runner: (root, timeout) async => MutantOutcome.killed,
+    ).run(
+      projectRoot: dir.path,
+      sites: sites,
+      timeout: const Duration(seconds: 5),
+    );
+    expect(
+        File(p.join(dir.path, 'lib/a.dart')).readAsStringSync(), fileASource);
+    expect(
+        File(p.join(dir.path, 'lib/b.dart')).readAsStringSync(), fileBSource);
+    expect(result.integrityViolations, isEmpty);
+  });
+
+  test('exception mid-loop still leaves every file byte-identical', () async {
+    writeSource('lib/a.dart', fileASource);
+    final sites = detectSites('lib/a.dart', fileASource);
+    var call = 0;
+    await expectLater(
+      MutationEngine(
+        runner: (root, timeout) async => ++call == 1
+            ? MutantOutcome.killed
+            : throw MutationTestUnavailableException('gone'),
+      ).run(
+        projectRoot: dir.path,
+        sites: sites,
+        timeout: const Duration(seconds: 5),
+      ),
+      throwsA(isA<MutationTestUnavailableException>()),
+    );
+    expect(
+        File(p.join(dir.path, 'lib/a.dart')).readAsStringSync(), fileASource);
   });
 }

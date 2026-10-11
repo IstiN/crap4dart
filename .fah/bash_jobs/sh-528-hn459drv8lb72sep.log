@@ -1,0 +1,12 @@
+29:/// from the score denominator; every covered site is mutated one at a
+34:/// did not kill it deterministically. The gate fails below `min_score`
+65:      final summary = scoped.uncovered == 0
+68:      return GateResult.pass(id, summary: summary);
+259:    final score = result.score;
+260:    final percent = (score * 100).toStringAsFixed(1);
+261:    final summary =
+262:        'score $percent% (${result.killed} killed, ${result.survived} '
+263:        'survived, $uncovered uncovered, ${result.fromCacheCount} cached)';
+265:        score < config.minScore || result.survived > config.maxSurvivors;
+266:    if (!failed) return GateResult.pass(id, summary: summary);
+282:      summary: '$summary; survivors by category: $byCategory',

@@ -1,0 +1,11 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+## Unreleased
+
+### Added
+
+6:version: 0.11.0
+54:const String crap4dartVersion = '0.11.0';
+121:        stdout.writeln('crap4dart $crap4dartVersion');

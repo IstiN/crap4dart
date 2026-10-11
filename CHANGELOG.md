@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.12.1 — 2026-10-11
+
+### Fixed
+
+- `mutation` gate integrity: a real run on a downstream project once
+  ended with a leftover mutant on disk even though the per-site
+  restore is `finally`-guarded (out-of-process defeat: external write
+  or a killed VM between apply and restore). The engine now snapshots
+  every file it will mutate before the loop and re-verifies the whole
+  tree in an outer `finally`: any mismatch is re-restored and reported
+  as `INTEGRITY: re-restored after run` in the summary plus a stderr
+  warning, so silent tree corruption becomes a loud, self-healing
+  error.
+
 ## 0.12.0 — 2026-10-11
 
 ### Added

@@ -1,0 +1,6 @@
+-rw-r--r--@ 1 Uladzimir_Klyshevich  staff  10627 Oct 11 17:34 packages/fa_llm/lib/src/copilot/copilot_provider.dart
+       0
+155:    file.writeAsStringSync(site.applyTo(original));
+158:    } finally {
+159:      // Always restore the file, also after timeouts and errors.
+160:      file.writeAsStringSync(original);

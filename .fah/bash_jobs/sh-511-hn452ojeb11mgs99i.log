@@ -1,0 +1,6 @@
+/tmp/fa_m1_cold.log:[FAIL] mutation: score 83.3% (70 killed, 14 survived, 12 uncovered, 0 cached); survivors by category: constant=4, arithmetic=1, logical=3, boolean=3, boundary=3
+/tmp/fa_m1_warm.log:[FAIL] mutation: score 83.3% (70 killed, 14 survived, 12 uncovered, 58 cached); survivors by category: constant=4, arithmetic=1, logical=3, boolean=3, boundary=3
+15c15
+< [FAIL] mutation: score 83.3% (70 killed, 14 survived, 12 uncovered, 0 cached); survivors by category: constant=4, arithmetic=1, logical=3, boolean=3, boundary=3
+---
+> [FAIL] mutation: score 83.3% (70 killed, 14 survived, 12 uncovered, 58 cached); survivors by category: constant=4, arithmetic=1, logical=3, boolean=3, boundary=3

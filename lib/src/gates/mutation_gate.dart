@@ -258,9 +258,19 @@ class MutationGate implements Gate {
   ) {
     final score = result.score;
     final percent = (score * 100).toStringAsFixed(1);
-    final summary =
+    var summary =
         'score $percent% (${result.killed} killed, ${result.survived} '
         'survived, $uncovered uncovered, ${result.fromCacheCount} cached)';
+    if (result.integrityViolations.isNotEmpty) {
+      // The tree was healed, but the run is not trustworthy.
+      summary = '$summary; INTEGRITY: re-restored after run: '
+          '${result.integrityViolations.map(context.relativePath).join(', ')}';
+      stderr.writeln(
+        'crap4dart mutation: working tree did not restore cleanly '
+        '(${result.integrityViolations.length} file(s) re-restored). '
+        'Treat this run as suspect and re-run.',
+      );
+    }
     final failed =
         score < config.minScore || result.survived > config.maxSurvivors;
     if (!failed) return GateResult.pass(id, summary: summary);

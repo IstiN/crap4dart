@@ -61,10 +61,17 @@ typedef MutantProcessSpawner = Future<Process> Function(
 /// The result of running every mutant of one engine invocation.
 class MutationRunResult {
   /// Creates a [MutationRunResult].
-  MutationRunResult(this.outcomes);
+  MutationRunResult(this.outcomes, {this.integrityViolations = const []});
 
   /// Per-site outcomes; every input site appears exactly once.
   final List<MutantOutcomeRecord> outcomes;
+
+  /// Files that did NOT match their pre-run snapshot after the loop and
+  /// had to be re-restored by the end-of-run integrity check. Non-empty
+  /// means the per-site restore was defeated somehow (external edit,
+  /// killed process) — the tree is healed, but the run must be treated
+  /// as suspect.
+  final List<String> integrityViolations;
 
   /// Mutants killed by the test suite (compile errors included).
   int get killed =>
@@ -124,24 +131,63 @@ class MutationEngine {
         (root, duration) => runMutantTests(root, duration, testArgs: testArgs);
     final outcomes = <MutantOutcomeRecord>[];
     final fresh = <String, ({String digest, List<CachedOutcome> outcomes})>{};
-    for (final site in sites) {
-      final method = caching?.siteMethods[site];
-      final replayed =
-          method == null ? null : caching!.cache.replayKill(method, site);
-      if (method != null && replayed != null) {
-        outcomes
-            .add((site: site, outcome: MutantOutcome.killed, fromCache: true));
-        _accumulate(fresh, method, replayed);
-        continue;
+    // Safety net: snapshot every file about to be mutated so the end of
+    // the run can prove the tree is byte-identical to the start. A
+    // real fa_llm run once ended with a leftover mutant on disk despite
+    // the per-site finally-restore; silent tree corruption must become
+    // a loud, self-healing error instead.
+    final originals = _snapshotOriginals(sites);
+    var integrityViolations = const <String>[];
+    try {
+      for (final site in sites) {
+        final method = caching?.siteMethods[site];
+        final replayed =
+            method == null ? null : caching!.cache.replayKill(method, site);
+        if (method != null && replayed != null) {
+          outcomes.add(
+              (site: site, outcome: MutantOutcome.killed, fromCache: true));
+          _accumulate(fresh, method, replayed);
+          continue;
+        }
+        final outcome = await _executeSite(site, projectRoot, timeout, runner);
+        outcomes.add((site: site, outcome: outcome, fromCache: false));
+        if (method != null) {
+          _accumulate(fresh, method, _cached(site, outcome, method));
+        }
       }
-      final outcome = await _executeSite(site, projectRoot, timeout, runner);
-      outcomes.add((site: site, outcome: outcome, fromCache: false));
-      if (method != null) {
-        _accumulate(fresh, method, _cached(site, outcome, method));
-      }
+    } finally {
+      // End-of-run integrity check: restore any file that does not match
+      // its snapshot, even when the loop died mid-mutant.
+      integrityViolations = _verifyIntegrity(originals);
     }
     _persist(caching, fresh);
-    return MutationRunResult(outcomes);
+    return MutationRunResult(outcomes,
+        integrityViolations: integrityViolations);
+  }
+
+  /// Snapshots the current content of every file [sites] touch.
+  Map<String, String> _snapshotOriginals(List<MutationSite> sites) {
+    final originals = <String, String>{};
+    for (final site in sites) {
+      originals.putIfAbsent(
+          site.file, () => File(site.file).readAsStringSync());
+    }
+    return originals;
+  }
+
+  /// Restores any file whose on-disk content drifted from its snapshot;
+  /// returns the paths that had to be re-restored (empty when healthy).
+  List<String> _verifyIntegrity(Map<String, String> originals) {
+    final violations = <String>[];
+    for (final entry in originals.entries) {
+      final file = File(entry.key);
+      final current = file.readAsStringSync();
+      if (current != entry.value) {
+        file.writeAsStringSync(entry.value);
+        violations.add(entry.key);
+      }
+    }
+    return violations;
   }
 
   Future<MutantOutcome> _executeSite(

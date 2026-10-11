@@ -1,0 +1,50 @@
+        (root, duration) => runMutantTests(root, duration, testArgs: testArgs);
+    final outcomes = <MutantOutcomeRecord>[];
+    final fresh = <String, ({String digest, List<CachedOutcome> outcomes})>{};
+    for (final site in sites) {
+      final method = caching?.siteMethods[site];
+      final replayed =
+          method == null ? null : caching!.cache.replayKill(method, site);
+      if (method != null && replayed != null) {
+        outcomes
+            .add((site: site, outcome: MutantOutcome.killed, fromCache: true));
+        _accumulate(fresh, method, replayed);
+        continue;
+      }
+      final outcome = await _executeSite(site, projectRoot, timeout, runner);
+      outcomes.add((site: site, outcome: outcome, fromCache: false));
+      if (method != null) {
+        _accumulate(fresh, method, _cached(site, outcome, method));
+      }
+    }
+    _persist(caching, fresh);
+    return MutationRunResult(outcomes);
+  }
+
+  Future<MutantOutcome> _executeSite(
+    MutationSite site,
+    String projectRoot,
+    Duration timeout,
+    MutantTestRunner runner,
+  ) async {
+    final file = File(site.file);
+    final original = file.readAsStringSync();
+    file.writeAsStringSync(site.applyTo(original));
+    try {
+      return await runner(projectRoot, timeout);
+    } finally {
+      // Always restore the file, also after timeouts and errors.
+      file.writeAsStringSync(original);
+    }
+  }
+
+  void _accumulate(
+    Map<String, ({String digest, List<CachedOutcome> outcomes})> fresh,
+    MethodRef method,
+    CachedOutcome outcome,
+  ) {
+    final entry = fresh.putIfAbsent(
+        method.key, () => (digest: method.digest, outcomes: []));
+    entry.outcomes.add(outcome);
+  }
+

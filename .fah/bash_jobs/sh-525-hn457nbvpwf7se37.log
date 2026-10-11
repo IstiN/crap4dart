@@ -1,0 +1,35 @@
+Future<MutantOutcome> runMutantTests(
+  String projectRoot,
+  Duration timeout, {
+  List<String> testArgs = const ['test'],
+  MutantProcessSpawner spawn = Process.start,
+}) async {
+  final isFlutter = isFlutterProject(projectRoot);
+  final Process process;
+  try {
+    process = await spawn(
+      isFlutter ? 'flutter' : 'dart',
+      testArgs,
+      workingDirectory: projectRoot,
+    );
+  } on ProcessException catch (e) {
+    throw MutationTestUnavailableException(
+      '${isFlutter ? 'flutter' : 'dart'} not found on PATH: ${e.message}',
+    );
+  }
+  // Drain the output so the child never blocks on a full pipe.
+  process.stdout.listen((_) {});
+  process.stderr.listen((_) {});
+  var timedOut = false;
+  final code = await process.exitCode.timeout(
+    timeout,
+    onTimeout: () {
+      timedOut = true;
+      process.kill(ProcessSignal.sigkill);
+      return -1;
+    },
+  );
+  if (timedOut) return MutantOutcome.timeout;
+  return code == 0 ? MutantOutcome.survived : MutantOutcome.killed;
+}
+warm log deleted

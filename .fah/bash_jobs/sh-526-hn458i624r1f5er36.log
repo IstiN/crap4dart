@@ -1,0 +1,52 @@
+
+/// Applies single-token mutations one at a time and runs the project's
+/// test command against each mutant, restoring the file afterwards.
+///
+/// With a [MutationCacheSession], mutants of unchanged methods whose
+/// previous outcome was `killed` are replayed from the cache (counted
+/// killed, marked `fromCache`); survivors are always re-executed. The
+/// merged cache is persisted after the run.
+class MutationEngine {
+  /// Creates a [MutationEngine]; [runner] overrides the per-mutant
+  /// test runner (injected in tests); without it the suite runs as
+  /// `dart <testArgs>` (or `flutter <testArgs>`) per mutant.
+  MutationEngine({MutantTestRunner? runner}) : _injected = runner;
+
+  final MutantTestRunner? _injected;
+
+  /// Runs every [site] of the project at [projectRoot], giving each
+  /// mutant up to [timeout].
+  ///
+  /// The first [MutationTestUnavailableException] propagates: the caller
+  /// (the gate) converts it into a skipped result.
+  Future<MutationRunResult> run({
+    required String projectRoot,
+    required List<MutationSite> sites,
+    required Duration timeout,
+    List<String> testArgs = const ['test'],
+    MutationCacheSession? caching,
+  }) async {
+    final runner = _injected ??
+        (root, duration) => runMutantTests(root, duration, testArgs: testArgs);
+    final outcomes = <MutantOutcomeRecord>[];
+    final fresh = <String, ({String digest, List<CachedOutcome> outcomes})>{};
+    for (final site in sites) {
+      final method = caching?.siteMethods[site];
+      final replayed =
+          method == null ? null : caching!.cache.replayKill(method, site);
+62:class MutationRunResult {
+63-  /// Creates a [MutationRunResult].
+64-  MutationRunResult(this.outcomes);
+65-
+66-  /// Per-site outcomes; every input site appears exactly once.
+67-  final List<MutantOutcomeRecord> outcomes;
+68-
+69-  /// Mutants killed by the test suite (compile errors included).
+70-  int get killed =>
+71-      outcomes.where((o) => o.outcome == MutantOutcome.killed).length;
+72-
+73-  /// Kills replayed from the digest cache instead of re-executed.
+74-  int get fromCacheCount => outcomes.where((o) => o.fromCache).length;
+75-
+76-  /// Mutants the suite noticed nothing about, timeouts included.
+77-  int get survived =>

@@ -1,0 +1,6 @@
+Future<MutantOutcome> runMutantTests(
+  String projectRoot,
+  Duration timeout, {
+  List<String> testArgs = const ['test'],
+  MutantProcessSpawner spawn = Process.start,
+}) async {
