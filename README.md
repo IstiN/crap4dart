@@ -307,6 +307,10 @@ gates:
     enabled: true
     # Maximum allowed duplicated line percentage per file.
     threshold: 1.0
+    # What violations are reported for: 'percentage' (per-file percent)
+    # or 'clones' (PMD CPD style — one violation per clone group with
+    # all its locations).
+    # report: percentage
     # Minimum number of tokens in a block to count as duplication.
     min_tokens: 50
     # Minimum number of lines in a block to count as duplication.
@@ -317,6 +321,14 @@ gates:
     # Replace string and numeric literals with placeholders before
     # hashing so clones differing only in literal values are detected.
     # ignore_literals: false
+    # Replace ALL identifiers with one placeholder before hashing
+    # (structure-only matching, CPD --ignore-identifiers).
+    # ignore_identifiers: false
+    # Exclude import/export/part directives from tokenization.
+    # ignore_imports: false
+    # Skip files whose token stream equals an earlier file's, so a
+    # copied file is reported once (CPD --skip-duplicate-files).
+    # skip_duplicate_files: false
     # Glob patterns excluded from the gate.
     exclude:
       - '**.g.dart'
@@ -492,10 +504,15 @@ gates:
   data/model classes are legitimate.
 - **duplication** — detects exact copy-paste token blocks across Dart
   source files. A block counts when it is at least `min_tokens` tokens
-  (default 50) and `min_lines` lines (default 5) long. The gate fails a
-  file when its duplicated line percentage exceeds `threshold` (default
-  1.0). Generated files and `test/**` are excluded by default.
-  Cross-module duplication can be gated with `sources`: extra
+  (default 50) and `min_lines` lines (default 5) long. `report` chooses
+  the verdict style: `percentage` (default) fails a file whose
+  duplicated line percentage exceeds `threshold` (default 1.0); `clones`
+  (PMD CPD style) fails once per non-overlapping clone group with all
+  its locations in the message. CPD-parity knobs: `ignore_identifiers`
+  (structure-only matching), `ignore_imports` (skip
+  import/export/part directives), `skip_duplicate_files` (report a
+  copied file once). Generated files and `test/**` are excluded by
+  default. Cross-module duplication can be gated with `sources`: extra
   file/directory paths (resolved against the project root) unioned into
   the scan, so a monorepo can compare `lib/` against `flutter_app/lib/`
   or `packages/*/lib/` without widening CRAP analysis. Two opt-in

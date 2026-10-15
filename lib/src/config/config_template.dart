@@ -187,6 +187,10 @@ gates:
     enabled: true
     # Maximum allowed duplicated line percentage per file.
     threshold: 1.0
+    # What violations are reported for: 'percentage' (per-file percent of
+    # duplicated lines over threshold) or 'clones' (PMD CPD style — one
+    # violation per clone group with all its locations).
+    # report: percentage
     # Minimum number of tokens in a block to count as duplication.
     min_tokens: 50
     # Minimum number of lines in a block to count as duplication.
@@ -197,6 +201,14 @@ gates:
     # Replace string and numeric literals with placeholders before
     # hashing so clones differing only in literal values are detected.
     ignore_literals: false
+    # Replace ALL identifiers with one placeholder before hashing
+    # (structure-only matching, CPD --ignore-identifiers).
+    ignore_identifiers: false
+    # Exclude import/export/part directives from tokenization.
+    ignore_imports: false
+    # Skip files whose token stream equals an earlier file's, so a
+    # copied file is reported once (CPD --skip-duplicate-files).
+    skip_duplicate_files: false
     # Glob patterns excluded from the gate.
     exclude:
       - '**.g.dart'

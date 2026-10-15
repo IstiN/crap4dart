@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.14.0 — 2026-10-12
+
+### Added
+
+- `gates.duplication`: PMD CPD parity, implemented natively (CPD itself
+  has no Dart support):
+  - `report: clones` — one violation per non-overlapping clone group
+    (longest first), every occurrence location in the message;
+    `percentage` stays the default.
+  - `ignore_identifiers` — replace all identifiers with a placeholder
+    before hashing (structure-only matching, CPD
+    `--ignore-identifiers`); built-in/pseudo keywords included.
+  - `ignore_imports` — exclude `import`/`export`/`part` directives
+    from tokenization.
+  - `skip_duplicate_files` — a file whose token stream equals an
+    earlier file's is analyzed once (CPD `--skip-duplicate-files`).
+
+### Fixed
+
+- Duplication windows are now verified by actual token equality before
+  reporting (Rabin-Karp fingerprint collisions no longer count as
+  clones) and extended to the maximal extent the occurrences share.
+
 ## 0.13.0 — 2026-10-12
 
 ### Added

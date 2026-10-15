@@ -555,10 +555,14 @@ class _GateConfigReaders {
         _severityKey,
         _ignorableKey,
         'threshold',
+        'report',
         'min_tokens',
         'min_lines',
         'ignore_locals',
         'ignore_literals',
+        'ignore_identifiers',
+        'ignore_imports',
+        'skip_duplicate_files',
         _excludeKey,
         _sourcesKey
       },
@@ -570,6 +574,8 @@ class _GateConfigReaders {
           ignorable: flags.ignorable,
           threshold: _ConfigScalars.readNum(
               map, 'threshold', base.threshold, path, ctx),
+          report: _ConfigScalars.duplicationReport(
+              map, 'report', base.report, path, ctx),
           matching: DuplicationMatching(
             minTokens: _ConfigScalars.readInt(
                 map, 'min_tokens', base.matching.minTokens, path, ctx),
@@ -579,6 +585,20 @@ class _GateConfigReaders {
                 map, 'ignore_locals', base.matching.ignoreLocals, path, ctx),
             ignoreLiterals: _ConfigScalars.readBool(map, 'ignore_literals',
                 base.matching.ignoreLiterals, path, ctx),
+            ignoreIdentifiers: _ConfigScalars.readBool(
+                map,
+                'ignore_identifiers',
+                base.matching.ignoreIdentifiers,
+                path,
+                ctx),
+            ignoreImports: _ConfigScalars.readBool(
+                map, 'ignore_imports', base.matching.ignoreImports, path, ctx),
+            skipDuplicateFiles: _ConfigScalars.readBool(
+                map,
+                'skip_duplicate_files',
+                base.matching.skipDuplicateFiles,
+                path,
+                ctx),
           ),
           exclude:
               _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),

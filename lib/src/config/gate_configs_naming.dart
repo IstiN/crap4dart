@@ -115,7 +115,7 @@ class PublicDocsGateConfig implements GateConfigFlags {
 }
 
 /// Matching knobs of the `duplication` gate: block granularity and the
-/// Type-2 clone normalizations.
+/// clone normalizations (PMD CPD parity).
 class DuplicationMatching {
   /// Creates a [DuplicationMatching].
   const DuplicationMatching({
@@ -123,6 +123,9 @@ class DuplicationMatching {
     this.minLines = 5,
     this.ignoreLocals = false,
     this.ignoreLiterals = false,
+    this.ignoreIdentifiers = false,
+    this.ignoreImports = false,
+    this.skipDuplicateFiles = false,
   });
 
   /// Minimum number of tokens in a block to be considered for duplication.
@@ -142,6 +145,44 @@ class DuplicationMatching {
   /// placeholders before hashing, so clones differing only in literal
   /// values are detected. Off by default.
   final bool ignoreLiterals;
+
+  /// Whether *all* identifiers are replaced with a placeholder before
+  /// hashing (CPD `--ignore-identifiers`): structure-only matching that
+  /// detects clones renamed anywhere. Strictly stronger than
+  /// [ignoreLocals], which only renames function-local names. Off by
+  /// default.
+  final bool ignoreIdentifiers;
+
+  /// Whether `import`/`export`/`part` directives are excluded from
+  /// tokenization — boilerplate that otherwise inflates duplication.
+  /// Off by default.
+  final bool ignoreImports;
+
+  /// Whether files whose token stream is identical to an earlier file
+  /// are excluded from detection (CPD `--skip-duplicate-files`), so a
+  /// copied file is reported once instead of as N x N clones. Off by
+  /// default.
+  final bool skipDuplicateFiles;
+}
+
+/// What the `duplication` gate reports violations for.
+enum DuplicationReport {
+  /// One violation per file whose duplicated-line percentage exceeds
+  /// `threshold` (the historical behavior).
+  percentage,
+
+  /// One violation per clone group (PMD CPD style): every non-overlapping
+  /// block of at least `min_tokens` tokens / `min_lines` lines occurring
+  /// two or more times, with all its locations in the message.
+  clones;
+
+  /// Parses a `report:` config value, `null` when unrecognized.
+  static DuplicationReport? tryParse(String value) {
+    for (final report in values) {
+      if (report.name == value) return report;
+    }
+    return null;
+  }
 }
 
 /// Code duplication gate settings (`duplication`).
@@ -152,6 +193,7 @@ class DuplicationGateConfig implements GateConfigFlags {
     this.severity = GateSeverity.error,
     this.ignorable = false,
     this.threshold = 1.0,
+    this.report = DuplicationReport.percentage,
     this.matching = const DuplicationMatching(),
     this.exclude = const [
       _generatedGlob,
@@ -174,6 +216,9 @@ class DuplicationGateConfig implements GateConfigFlags {
 
   /// Maximum allowed duplicated line percentage per file.
   final double threshold;
+
+  /// What violations are reported for (see [DuplicationReport]).
+  final DuplicationReport report;
 
   /// Block granularity and Type-2 clone normalizations.
   final DuplicationMatching matching;

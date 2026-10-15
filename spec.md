@@ -557,10 +557,27 @@ Detects exact copy-paste duplicates across Dart source files. Each file is
 tokenized with `package:analyzer` (comments and synthetic tokens are
 ignored). A duplicated block is a sequence of tokens that appears at least
 twice, is at least `min_tokens` long (default 50) and spans at least
-`min_lines` source lines (default 5). The gate reports each file whose
-percentage of duplicated lines exceeds `threshold` (default 1.0). Files
-matching the gate's `exclude` list (default generated files and `test/**`)
-are skipped.
+`min_lines` source lines (default 5). Matched windows shall be verified
+by actual token equality before reporting (Rabin-Karp fingerprints may
+collide) and extended to the maximal extent the occurrences share;
+accepted clone groups shall be non-overlapping, longest first (PMD CPD
+Match semantics).
+
+`report` selects the violation style: `percentage` (default) reports each
+file whose percentage of duplicated lines exceeds `threshold` (default
+1.0); `clones` reports one violation per accepted clone group with every
+occurrence location in the message.
+
+Optional normalizations: `ignore_locals` renames function-local
+identifiers consistently (Type-2 renamed clones), `ignore_literals`
+replaces string and numeric literals with placeholders,
+`ignore_identifiers` replaces every identifier (built-in and pseudo
+keywords included) with a placeholder (CPD `--ignore-identifiers`),
+`ignore_imports` excludes `import`/`export`/`part` directives from
+tokenization, and `skip_duplicate_files` excludes files whose token
+stream equals an earlier file's (CPD `--skip-duplicate-files`). Files
+matching the gate's `exclude` list (default generated files and
+`test/**`) are skipped.
 
 Detection is cross-file: every file in the scan is indexed together, so a
 block copied between files (including files in different modules) is

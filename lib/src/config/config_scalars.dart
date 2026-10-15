@@ -84,6 +84,26 @@ class _ConfigScalars {
     );
   }
 
+  static DuplicationReport duplicationReport(
+    YamlMap map,
+    String key,
+    DuplicationReport base,
+    String path,
+    String ctx,
+  ) {
+    final value = map[key];
+    if (value == null) return base;
+    if (value is String) {
+      final parsed = DuplicationReport.tryParse(value);
+      if (parsed != null) return parsed;
+    }
+    throw ConfigException(
+      path,
+      '$ctx.$key',
+      "expected 'percentage' or 'clones'",
+    );
+  }
+
   static double readNum(
       YamlMap map, String key, double base, String path, String ctx) {
     final value = map[key];
