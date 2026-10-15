@@ -1,5 +1,0 @@
-/Users/Uladzimir_Klyshevich/.pub-cache/hosted/pub.dev/analyzer-14.4.0/lib/dart/ast/visitor.dart
-63
-33:/// structure, similar to [GeneralizingAstVisitor]. This visitor uses a
-35:/// [GeneralizingAstVisitor].
-56:class BreadthFirstVisitor<R> extends GeneralizingAstVisitor<R> {

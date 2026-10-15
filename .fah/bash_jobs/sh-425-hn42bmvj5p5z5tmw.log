@@ -1,4 +1,0 @@
-  lib/src/crap/crap_report.dart:40: survived constant mutant `-1` -> `0` in CrapReport.sorted
-  lib/src/crap/crap_report.dart:40: survived constant mutant `1` -> `0` in CrapReport.sorted
-Gates: 18 passed, 4 failed, 0 warned, 4 skipped
-EXIT:2

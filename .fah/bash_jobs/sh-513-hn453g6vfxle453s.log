@@ -1,6 +1,0 @@
-/tmp/fa_dh_cold.log:[FAIL] mutation: score 79.0% (79 killed, 21 survived, 8 uncovered, 0 cached); survivors by category: boundary=14, arithmetic=1, logical=1, constant=3, equality=1, boolean=1
-/tmp/fa_dh_warm.log:[FAIL] mutation: score 80.0% (80 killed, 20 survived, 8 uncovered, 79 cached); survivors by category: boundary=13, arithmetic=1, logical=1, constant=3, equality=1, boolean=1
-21c21
-< [FAIL] mutation: score 79.0% (79 killed, 21 survived, 8 uncovered, 0 cached); survivors by category: boundary=14, arithmetic=1, logical=1, constant=3, equality=1, boolean=1
----
-> [FAIL] mutation: score 80.0% (80 killed, 20 survived, 8 uncovered, 79 cached); survivors by category: boundary=13, arithmetic=1, logical=1, constant=3, equality=1, boolean=1

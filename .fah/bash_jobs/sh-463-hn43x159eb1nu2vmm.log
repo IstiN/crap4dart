@@ -1,3 +1,0 @@
-58:    expect(File(cacheFile()).existsSync(), isTrue);
-81:        '    max_survivors: 2\n');
-94:    expect(File(cacheFile()).existsSync(), isFalse);

@@ -1,4 +1,0 @@
-maxCrap: 12.0 passed: False
- 12.00 CC12 cov1.0 duplication_gate.dart:384 of
-  8.00 CC8 cov1.0 gate_runner.dart:123 run
-  8.00 CC8 cov1.0 coverage_runner.dart:47 _run

@@ -1,7 +1,0 @@
-40:        'DA:4,1\n'
-41:        'DA:9,${zeroCovered ? 1 : 0}\n'
-126:          'SF:lib/a.dart\nDA:4,0\nDA:9,1\nend_of_record\n',
-144:            .parse('SF:lib/a.dart\nDA:4,0\nDA:9,0\nend_of_record\n'),
-162:          'SF:lib/a.dart\nDA:4,1\nDA:9,1\nend_of_record\n',
-181:          'SF:lib/a.dart\nDA:4,1\nDA:9,1\nend_of_record\n',
-199:          'SF:lib/a.dart\nDA:4,1\nDA:9,1\nend_of_record\n',

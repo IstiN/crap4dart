@@ -1,9 +1,0 @@
-110:        MutationGate(),
-    │       ^^^^^^^^
-    ╵
-line 861, column 1 of lib/src/config/gate_configs.dart: Expected a method, getter, setter or operator declaration.
-    ╷
-861 │ }
-    │ ^
-    ╵
-Formatted 9 files (1 changed) in 0.01 seconds.

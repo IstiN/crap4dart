@@ -1,8 +1,0 @@
-Analyzing crap4dart...
-No issues found!
-00:00 +16: test/gates/mutation_gate_cache_test.dart: second gate run replays cached kills with zero runner calls
-00:00 +17: test/gates/mutation_gate_cache_test.dart: second gate run replays cached kills with zero runner calls
-00:00 +18: test/gates/mutation_gate_cache_test.dart: identical verdicts across runs with survivors re-executed
-00:00 +19: test/gates/mutation_gate_cache_test.dart: cache: false disables load, replay and persistence
-00:00 +20: test/gates/mutation_gate_cache_test.dart: a test_args change wipes the cache (meta guard)
-00:00 +21: All tests passed!

@@ -1,3 +1,0 @@
-To https://github.com/IstiN/flutter_agent_harness.git
- ! [remote rejected]     chore/dart-analyze-fatal-infos -> chore/dart-analyze-fatal-infos (refusing to allow an OAuth App to create or update workflow `.github/workflows/ci.yml` without `workflow` scope)
-error: failed to push some refs to 'https://github.com/IstiN/flutter_agent_harness.git'

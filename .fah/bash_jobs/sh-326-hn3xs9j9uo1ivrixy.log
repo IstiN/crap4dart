@@ -1,3 +1,0 @@
-lib/src/gates/mutation_operators.dart:190:9: Error: Too few positional arguments: 5 required, 4 given.
-    _add('constant', lexeme, lexeme == _zeroLexeme ? _oneLexeme : _zeroLexeme,
-        ^

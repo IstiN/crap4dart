@@ -1,5 +1,0 @@
-Analyzing crap4dart...
-
-  error - lib/src/gates/mutation_engine.dart:136:28 - The argument type 'MethodRef?' can't be assigned to the parameter type 'MethodRef'.  - argument_type_not_assignable
-
-1 issue found.

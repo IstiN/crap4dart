@@ -1,8 +1,0 @@
-Analyzing crap4dart...
-
-  error - lib/src/gates/mutation_cache.dart:202:30 - The argument type 'MutationSite' can't be assigned to the parameter type 'CachedOutcome'.  - argument_type_not_assignable
-  error - lib/src/gates/mutation_cache.dart:202:36 - Too many positional arguments: 2 expected, but 3 found. Try removing the extra arguments. - extra_positional_arguments
-  error - lib/src/gates/mutation_cache.dart:237:8 - The name '_sameSite' is already defined. Try renaming one of the declarations. - duplicate_definition
-           - The first definition of this name at lib/src/gates/mutation_cache.dart:207:8.
-warning - lib/src/gates/mutation_cache.dart:207:8 - The declaration '_sameSite' isn't referenced. Try removing the declaration of '_sameSite'. - unused_element
-

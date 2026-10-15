@@ -1,8 +1,0 @@
-lib/src/gates/mutation_engine.dart:10:  /// way, because `dart test` refuses to run).
-lib/src/gates/mutation_engine.dart:120:/// The default per-mutant runner: spawns `dart test` (or `flutter test`
-lib/src/gates/mutation_engine.dart:141:      const ['test'],
-===
-packages/fa_llm: lib=16 files, tests=9
-packages/fa_ui: lib=76 files, tests=63
-packages/dap_hub: lib=18 files, tests=7
-lib: lib=0 files, tests=0

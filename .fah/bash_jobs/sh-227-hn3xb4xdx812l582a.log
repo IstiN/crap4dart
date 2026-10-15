@@ -1,3 +1,0 @@
-00:09 +326: test/cli/cli_smoke_test.dart: --version prints the pubspec version
-00:13 +327: test/cli/cli_smoke_test.dart: check --help lists the flags including --run-tests
-00:18 +328: All tests passed!

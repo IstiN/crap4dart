@@ -1,6 +1,0 @@
-test/gates/gate_runner_test.dart:28:  test('aggregates pass/skip across gates', () async {
-test/gates/gate_runner_test.dart:47:    expect(byId['loc']!.skipped, isFalse);
-test/gates/gate_runner_test.dart:48:    expect(byId['test_coverage']!.skipped, isTrue);
-test/gates/gate_runner_test.dart:49:    expect(byId['golden']!.skipped, isTrue);
-test/gates/gate_runner_test.dart:50:    expect(byId['golden']!.skipReason, 'disabled in config');
-test/gates/gate_runner_test.dart:51:    expect(byId['hardcoded_strings']!.skipReason, 'not a Flutter project');

@@ -1,5 +1,0 @@
-   16d9c4c..ac9979c  main -> main
- * [new tag]         v0.12.0 -> v0.12.0
-ac9979c chore(release): 0.12.0 — mutation gate + digest-incremental cache
-16d9c4c feat(mutation): digest-incremental cache (killed-stays-killed) + test_args scoping
-862acc1 test(crap): mutation-dogfood survivor triage — killing tests + equivalent-mutant docs

@@ -1,9 +1,0 @@
-14:import '../cancel_token.dart';
-956:final class _LocalShellJob implements ShellJob {
-957-  _LocalShellJob({
-958-    required this.id,
-959-    required this.command,
-960-    required this.logPath,
-961-    required Process process,
-1101:  final Process _process;
-1106:  final JobLogRedactor? _redactor;

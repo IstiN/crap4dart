@@ -1,4 +1,0 @@
-00:24 +173: test/release_hygiene_test.dart: gh-1005 — PTY legs never route to fa-m5 / hosted macOS the consolidated linux leg carries the coverage + duration reporting
-00:24 +174: test/release_hygiene_test.dart: committed-artifact hygiene (gh-1033 review thread 11) no cov-*/ raw coverage dump directories exist in the tree
-00:24 +175: test/release_hygiene_test.dart: committed-artifact hygiene (gh-1033 review thread 11) .gitignore sweeps future cov-*/ scratch dirs
-00:24 +176: All tests passed!

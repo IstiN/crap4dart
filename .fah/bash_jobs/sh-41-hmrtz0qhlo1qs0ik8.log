@@ -1,8 +1,0 @@
-[FAIL] duplication: 2/3 files over 1.0% duplication
-  lib/sort_a.dart:1: 100.00% duplicated lines > 1.0%
-  lib/sort_b.dart:1: 100.00% duplicated lines > 1.0%
-[PASS] broken_goldens: 0 golden images clean
-[FAIL] folder_structure: 1 directory(ies) with loose-file sprawl
-[PASS] external: no tools configured
-[PASS] broken_goldens: 0 golden images clean
-[FAIL] folder_structure: 1 directory(ies) with loose-file sprawl

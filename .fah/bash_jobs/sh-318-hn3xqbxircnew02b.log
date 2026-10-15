@@ -1,2 +1,0 @@
-00:19 +367: test/cli/cli_smoke_test.dart: check --help lists the flags including --run-tests
-00:24 +368: All tests passed!

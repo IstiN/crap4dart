@@ -1,9 +1,0 @@
-20364:abstract final class FieldFormalParameter implements FormalParameter {
-21931:    implements FormalParameter {
-47749:abstract final class RegularFormalParameter implements FormalParameter {}
-51017:abstract final class SuperFormalParameter implements FormalParameter {
-===
-56700:sealed class VariablePattern implements DartPattern {
-56705:sealed class VariablePatternImpl extends DartPatternImpl
-57183:abstract final class WildcardPattern implements DartPattern {
-NormalFormalParameter at 

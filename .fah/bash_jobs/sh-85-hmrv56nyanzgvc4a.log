@@ -1,6 +1,0 @@
-      final parsed = context.parsed(file);
-      final fileTokens = _extractFileTokens(parsed, config);
-      if (fileTokens.length >= config.minTokens) {
-        final totalLines = _lineCount(File(file).readAsStringSync());
-        tokens.add(_FileTokens(file, fileTokens, totalLines));
-No issues found!
