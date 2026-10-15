@@ -643,14 +643,17 @@ amber digits on dark cards alternate too, but with unequal lengths, and
 pass); (b) build-error screens — at least 15% of the image being the
 dark-red ErrorWidget background; (c) tofu icon placeholders — a bordered
 square with a diagonal cross (>= 20 px wide), confirmed by its side
-walls and diagonals that converge, merge into one central band and then
-diverge again (a checkmark V converges to its vertex and never
-re-diverges, so checkmark tiles pass); (d) hollow icon boxes — a
-square-ish bordered box (14-64 px) with continuous walls and an empty
-interior (what an unloaded icon font draws, with no diagonal); (e) solid
-glyph runs — at least two distinct solid rectangles of the same
-vertical extent side by side with a small gap (Ahem fallback text, a
-font that failed to load). Non-PNG files are
+walls and diagonals that originate at the box corners, converge, merge
+into one central band and then diverge again (a checkmark V converges
+to its vertex and never re-diverges; the inset letter strokes of a
+filled control never anchor at the walls); (d) hollow icon boxes — a
+square-ish bordered box (20-64 px) with continuous walls, an empty
+interior, an isolated background ring and square corners (what an
+unloaded icon font draws, with no diagonal; rounded unchecked
+checkboxes and icon panels pass); (e) solid glyph runs — at least two
+distinct solid square-cornered rectangles of the same vertical extent
+side by side with a small gap (Ahem fallback text, a font that failed
+to load). Non-PNG files are
 ignored; files matching `exclude` (default none) are skipped. Golden
 tests themselves do not fail on these errors — the snapshot silently
 records the broken frame.

@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.14.2 — 2026-10-15
+
+### Fixed
+
+- `broken_goldens` false positives against real-world goldens (measured
+  on 187 current flutter_agent_harness goldens: 40 flagged before the
+  fix, 1 documented residual after):
+  - the tofu X must anchor its diagonals AT the box walls — the letter
+    strokes inside a filled control (a white "S" on a Save button) also
+    run a converge-merge-diverge cycle, but they start well inside the
+    run and are now rejected;
+  - hollow icon boxes must be RING-ISOLATED (the 2px ring around the
+    box is pure background) — a copy icon's front panel has the rest of
+    the glyph crossing it;
+  - hollow icon boxes must have SQUARE corners and be 20-64 px —
+    unchecked Material checkboxes are rounded 16-18 px squares;
+  - solid glyph rectangles must have square corners — rows of rounded
+    white dock/pagination tiles no longer read as Ahem text.
+- `broken_goldens` measured on the 40 broken pre-font goldens from the
+  flutter_agent_harness regression fixture: 30/40 detected (0/40
+  before 0.14.1); the residual 10 carry only sub-20 px boxes and the
+  fa_mark logo (a real image).
+
 ## 0.14.1 — 2026-10-15
 
 ### Added

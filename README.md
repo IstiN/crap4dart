@@ -538,11 +538,13 @@ gates:
   black RenderFlex pattern, matched by its equal-length checkerboard
   segments), build-error screens (the dark-red `ErrorWidget`
   background), broken icon placeholders (the tofu box-with-an-X of a
-  failed image load — confirmed by diagonals that converge, cross and
-  diverge again, so checkmark tiles pass), hollow icon boxes (an
-  unloaded icon font's bordered square with an empty interior) and
-  solid glyph rectangles (Ahem fallback text from a font that failed
-  to load). Golden tests do not fail on these — the broken frame gets
+  failed image load — confirmed by diagonals that start at the box
+  corners, converge, cross and diverge again, so checkmark tiles and
+  filled controls with text pass), hollow icon boxes (an unloaded icon
+  font's bordered square with an empty interior — ring-isolated,
+  square-cornered, 20-64 px, so checkboxes pass) and solid glyph
+  rectangles (square-cornered Ahem fallback text from a font that
+  failed to load). Golden tests do not fail on these — the broken frame gets
   captured (often permanently, via `--update-goldens`), so the pixels
   are the only witness. For standard `Image.asset`/`Image.network`
   failures you can additionally fail the TEST itself:

@@ -88,7 +88,7 @@ class _XCrossScanner {
     int runWidth,
     int background,
   ) {
-    final edge = (runWidth * 0.15).round();
+    final edge = (runWidth * _wallRatio).round();
     var left = false;
     var right = false;
     for (var i = 0; i <= edge; i++) {
@@ -141,6 +141,10 @@ class _XCrossScanner {
 /// apart again) — the proof the strokes CROSS rather than meet at a
 /// vertex. A checkmark V converges and keeps a single stroke, so it
 /// never completes the cycle.
+/// The wall margin as a share of the run width (matches the top-border
+/// wall probes in the cross scanner).
+const double _wallRatio = 0.15;
+
 class _XPhaseTracker {
   /// Anchors the tracker on the run's full extent.
   _XPhaseTracker(int runStart, int runWidth)
@@ -170,6 +174,13 @@ class _XPhaseTracker {
   bool _stepConverge(List<(int, int)> inner, int runStart, int runWidth) {
     final extent = _shrinkExtent(inner, runStart, runWidth);
     if (extent == null) return false;
+    if (_goodRows == 0 && !_anchoredNearWalls(extent, runStart, runWidth)) {
+      // The diagonals of a real X begin AT the box corners; letter
+      // strokes inside a filled control (an "S" in a Save button)
+      // converge too, but they sit well inside the run — reject the
+      // whole candidate at anchor time.
+      return false;
+    }
     _anchor(extent);
     if (inner.length != 1) return false;
     if (extent.$2 - extent.$1 > runWidth * 0.35) return false;
@@ -179,6 +190,14 @@ class _XPhaseTracker {
     return false;
   }
 
+  /// Whether the anchored extent starts near the LEFT wall and ends
+  /// near the RIGHT wall (corner-origin diagonals, not inset glyphs).
+  bool _anchoredNearWalls((int, int) extent, int runStart, int runWidth) {
+    final wall = (runWidth * _wallRatio).round() * 2;
+    return extent.$1 - runStart <= wall &&
+        runStart + runWidth - extent.$2 <= wall;
+  }
+
   /// The shrinking inner extent at this row, or `null` when the bands
   /// stopped converging (grew, stalled, or slid into a wall).
   (int, int)? _shrinkExtent(
@@ -186,7 +205,7 @@ class _XPhaseTracker {
     final start = inner.first.$1;
     final end = inner.last.$2;
     if (start < _prevStart || end > _prevEnd) return null;
-    final wall = (runWidth * 0.15).round();
+    final wall = (runWidth * _wallRatio).round();
     if (start - runStart <= wall || runStart + runWidth - end <= wall) {
       return null;
     }

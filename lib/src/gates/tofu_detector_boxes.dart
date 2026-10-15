@@ -14,7 +14,8 @@ class _HollowBoxScanner {
     return TofuDetector.scanRowsForBox(
       image,
       background,
-      minIcon: 14, // px — icon-sized
+      minIcon: 20, // px — checkboxes are 16-18 px, .notdef boxes
+      // 22-24 px (issue #3 pins the placeholder sizes)
       maxIcon: 64,
       firstRow: 2,
       matches: (y, start, width) =>
@@ -36,7 +37,16 @@ class _HollowBoxScanner {
         image, y, runStart, runWidth, background)) {
       return false;
     }
+    if (!TofuDetector.ringIsolated(image, y, runStart, runWidth, background)) {
+      return false;
+    }
     final height = runWidth; // square-ish placeholder
+    // A real .notdef placeholder has square corners; a rounded UI
+    // square (unchecked checkbox, icon panel) loses its corner pixels.
+    if (!TofuDetector.hasSquareCorners(
+        image, y, runStart, runWidth, height, background)) {
+      return false;
+    }
     if (y + height >= image.height) return false;
     final walls = _Walls(image, runStart, runWidth, background);
     if (!walls.continuous(y, height)) return false;
@@ -124,6 +134,12 @@ class _SolidRect {
       return null;
     }
     if (!_walled(image, top, bottom, runStart, runWidth, background)) {
+      return null;
+    }
+    // Ahem glyphs are square-cornered solid blocks; rounded UI squares
+    // (pagination dots, white icon chips) lose their corner pixels.
+    if (!TofuDetector.hasSquareCorners(
+        image, top, runStart, runWidth, height, background)) {
       return null;
     }
     return (top, bottom);

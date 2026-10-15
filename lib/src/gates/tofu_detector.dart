@@ -60,6 +60,98 @@ class TofuDetector {
     return true;
   }
 
+  /// Whether the 2px ring just OUTSIDE the [runWidth] box opening at
+  /// row [y] is (nearly) pure background. A real placeholder floats
+  /// alone; a legitimate icon's inner panel (the copy icon's front
+  /// rectangle) has the rest of the glyph crossing its ring.
+  static bool ringIsolated(
+    img.Image image,
+    int y,
+    int runStart,
+    int runWidth,
+    int background,
+  ) {
+    final ring = _ringBounds(image, y, runStart, runWidth);
+    if (ring == null) return false;
+    var ink = 0;
+    var total = 0;
+    for (var ry = ring.$2; ry <= ring.$3; ry++) {
+      for (var rx = ring.$1; rx <= ring.$4; rx++) {
+        if (_inBox(rx, ry, y, runStart, runWidth)) continue;
+        total++;
+        if (_isInk(image.getPixel(rx, ry), background)) ink++;
+      }
+    }
+    if (total == 0) return false;
+    return ink / total <= 0.08;
+  }
+
+  /// The ring's clamped scan bounds: (x0, y0, x1, y1), or `null` when
+  /// the ring is fully outside the image.
+  static (int, int, int, int)? _ringBounds(
+    img.Image image,
+    int y,
+    int runStart,
+    int runWidth,
+  ) {
+    const ring = 2;
+    final x0 = (runStart - ring).clamp(0, image.width - 1);
+    final x1 = (runStart + runWidth + ring).clamp(0, image.width - 1);
+    final y0 = (y - ring).clamp(0, image.height - 1);
+    final y1 = (y + runWidth + ring).clamp(0, image.height - 1);
+    if (y1 < y0 || x1 < x0) return null;
+    return (x0, y0, x1, y1);
+  }
+
+  /// Whether (x, y) lies inside the box body (ring scan skips these).
+  static bool _inBox(int x, int y, int boxY, int runStart, int runWidth) =>
+      y >= boxY &&
+      y < boxY + runWidth &&
+      x >= runStart &&
+      x < runStart + runWidth;
+
+  /// The share of ink in the [d]x[d] block at (x, y).
+  static double blockInkRatio(
+    img.Image image,
+    int x,
+    int y,
+    int d,
+    int background,
+  ) {
+    var ink = 0;
+    for (var dy = 0; dy < d; dy++) {
+      for (var dx = 0; dx < d; dx++) {
+        if (_isInk(image.getPixel(x + dx, y + dy), background)) ink++;
+      }
+    }
+    return ink / (d * d);
+  }
+
+  /// Whether the box/rectangle opening at row [y] has SQUARE corners:
+  /// all four [d]x[d] corner blocks carry at least [minRatio] ink.
+  /// Real placeholder glyphs (.notdef boxes, Ahem text blocks) are
+  /// square-cornered; legitimate UI squares (checkboxes, pagination
+  /// dots, icon panels) are rounded and lose their corner pixels.
+  static bool hasSquareCorners(
+    img.Image image,
+    int y,
+    int runStart,
+    int runWidth,
+    int height,
+    int background, {
+    int d = 3,
+    double minRatio = 0.5,
+  }) {
+    final x1 = runStart + runWidth - d;
+    final y1 = y + height - d;
+    if (x1 < runStart || y1 < y) return false;
+    if (y1 + d > image.height || x1 + d > image.width) return false;
+    return blockInkRatio(image, runStart, y, d, background) >= minRatio &&
+        blockInkRatio(image, x1, y, d, background) >= minRatio &&
+        blockInkRatio(image, runStart, y1, d, background) >= minRatio &&
+        blockInkRatio(image, x1, y1, d, background) >= minRatio;
+  }
+
   /// Scans rows top-to-bottom over icon-sized ink runs; `true` on the
   /// first row whose run satisfies [matches] (the per-shape check).
   static bool scanRowsForBox(
