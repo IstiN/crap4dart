@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
@@ -99,6 +100,14 @@ class BrokenGoldensGate implements Gate {
       return 'broken icon placeholder(s) (box with an X) rendered in '
           'the golden — an icon failed to load';
     }
+    if (const TofuDetector().hasHollowIconBoxes(image)) {
+      return 'hollow icon box (bordered square, no glyph inside) '
+          'rendered in the golden — an icon failed to load';
+    }
+    if (const TofuDetector().hasSolidGlyphRuns(image)) {
+      return 'solid glyph rectangles (fallback font blocks) rendered '
+          'in the golden — the font failed to load';
+    }
     return null;
   }
 
@@ -132,8 +141,11 @@ class BrokenGoldensGate implements Gate {
 
   /// Whether the pixel line of [length] sampled by [kindAt] contains
   /// a stripe run: a mix of yellow and black pixels, long enough, with
-  /// real alternation (>= 4 color transitions) and a yellow share of
-  /// at least a third — dark UIs with sparse yellow text never qualify.
+  /// real alternation (>= 4 color transitions), a yellow share of at
+  /// least a third, and CHECKERBOARD segment lengths — yellow and
+  /// black segments of (nearly) equal length. Glyph bars (amber
+  /// "25:00" digits: 4px strokes on 7px gaps) alternate too, but with
+  /// unequal segment lengths, so they do not qualify.
   bool _alternatingRun(
     int length,
     int minRun,
@@ -143,32 +155,84 @@ class BrokenGoldensGate implements Gate {
     var transitions = 0;
     var last = _noneCode;
     var yellows = 0;
+    var segments = <(int, int)>[];
+    var segmentLength = 0;
+    void closeSegment() {
+      if (last != _noneCode && segmentLength > 0) {
+        segments.add((last, segmentLength));
+      }
+      segmentLength = 0;
+    }
+
     for (var i = 0; i < length; i++) {
       final kind = kindAt(i);
       if (kind == _noneCode) {
-        if (_qualifies(run, transitions, yellows, minRun)) return true;
+        closeSegment();
+        if (_qualifies(run, transitions, yellows, segments, minRun)) {
+          return true;
+        }
         run = 0;
         transitions = 0;
         yellows = 0;
+        segments = [];
         last = _noneCode;
         continue;
       }
       if (kind != last) {
         transitions++;
+        closeSegment();
         last = kind;
       }
+      segmentLength++;
       run++;
       if (kind == _yellowCode) yellows++;
-      if (_qualifies(run, transitions, yellows, minRun)) return true;
+      if (_qualifies(run, transitions, yellows, segments, minRun)) return true;
     }
     return false;
   }
 
   /// Whether an accumulated run counts as a stripe: long enough, has
-  /// alternated at least 4 times (>= 2 full color cycles) and yellow
-  /// makes up at least a third of it (sparse text on black never does).
-  bool _qualifies(int run, int transitions, int yellows, int minRun) =>
-      run >= minRun && transitions >= 4 && yellows * 3 >= run;
+  /// alternated at least 4 times (>= 2 full color cycles), yellow
+  /// makes up at least a third of it (sparse text on black never
+  /// does), and the yellow/black segment lengths match the overflow
+  /// checkerboard's equal-length signature.
+  bool _qualifies(
+    int run,
+    int transitions,
+    int yellows,
+    List<(int, int)> segments,
+    int minRun,
+  ) {
+    if (run < minRun || transitions < 4 || yellows * 3 < run) return false;
+    return _segmentsAreCheckerboard(segments);
+  }
+
+  /// Whether the accumulated stripe segments alternate in EQUAL
+  /// lengths — the 45-degree checkerboard's row signature (8px yellow,
+  /// 8px black). The edge segments may be cut by the image border, so
+  /// only complete interior segments are compared.
+  bool _segmentsAreCheckerboard(List<(int, int)> segments) {
+    if (segments.length < 5) return false;
+    final interior = segments.sublist(1, segments.length - 1);
+    var yellowLength = 0;
+    var yellowCount = 0;
+    var blackLength = 0;
+    var blackCount = 0;
+    for (final (kind, length) in interior) {
+      if (kind == _yellowCode) {
+        yellowLength += length;
+        yellowCount++;
+      } else {
+        blackLength += length;
+        blackCount++;
+      }
+    }
+    if (yellowCount < 2 || blackCount < 2) return false;
+    final yellowAvg = yellowLength / yellowCount;
+    final blackAvg = blackLength / blackCount;
+    final larger = math.max(yellowAvg, blackAvg);
+    return (yellowAvg - blackAvg).abs() <= larger * 0.35;
+  }
 }
 
 /// Single-pass pixel statistics feeding both golden detectors.

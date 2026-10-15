@@ -172,18 +172,16 @@ class DuplicationGate implements Gate {
     var checkedLines = 0;
     var duplicatedLines = 0;
     for (final file in files) {
-      final dupLineSet = <int>{};
-      for (final token in file.tokens) {
-        if (token.duplicated) dupLineSet.add(token.line);
-      }
+      final dupLineSet = _duplicatedLineSet(file);
       checkedLines += file.totalLines;
       duplicatedLines += dupLineSet.length;
       final violation = _violationFor(file, dupLineSet, config, context);
       if (violation != null) violations.add(violation);
     }
 
-    final totalPercent =
-        checkedLines == 0 ? 0.0 : (duplicatedLines / checkedLines) * 100.0;
+    final totalPercent = checkedLines == 0
+        ? 0.0
+        : (duplicatedLines / checkedLines) * _percentScale;
     final summary = violations.isEmpty
         ? '${files.length} files, ${totalPercent.toStringAsFixed(2)}% duplicated lines'
         : '${violations.length}/${files.length} files over ${config.threshold}% duplication';
@@ -227,12 +225,41 @@ class DuplicationGate implements Gate {
     }
     final summary = violations.isEmpty
         ? 'no clones >= ${config.matching.minLines} lines across '
-            '${files.length} files'
+            '${files.length} files, '
+            '${_totalPercent(files)}% duplicated lines'
         : '${violations.length} clone groups '
             '(>= ${config.matching.minTokens} tokens, '
-            '>= ${config.matching.minLines} lines)';
+            '>= ${config.matching.minLines} lines), '
+            '${_totalPercent(files)}% duplicated lines';
     return _Result(violations, summary);
   }
+
+  /// The project-wide duplicated-line percentage over [files] (marked
+  /// tokens vs total lines) — so a clones-mode summary always carries
+  /// a number too.
+  String _totalPercent(List<_FileTokens> files) {
+    var checkedLines = 0;
+    var duplicatedLines = 0;
+    for (final file in files) {
+      checkedLines += file.totalLines;
+      duplicatedLines += _duplicatedLineSet(file).length;
+    }
+    if (checkedLines == 0) return '0.00';
+    return ((duplicatedLines / checkedLines) * _percentScale)
+        .toStringAsFixed(2);
+  }
+
+  /// The set of [file] lines carrying at least one marked token.
+  static Set<int> _duplicatedLineSet(_FileTokens file) {
+    final dupLineSet = <int>{};
+    for (final token in file.tokens) {
+      if (token.duplicated) dupLineSet.add(token.line);
+    }
+    return dupLineSet;
+  }
+
+  /// Percent scale: fraction to percent.
+  static const double _percentScale = 100.0;
 
   /// Returns a violation when the file exceeds the duplication threshold.
   GateViolation? _violationFor(
@@ -242,7 +269,7 @@ class DuplicationGate implements Gate {
     GateContext context,
   ) {
     if (file.totalLines == 0) return null;
-    final percent = (dupLineSet.length / file.totalLines) * 100.0;
+    final percent = (dupLineSet.length / file.totalLines) * _percentScale;
     if (percent <= config.threshold) return null;
     final firstLine = dupLineSet.isEmpty ? null : dupLineSet.reduce(min);
     return GateViolation(

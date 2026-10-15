@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.14.1 — 2026-10-15
+
+### Added
+
+- `broken_goldens`: two new broken-golden shape classes (fixes blind
+  spots from issue #3):
+  - hollow icon boxes — a square-ish bordered box (14-64 px) with
+    continuous walls and an empty interior, what an unloaded icon font
+    actually draws (no diagonal cross needed);
+  - solid glyph runs — at least two distinct solid rectangles of the
+    same vertical extent side by side with a small gap (Ahem fallback
+    text, a font that failed to load in the test environment).
+- `gates.duplication` `report: clones`: the summary now also carries
+  the project-wide duplicated-line percentage, so a number is always
+  present regardless of the report mode.
+
+### Fixed
+
+- `broken_goldens` false positives (issue #4):
+  - the tofu X now requires the full life cycle — diagonals converge,
+    MERGE into one central band and then DIVERGE again. A checkmark V
+    (green Habit-Tracker-style tiles) converges to its vertex and
+    never re-diverges, so those tiles pass;
+  - overflow stripes require the checkerboard's equal-length yellow/
+    black segments; amber digits on dark cards (4 px strokes on 7 px
+    gaps) alternate but with unequal lengths and pass.
+
 ## 0.14.0 — 2026-10-12
 
 ### Added

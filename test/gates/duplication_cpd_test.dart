@@ -27,6 +27,8 @@ void main() {
     );
     expect(result.passed, isFalse);
     expect(result.violations, hasLength(1));
+    expect(result.summary, contains('clone groups'));
+    expect(result.summary, contains('duplicated lines'));
     final v = result.violations.single;
     expect(v.message, startsWith('clone: '));
     expect(v.message, contains('2 occurrences: '));
@@ -41,5 +43,6 @@ void main() {
     );
     expect(result.passed, isTrue);
     expect(result.summary, contains('no clones'));
+    expect(result.summary, contains('duplicated lines'));
   });
 }

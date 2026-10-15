@@ -535,10 +535,14 @@ gates:
   Generated files and `test/**` are excluded by default.
 - **broken_goldens** — scans golden PNG files under `dirs` (default
   `test`) for rendered error artifacts: overflow stripes (the yellow/
-  black RenderFlex pattern), build-error screens (the dark-red
-  `ErrorWidget` background) and broken icon placeholders (the tofu
-  box-with-an-X of a failed image load, detected by its bordered X
-  shape). Golden tests do not fail on these — the broken frame gets
+  black RenderFlex pattern, matched by its equal-length checkerboard
+  segments), build-error screens (the dark-red `ErrorWidget`
+  background), broken icon placeholders (the tofu box-with-an-X of a
+  failed image load — confirmed by diagonals that converge, cross and
+  diverge again, so checkmark tiles pass), hollow icon boxes (an
+  unloaded icon font's bordered square with an empty interior) and
+  solid glyph rectangles (Ahem fallback text from a font that failed
+  to load). Golden tests do not fail on these — the broken frame gets
   captured (often permanently, via `--update-goldens`), so the pixels
   are the only witness. For standard `Image.asset`/`Image.network`
   failures you can additionally fail the TEST itself:
