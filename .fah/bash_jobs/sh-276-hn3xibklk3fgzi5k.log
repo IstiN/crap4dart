@@ -1,8 +1,0 @@
-Formatted 4 files (0 changed) in 0.01 seconds.
-Analyzing lib...
-
-  error - src/config/config.dart:114:9 - All final variables must be initialized, but 'mutation' isn't. Try adding an initializer for the field. - final_not_initialized_constructor
-  error - src/config/config_loader.dart:278:7 - The named parameter 'mutation' isn't defined. Try correcting the name to an existing named parameter's name, or defining a named parameter with the name 'mutation'. - undefined_named_parameter
-  error - src/gates/mutation_operators.dart:110:37 - Undefined name 'mutationOperatorCategories'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
-
-3 issues found.

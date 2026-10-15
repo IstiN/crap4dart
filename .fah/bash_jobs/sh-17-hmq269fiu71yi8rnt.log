@@ -1,8 +1,0 @@
-MISSING in lib/src/gates/accessibility_gate.dart: "node.constructorName.type.name2.lexeme == 'Semantics'"
-MISSING in lib/src/gates/unused_code_gate.dart: '  visitClassDeclaration(ClassDeclaration node) {\n    final n'
-done
-  error - test/gates/external_tool_fixture.dart:33:1 - Undefined class 'GateContext'. Try changing the name to the name of an existing class, or creating a class with the name 'GateContext'. - undefined_class
-warning - lib/src/gates/accessibility_gate.dart:82:32 - 'arguments2' is experimental and could be removed or changed at any time. - experimental_member_use
-warning - lib/src/gates/test_assertions_gate.dart:92:36 - 'arguments2' is experimental and could be removed or changed at any time. - experimental_member_use
-
-5 issues found.

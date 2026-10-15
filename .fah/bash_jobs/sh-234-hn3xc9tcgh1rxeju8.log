@@ -1,6 +1,0 @@
-156:      _add(
-172:      _add('unary', '!', '', node.operator.offset, 1);
-177:        _add('constant', '-1', '0', node.operator.offset,
-188:    _add(
-203:    _add('constant', lexeme, lexeme == '0' ? '1' : '0',
-207:  void _add(

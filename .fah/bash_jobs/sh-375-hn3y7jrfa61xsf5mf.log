@@ -1,6 +1,0 @@
-?? test/gates/mutation_operators_test.dart
-?? test/gates/mutation_runner_test.dart
-?? test/gates/mutation_site_metadata_test.dart
-00:15 +375: All tests passed!
-[SKIP] mutation: disabled in config
-Gates: 20 passed, 0 warned, 6 skipped

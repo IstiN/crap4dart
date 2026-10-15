@@ -1,2 +1,0 @@
-[FAIL] method_size: 1 violations in 787 methods over their size limits
-  test/gates/duplication_normalization_test.dart:13: main has 98 lines > max 80

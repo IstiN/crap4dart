@@ -1,5 +1,0 @@
-test/complexity_nested_test.dart:59:    test('countLambdas=false skips lambda branches', () {
-test/complexity_nested_test.dart:70:        const ComplexityCalculator(countLambdas: false)
-test/config_loader_sources_test.dart:47:      expect(loader.loadString('').crap.countLambdas, isTrue);
-test/config_loader_sources_test.dart:48:      expect(loader.loadString('').gates.complexity.countLambdas, isTrue);
-test/config_loader_sources_test.dart:53:      expect(config.crap.countLambdas, isFalse);

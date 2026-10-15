@@ -1,4 +1,0 @@
-exit=3
-36
-INFO lib/src/cli/tui_editor.dart L70: Invalid use of a private type in a public API.
-INFO lib/src/env/io_execution_env.dart L968: Use an initializing formal to assign a parameter to a field.

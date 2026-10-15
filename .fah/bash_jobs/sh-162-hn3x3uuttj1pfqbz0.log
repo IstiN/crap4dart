@@ -1,5 +1,0 @@
- * branch                main       -> FETCH_HEAD
-   3b275afff..39a094d16  main       -> origin/main
-39a094d16 gh-1538 [GOAL] Slim nightly to builds + integration-only: drop test legs duplicated by the pre-merge gate (#1540)
-3b275afff gh-1535 [BUG] bench-harbor setup red: test_fa_agent_timeout HarborParity/HarnessArtifactIsolation ERRORs — FaAgent() constructor drifted from harbor BaseInstalledAgent (#1536)
-46b579537 gh-1522 [GOAL] Tag-sourced versions: retire release-bot file bumps — CI stamps pubspec/CHANGELOG at publish time, flutter builds take --build-name, zero release commits to main (#1526)

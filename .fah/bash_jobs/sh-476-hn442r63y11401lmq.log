@@ -1,3 +1,0 @@
-HEAD is now at 862acc1 test(crap): mutation-dogfood survivor triage — killing tests + equivalent-mutant docs
-00:13 +381: test/cli/cli_smoke_test.dart: check --help lists the flags including --run-tests
-00:17 +382: All tests passed!

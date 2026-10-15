@@ -1,5 +1,0 @@
-00:00 +0 -1: loading test/gates/mutation_engine_test.dart [E]
-00:00 +0 -2: loading test/gates/mutation_gate_test.dart [E]
-00:00 +3 -3: test/gates/mutation_operators_test.dart: binary operator detection equality and logical rows match [E]
-00:00 +13 -4: test/gates/mutation_operators_test.dart: site metadata records file, line and containing method [E]
-00:00 +18 -4: Some tests failed.

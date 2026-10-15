@@ -23,3 +23,6 @@ profile-reports/
 
 # Mutation cache (crap4dart)
 .crap-mutation-cache.json
+
+# fa agent runtime state (bash job logs, session memory)
+.fah/

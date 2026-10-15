@@ -1,2 +1,0 @@
-80:        _literal('process', 'value', 100, 'alpha', 'prefix', 'result'));
-82:        _literal('handle', 'data', 200, 'beta', 'start', 'out'));

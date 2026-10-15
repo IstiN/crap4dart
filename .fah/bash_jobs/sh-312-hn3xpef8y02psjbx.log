@@ -1,7 +1,0 @@
-ok
-31:- **22 quality gates**: `loc`, `test_coverage`, `golden`,
-36:  `folder_structure`, `external`, `mutation`
-340:  mutation:
-342:    # Minimum required mutation score (killed / (killed + survived)).
-555:- **mutation** — mutation testing (adapted from the unclebob/mutator
-569:  directory. Disabled by default: mutation testing runs the test suite

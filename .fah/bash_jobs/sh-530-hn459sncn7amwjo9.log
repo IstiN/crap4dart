@@ -1,4 +1,0 @@
-32:  testArgs: const ['test'],
-35:void main() {
-249:  test('round-trips and prunes vanished methods between runs', () async {
-289:  test('methods sharing a name across files are keyed independently', () async {

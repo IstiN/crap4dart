@@ -1,3 +1,0 @@
-00:00 +18 -1: test/daily_publish_report_signal_test.dart: signal-first excerpt tree-noise child log -> quotes the server message, not the tree tail
-00:00 +18 -1: test/publish_staging_test.dart: gh-1522 rework — stamp_staged_release.sh behavior stamps the pubspec to exactly the tag version [E]
-00:04 +30 -8: Some tests failed.

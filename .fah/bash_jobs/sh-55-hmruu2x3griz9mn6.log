@@ -1,7 +1,0 @@
-19918:  RegularFormalParameterImpl? get representationFormalParameter {
-21651:///        [RegularFormalParameter]
-44167:          formalParameter is RegularFormalParameterImpl &&
-47749:abstract final class RegularFormalParameter implements FormalParameter {}
-47768:final class RegularFormalParameterImpl extends FormalParameterImpl
-47769:    implements RegularFormalParameter {
-FormalParameter base at 

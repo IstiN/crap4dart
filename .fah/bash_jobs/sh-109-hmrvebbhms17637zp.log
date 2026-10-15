@@ -1,6 +1,0 @@
-      20 /tmp/fa_t1_raw.txt
-      20 /tmp/fa_t2_raw.txt
-      40 total
-  bin/fah.dart:164: 0.88% duplicated lines > 0.0%
-  bin/fah_dap_command.dart:698: 0.95% duplicated lines > 0.0%
-  bin/fah_hub_plugin.dart:205: 6.15% duplicated lines > 0.0%

@@ -1,2 +1,0 @@
-keys: ['command', 'threshold', 'maxCrap', 'passed', 'methods']
-/methods len 706 sample keys: ['file', 'line', 'class', 'method', 'complexity', 'lineCoverage', 'branchCoverage', 'crap']

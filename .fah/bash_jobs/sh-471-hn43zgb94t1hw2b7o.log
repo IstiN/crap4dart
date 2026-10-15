@@ -1,3 +1,0 @@
-24:    hash = ((hash ^ byte) * prime) & 0xFFFFFFFFFFFFFFFF;
-26:  return hash.toUnsigned(64).toRadixString(16).padLeft(16, '0');
--5d8e30ed3a706d1f

@@ -1,9 +1,0 @@
- M AGENTS.md
- M CHANGELOG.md
- M README.md
- M lib/src/config/config.dart
- M lib/src/config/config_loader.dart
- M lib/src/config/config_template.dart
- M lib/src/config/gate_config_readers_extra.dart
- M lib/src/gates/gate_runner.dart
-9fa36e5 chore(release): 0.11.0 — Type-2 duplication detection

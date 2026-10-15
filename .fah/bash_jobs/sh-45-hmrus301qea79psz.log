@@ -1,7 +1,0 @@
-lib/src/config/gate_configs.dart:726:class DuplicationGateConfig {
-lib/src/config/gate_config_readers.dart:568:          minTokens: _ConfigScalars.readInt(
-lib/src/config/gate_config_readers.dart:569:              map, 'min_tokens', base.minTokens, path, ctx),
-lib/src/config/gate_config_readers.dart:570:          minLines: _ConfigScalars.readInt(
-lib/src/config/gate_config_readers.dart:571:              map, 'min_lines', base.minLines, path, ctx),
-lib/src/config/gate_configs.dart:733:    this.minTokens = 50,
-lib/src/config/gate_configs.dart:734:    this.minLines = 5,

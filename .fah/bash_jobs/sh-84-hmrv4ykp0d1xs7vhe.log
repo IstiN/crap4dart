@@ -1,1 +1,0 @@
-  error - lib/src/gates/duplication_gate.dart:102:39 - The getter 'minTokens' isn't defined for the type 'DuplicationGateConfig'. Try importing the library that defines 'minTokens', correcting the name to the name of an existing getter, or defining a getter or field named 'minTokens'. - undefined_getter

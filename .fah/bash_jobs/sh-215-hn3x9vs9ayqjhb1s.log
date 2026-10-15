@@ -1,4 +1,0 @@
-575:  /// an explicit `(+N more chars, see <log>)` pointer instead (E7).
-585:/// the card ends with an explicit `(+N more chars, see <log>)` pointer —
-601:/// [logFaceCardMaxBodyChars] with an explicit `(+N more chars, see
-641:    rows.add('│ ${_pad('(+ $overflow more chars, see <log>)', width)}');

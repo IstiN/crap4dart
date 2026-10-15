@@ -1,9 +1,0 @@
-
-  // ignore: library_private_types_in_public_api — private ctor; exposing _UndoStep would leak internals.
-  const TuiLineEditor._(
-    this.buffer, {
-    this.killRing = const [],
-    this.killIndex = -1,
-    this.undoStack = const [],
-    this.lastActionWasYank = false,
-  });
