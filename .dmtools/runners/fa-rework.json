@@ -1,0 +1,26 @@
+{
+  "parent": {
+    "path": "pr_rework@latest"
+  },
+  "params": {
+    "envVariables": {
+      "DEFAULT_TRACKER": "github",
+      "AI_AGENT_PROVIDER": "fa",
+      "FA_PROVIDER_TYPE": "zai",
+      "FA_PROVIDER_CONFIG": "{\"baseUrl\":\"https://api.z.ai/api/coding/paas/v4\",\"model\":\"glm-5.3-flash\",\"input\":[\"text\",\"image\"],\"apiKeyEnvVar\":\"ZAI_API_KEY\"}",
+      "FA_PROVIDERS_QUEUE": "[{\"provider_type\":\"zai\",\"provider_config\":{\"baseUrl\":\"https://api.z.ai/api/coding/paas/v4\",\"model\":\"glm-5.3-flash\",\"apiKeyEnv\":\"ZAI_API_KEY\",\"input\":[\"text\",\"image\"]}},{\"provider_type\":\"openai-completions\",\"provider_config\":{\"baseUrl\":\"https://api.kimi.com/coding/v1\",\"model\":\"kimi-for-coding\",\"apiKeyEnv\":\"KIMI_API_KEY\",\"input\":[\"text\",\"image\"]}}]"
+    },
+    "inputJql": "",
+    "cliPromptsByTracker": {
+      "github": [
+        "pack:instructions/common/github_comment_format.md"
+      ]
+    },
+    "customParams": {
+      "targetRepository": {
+        "workingDir": ".",
+        "baseBranch": "main"
+      }
+    }
+  }
+}
