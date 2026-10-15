@@ -481,9 +481,19 @@ reported.
 
 ### 11.3 complexity
 
-Fails methods whose cyclomatic complexity exceeds `max_complexity`
-(default 10). When `count_lambdas` is false (default true), branches
-inside lambdas shall not count towards the enclosing method.
+Fails methods whose complexity exceeds `max_complexity` (default 10).
+`metric` selects the metric: `cyclomatic` (default) or `cognitive`
+(SonarSource-style, nesting-weighted; flat `else if` chains stay cheap).
+Cyclomatic complexity shall count: `if` (an `if-case` clause and its
+`when` guard add one each), `for`, `while`, `do`, `catch`, every switch
+member of statements and switch expressions (`when` guards included),
+ternary conditionals, `&&`/`||` operators, and `||`/`&&` patterns.
+Cognitive complexity shall follow the SonarSource definition: +1 per
+flow break, +depth nesting increments, one increment per same-operator
+logical sequence. When `count_lambdas` is false (default true), branches
+inside lambdas shall not count towards the enclosing method. The CRAP
+score of the `analyze` command shall always use cyclomatic complexity
+regardless of this setting.
 
 ### 11.4 method_size
 
@@ -496,7 +506,9 @@ for parameter count.
 Fails methods whose maximum block nesting level exceeds `max_nesting`
 (default 5). The method body block counts as level 1; every nested
 block or control-flow statement (`if`, `for`, `while`, `do`, `switch`,
-`try`/`catch`) adds one.
+`try`/`catch`) adds one. An `else if` chain shall stay flat: every
+chained `if` lives at the nesting level of its originating `if`, while
+an `if` inside an `else` block keeps adding a level.
 
 ### 11.6 class_size
 

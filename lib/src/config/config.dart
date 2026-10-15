@@ -2,6 +2,8 @@
 library;
 
 part 'gate_configs.dart';
+part 'gate_configs_naming.dart';
+part 'gate_flags.dart';
 part 'gate_config_mutation.dart';
 part 'threshold_entries.dart';
 

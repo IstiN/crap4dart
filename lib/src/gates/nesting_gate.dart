@@ -69,14 +69,25 @@ class NestingGate implements Gate {
 
 /// Computes the maximum control-flow nesting depth of the visited
 /// function; nested `if`/`for`/`while`/`do`/`switch`/`try`/`catch`
-/// each add one level.
+/// each add one level. An `else if` chain is flat: every chained
+/// `if` lives at the depth of its originating `if`, so
+/// `if (...) else if (...) else if (...)` counts as nesting 1 — while
+/// `if (...) else { if (...) }` keeps counting each level.
 class _NestingVisitor extends RecursiveAstVisitor<void> {
   int _depth = 0;
   int maxDepth = 0;
 
   @override
-  void visitIfStatement(IfStatement node) =>
-      _nested(() => super.visitIfStatement(node));
+  void visitIfStatement(IfStatement node) {
+    _nested(() => node.thenStatement.accept(this));
+    final elseClause = node.elseStatement;
+    if (elseClause is IfStatement) {
+      // `else if` chain: flat, at the same depth as this if.
+      elseClause.accept(this);
+    } else if (elseClause != null) {
+      _nested(() => elseClause.accept(this));
+    }
+  }
 
   @override
   void visitForStatement(ForStatement node) =>

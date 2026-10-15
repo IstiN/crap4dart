@@ -64,6 +64,26 @@ class _ConfigScalars {
     );
   }
 
+  static ComplexityMetric complexityMetric(
+    YamlMap map,
+    String key,
+    ComplexityMetric base,
+    String path,
+    String ctx,
+  ) {
+    final value = map[key];
+    if (value == null) return base;
+    if (value is String) {
+      final parsed = ComplexityMetric.tryParse(value);
+      if (parsed != null) return parsed;
+    }
+    throw ConfigException(
+      path,
+      '$ctx.$key',
+      "expected 'cyclomatic' or 'cognitive'",
+    );
+  }
+
   static double readNum(
       YamlMap map, String key, double base, String path, String ctx) {
     final value = map[key];

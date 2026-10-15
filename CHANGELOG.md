@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.13.0 — 2026-10-12
+
+### Added
+
+- `gates.complexity.metric`: `cyclomatic` (default) or `cognitive` —
+  SonarSource-style cognitive complexity (flow breaks weighted by nesting
+  depth; flat `else if` chains stay cheap, `&&`/`||` sequences count once
+  per run). The CRAP score always uses cyclomatic complexity.
+
+### Fixed
+
+- Cyclomatic complexity now counts switch **expressions**
+  (`return switch (x) { ... }`), their `when` guards, `if-case` guards,
+  and `||`/`&&` patterns — previously all uncounted.
+- The `nesting` gate no longer counts `else if` chains as nesting: a
+  chained `if` keeps its originating `if`'s level, while an `if` inside
+  an `else` block still adds one.
+
 ## 0.12.2 — 2026-10-11
 
 ### Added

@@ -1,5 +1,10 @@
 part of 'config.dart';
 
+// The per-gate config classes implement GateConfigFlags with plain
+// fields; @override noise on identical flag triplets trips the
+// project's own duplication gate.
+// ignore_for_file: annotate_overrides
+
 /// Default exclude globs for generated files, shared by gate defaults.
 const String _generatedGlob = '**.g.dart';
 const String _freezedGlob = '**.freezed.dart';
@@ -9,7 +14,7 @@ const String _mocksGlob = '**.mocks.dart';
 const String _testGlob = 'test/**';
 
 /// File size gate settings (`loc`).
-class LocGateConfig {
+class LocGateConfig implements GateConfigFlags {
   /// Creates a [LocGateConfig].
   const LocGateConfig({
     this.enabled = true,
@@ -42,7 +47,7 @@ class LocGateConfig {
 }
 
 /// Minimum test coverage gate settings (`test_coverage`).
-class TestCoverageGateConfig {
+class TestCoverageGateConfig implements GateConfigFlags {
   /// Creates a [TestCoverageGateConfig].
   const TestCoverageGateConfig({
     this.enabled = true,
@@ -75,7 +80,7 @@ class TestCoverageGateConfig {
 }
 
 /// Golden test coverage gate settings (`golden`).
-class GoldenGateConfig {
+class GoldenGateConfig implements GateConfigFlags {
   /// Creates a [GoldenGateConfig].
   const GoldenGateConfig({
     this.enabled = true,
@@ -111,7 +116,7 @@ class GoldenGateConfig {
 }
 
 /// Hardcoded strings gate settings (`hardcoded_strings`).
-class HardcodedStringsGateConfig {
+class HardcodedStringsGateConfig implements GateConfigFlags {
   /// Creates a [HardcodedStringsGateConfig].
   const HardcodedStringsGateConfig({
     this.enabled = true,
@@ -139,7 +144,7 @@ class HardcodedStringsGateConfig {
 }
 
 /// Accessibility gate settings (`accessibility`).
-class AccessibilityGateConfig {
+class AccessibilityGateConfig implements GateConfigFlags {
   /// Creates an [AccessibilityGateConfig].
   const AccessibilityGateConfig({
     this.enabled = true,
@@ -168,7 +173,7 @@ class AccessibilityGateConfig {
 }
 
 /// Cyclomatic complexity gate settings (`complexity`).
-class ComplexityGateConfig {
+class ComplexityGateConfig implements GateConfigFlags {
   /// Creates a [ComplexityGateConfig].
   const ComplexityGateConfig({
     this.enabled = true,
@@ -177,6 +182,7 @@ class ComplexityGateConfig {
     this.maxComplexity = 10,
     this.entries = const [],
     this.countLambdas = true,
+    this.metric = ComplexityMetric.cyclomatic,
   });
 
   /// Whether the gate is enabled.
@@ -189,8 +195,11 @@ class ComplexityGateConfig {
   /// gate. Disabled by default — suppression must be opted into.
   final bool ignorable;
 
-  /// Maximum allowed cyclomatic complexity per method.
+  /// Maximum allowed complexity per method under [metric].
   final int maxComplexity;
+
+  /// Which complexity metric `max_complexity` applies to.
+  final ComplexityMetric metric;
 
   /// Per-path threshold overrides; the first entry whose `paths` glob
   /// matches the file wins.
@@ -202,7 +211,7 @@ class ComplexityGateConfig {
 }
 
 /// Method size gate settings (`method_size`).
-class MethodSizeGateConfig {
+class MethodSizeGateConfig implements GateConfigFlags {
   /// Creates a [MethodSizeGateConfig].
   const MethodSizeGateConfig({
     this.enabled = true,
@@ -235,7 +244,7 @@ class MethodSizeGateConfig {
 }
 
 /// Maximum nesting level gate settings (`nesting`).
-class NestingGateConfig {
+class NestingGateConfig implements GateConfigFlags {
   /// Creates a [NestingGateConfig].
   const NestingGateConfig({
     this.enabled = true,
@@ -259,7 +268,7 @@ class NestingGateConfig {
 }
 
 /// Class size gate settings (`class_size`).
-class ClassSizeGateConfig {
+class ClassSizeGateConfig implements GateConfigFlags {
   /// Creates a [ClassSizeGateConfig].
   const ClassSizeGateConfig({
     this.enabled = true,
@@ -287,7 +296,7 @@ class ClassSizeGateConfig {
 }
 
 /// Weight of class gate settings (`weight_of_class`).
-class WeightOfClassGateConfig {
+class WeightOfClassGateConfig implements GateConfigFlags {
   /// Creates a [WeightOfClassGateConfig].
   const WeightOfClassGateConfig({
     this.enabled = false,
@@ -337,7 +346,7 @@ class BannedImportRule {
 }
 
 /// Banned imports gate settings (`banned_imports`).
-class BannedImportsGateConfig {
+class BannedImportsGateConfig implements GateConfigFlags {
   /// Creates a [BannedImportsGateConfig].
   const BannedImportsGateConfig({
     this.enabled = true,
@@ -361,7 +370,7 @@ class BannedImportsGateConfig {
 }
 
 /// Unused private code gate settings (`unused_code`).
-class UnusedCodeGateConfig {
+class UnusedCodeGateConfig implements GateConfigFlags {
   /// Creates an [UnusedCodeGateConfig].
   const UnusedCodeGateConfig({
     this.enabled = true,
@@ -391,7 +400,7 @@ class UnusedCodeGateConfig {
 }
 
 /// Unused files gate settings (`unused_files`).
-class UnusedFilesGateConfig {
+class UnusedFilesGateConfig implements GateConfigFlags {
   /// Creates an [UnusedFilesGateConfig].
   const UnusedFilesGateConfig({
     this.enabled = true,
@@ -424,7 +433,7 @@ class UnusedFilesGateConfig {
 }
 
 /// Broken goldens gate settings (`broken_goldens`).
-class BrokenGoldensGateConfig {
+class BrokenGoldensGateConfig implements GateConfigFlags {
   /// Creates a [BrokenGoldensGateConfig].
   const BrokenGoldensGateConfig({
     this.enabled = true,
@@ -457,7 +466,7 @@ class BrokenGoldensGateConfig {
 }
 
 /// Test assertions gate settings (`test_assertions`).
-class TestAssertionsGateConfig {
+class TestAssertionsGateConfig implements GateConfigFlags {
   /// Creates a [TestAssertionsGateConfig].
   const TestAssertionsGateConfig({
     this.enabled = true,
@@ -486,7 +495,7 @@ class TestAssertionsGateConfig {
 }
 
 /// Folder structure gate settings (`folder_structure`).
-class FolderStructureGateConfig {
+class FolderStructureGateConfig implements GateConfigFlags {
   /// Creates a [FolderStructureGateConfig].
   const FolderStructureGateConfig({
     this.enabled = true,
@@ -519,7 +528,7 @@ class FolderStructureGateConfig {
 }
 
 /// Magic constants gate settings (`magic_constants`).
-class MagicConstantsGateConfig {
+class MagicConstantsGateConfig implements GateConfigFlags {
   /// Creates a [MagicConstantsGateConfig].
   const MagicConstantsGateConfig({
     this.enabled = true,
@@ -590,7 +599,7 @@ class ExternalToolRule {
 }
 
 /// External tools gate settings (`external`).
-class ExternalGateConfig {
+class ExternalGateConfig implements GateConfigFlags {
   /// Creates an [ExternalGateConfig].
   const ExternalGateConfig({
     this.enabled = true,
@@ -611,188 +620,4 @@ class ExternalGateConfig {
 
   /// External tools to run; each produces a Checkstyle XML report.
   final List<ExternalToolRule> rules;
-}
-
-/// File naming gate settings (`file_naming`).
-class FileNamingGateConfig {
-  /// Creates a [FileNamingGateConfig].
-  const FileNamingGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.exclude = const [
-      _generatedGlob,
-      _freezedGlob,
-      _mocksGlob,
-      _testGlob,
-    ],
-    this.allow = defaultAllowedStems,
-  });
-
-  /// Stems (file names without the `.dart` extension) accepted despite
-  /// ending in digits — technical terms where the digits carry meaning.
-  static const List<String> defaultAllowedStems = [
-    'aes128',
-    'aes192',
-    'aes256',
-    'arm32',
-    'arm64',
-    'base32',
-    'base64',
-    'crc8',
-    'crc16',
-    'crc32',
-    'f16',
-    'f32',
-    'f64',
-    'h264',
-    'h265',
-    'http2',
-    'http3',
-    'i18n',
-    'i2c',
-    'int8',
-    'int16',
-    'int32',
-    'int64',
-    'ipv4',
-    'ipv6',
-    'l10n',
-    'a11y',
-    'md5',
-    'oauth1',
-    'oauth2',
-    'sha1',
-    'sha256',
-    'sha384',
-    'sha512',
-    'uint8',
-    'uint16',
-    'uint32',
-    'uint64',
-    'utf8',
-    'utf16',
-    'utf32',
-    'w3c',
-    'webgl2',
-    'x509',
-    'x86',
-    'x64',
-  ];
-
-  /// Whether the gate is enabled.
-  final bool enabled;
-
-  /// Whether violations fail the run or are reported as warnings.
-  final GateSeverity severity;
-
-  /// Whether `// crap:ignore` comments may suppress violations of this
-  /// gate. Disabled by default — suppression must be opted into.
-  final bool ignorable;
-
-  /// Glob patterns excluded from the gate.
-  final List<String> exclude;
-
-  /// Extra file name stems (without extension) allowed to end in digits,
-  /// matched case-insensitively against the whole stem.
-  final List<String> allow;
-}
-
-/// Public API documentation gate settings (`public_docs`).
-class PublicDocsGateConfig {
-  /// Creates a [PublicDocsGateConfig].
-  const PublicDocsGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.exclude = const [_testGlob],
-  });
-
-  /// Whether the gate is enabled.
-  final bool enabled;
-
-  /// Whether violations fail the run or are reported as warnings.
-  final GateSeverity severity;
-
-  /// Whether `// crap:ignore` comments may suppress violations of this
-  /// gate. Disabled by default — suppression must be opted into.
-  final bool ignorable;
-
-  /// Glob patterns excluded from the gate.
-  final List<String> exclude;
-}
-
-/// Matching knobs of the `duplication` gate: block granularity and the
-/// Type-2 clone normalizations.
-class DuplicationMatching {
-  /// Creates a [DuplicationMatching].
-  const DuplicationMatching({
-    this.minTokens = 50,
-    this.minLines = 5,
-    this.ignoreLocals = false,
-    this.ignoreLiterals = false,
-  });
-
-  /// Minimum number of tokens in a block to be considered for duplication.
-  final int minTokens;
-
-  /// Minimum number of lines in a block to be considered for duplication.
-  final int minLines;
-
-  /// Whether locally declared identifiers (parameters, local variables,
-  /// loop and catch variables, type parameters, local functions, pattern
-  /// variables) are consistently renamed before hashing, enabling
-  /// detection of renamed (Type-2) clones. Interpolated strings become
-  /// opaque under this mode. Off by default.
-  final bool ignoreLocals;
-
-  /// Whether string and numeric literals are replaced with type
-  /// placeholders before hashing, so clones differing only in literal
-  /// values are detected. Off by default.
-  final bool ignoreLiterals;
-}
-
-/// Code duplication gate settings (`duplication`).
-class DuplicationGateConfig {
-  /// Creates a [DuplicationGateConfig].
-  const DuplicationGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.threshold = 1.0,
-    this.matching = const DuplicationMatching(),
-    this.exclude = const [
-      _generatedGlob,
-      _freezedGlob,
-      _mocksGlob,
-      _testGlob,
-    ],
-    this.sources = const [],
-  });
-
-  /// Whether the gate is enabled.
-  final bool enabled;
-
-  /// Whether violations fail the run or are reported as warnings.
-  final GateSeverity severity;
-
-  /// Whether `// crap:ignore` comments may suppress violations of this
-  /// gate. Disabled by default — suppression must be opted into.
-  final bool ignorable;
-
-  /// Maximum allowed duplicated line percentage per file.
-  final double threshold;
-
-  /// Block granularity and Type-2 clone normalizations.
-  final DuplicationMatching matching;
-
-  /// Glob patterns excluded from the gate.
-  final List<String> exclude;
-
-  /// Additional file/directory paths scanned for duplication, resolved
-  /// against the project root and unioned with the analyzed source set:
-  /// this is what makes cross-module duplication detectable. Directories
-  /// are scanned recursively, `.dart` files are taken directly, missing
-  /// paths are skipped.
-  final List<String> sources;
 }

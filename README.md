@@ -287,8 +287,12 @@ gates:
   # Limit cyclomatic complexity per method.
   complexity:
     enabled: true
-    # Maximum allowed cyclomatic complexity.
+    # Maximum allowed complexity.
     max_complexity: 10
+    # Which metric max_complexity applies to: 'cyclomatic' (default) or
+    # 'cognitive' (SonarSource-style, nesting-weighted; flat else-if
+    # chains stay cheap).
+    # metric: cyclomatic
     # Count branches inside lambdas towards the enclosing method.
     # count_lambdas: true
   # Limit method size and signature length.
@@ -462,14 +466,20 @@ gates:
   `semanticLabel` on `Image`, and `semanticsLabel` (or a wrapping
   `Semantics`) on `GestureDetector`/`InkWell`. Skipped for non-Flutter
   projects.
-- **complexity** — fails methods whose cyclomatic complexity exceeds
-  `max_complexity` (default 10).
+- **complexity** — fails methods whose complexity exceeds `max_complexity`
+  (default 10). `metric` chooses between `cyclomatic` (default) and
+  `cognitive` (SonarSource-style, nesting-weighted — flat `else if`
+  chains stay cheap, nested ones pay extra; `&&`/`||` sequences count
+  once per run). Cyclomatic counting covers switch expressions and
+  pattern guards; CRAP always uses cyclomatic complexity.
 - **method_size** — fails methods longer than `max_lines` (default 60) or
   with more than `max_params` parameters (default 6). Constructors are
   checked only for parameter count.
 - **nesting** — fails methods whose maximum block nesting level exceeds
   `max_nesting` (default 5). The method body counts as level 1; every
-  nested block or control-flow statement adds one. Catches complexity
+  nested block or control-flow statement adds one. `else if` chains stay
+  flat (a chained `if` keeps its originating `if`'s level), while an
+  `if` inside an `else` block keeps adding levels. Catches complexity
   dodging via deeply nested early-return chains.
 - **class_size** — fails classes with more than `max_methods` (default
   25) concrete methods or a weighted-methods sum (WMC, total cyclomatic

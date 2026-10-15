@@ -105,8 +105,12 @@ gates:
   # Limit cyclomatic complexity per method.
   complexity:
     enabled: true
-    # Maximum allowed cyclomatic complexity.
+    # Maximum allowed complexity.
     max_complexity: 10
+    # Which metric max_complexity applies to: 'cyclomatic' (path count,
+    # also feeds CRAP) or 'cognitive' (SonarSource-style, nesting-
+    # weighted; flat else-if chains stay cheap). Default: cyclomatic.
+    # metric: cyclomatic
     # Per-path overrides of max_complexity.
     entries: []
     # Count branches inside lambdas towards the enclosing method.

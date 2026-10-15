@@ -1,5 +1,10 @@
 part of 'config.dart';
 
+// The per-gate config classes implement GateConfigFlags with plain
+// fields; @override noise on identical flag triplets trips the
+// project's own duplication gate.
+// ignore_for_file: annotate_overrides
+
 /// Operator categories of the `mutation` gate, in stable order. The
 /// `gates.mutation.operators` key accepts any subset of these names;
 /// anything else is a strict config error.
@@ -55,7 +60,7 @@ class MutationExecution {
 }
 
 /// Mutation testing gate settings (`mutation`).
-class MutationGateConfig {
+class MutationGateConfig implements GateConfigFlags {
   /// Creates a [MutationGateConfig].
   const MutationGateConfig({
     this.enabled = false,

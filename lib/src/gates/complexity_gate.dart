@@ -1,13 +1,17 @@
 import 'package:glob/glob.dart';
 
+import '../analysis/cognitive.dart';
 import '../analysis/complexity.dart';
 import '../analysis/method_extractor.dart';
+import '../config/config.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
-/// The `complexity` gate: fails methods whose cyclomatic complexity
-/// exceeds `gates.complexity.max_complexity`. Per-path overrides may
-/// relax or tighten the threshold via `entries`.
+/// The `complexity` gate: fails methods whose complexity exceeds
+/// `gates.complexity.max_complexity`. `gates.complexity.metric` selects
+/// the metric — `cyclomatic` (default) or `cognitive` (SonarSource-style,
+/// nesting-weighted). Per-path overrides may relax or tighten the
+/// threshold via `entries`.
 class ComplexityGate implements Gate {
   /// Creates a [ComplexityGate].
   const ComplexityGate();
@@ -24,8 +28,12 @@ class ComplexityGate implements Gate {
           (glob: Glob(path), maxComplexity: entry.maxComplexity),
     ];
     const extractor = MethodExtractor();
-    final calculator =
-        ComplexityCalculator(countLambdas: gateConfig.countLambdas);
+    final MetricCalculator calculator = switch (gateConfig.metric) {
+      ComplexityMetric.cyclomatic =>
+        ComplexityCalculator(countLambdas: gateConfig.countLambdas),
+      ComplexityMetric.cognitive =>
+        CognitiveCalculator(countLambdas: gateConfig.countLambdas),
+    };
     final violations = <GateViolation>[];
     var checked = 0;
     for (final file in context.files) {
@@ -43,8 +51,9 @@ class ComplexityGate implements Gate {
       );
     }
     final summary = violations.isEmpty
-        ? '$checked methods within their CC limit'
-        : '${violations.length}/$checked methods over their CC limit';
+        ? '$checked methods within their ${gateConfig.metric.name} limit'
+        : '${violations.length}/$checked methods over their '
+            '${gateConfig.metric.name} limit';
     return violations.isEmpty
         ? GateResult.pass(id, summary: summary)
         : GateResult.fail(id, violations, summary: summary);
@@ -53,7 +62,7 @@ class ComplexityGate implements Gate {
   /// Complexity violations of [methods] over [maxComplexity].
   List<GateViolation> _violations(
     List<ExtractedMethod> methods,
-    ComplexityCalculator calculator,
+    MetricCalculator calculator,
     String relative,
     int maxComplexity,
   ) {
@@ -67,7 +76,7 @@ class ComplexityGate implements Gate {
           file: relative,
           line: info.startLine,
           message: '${info.className}.${info.methodName} '
-              'CC=$complexity > max $maxComplexity',
+              '${calculator.metricName}=$complexity > max $maxComplexity',
         ),
       );
     }

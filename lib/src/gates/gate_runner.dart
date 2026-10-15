@@ -198,83 +198,43 @@ class GateRunner {
     return diff.linesFor(violation.file).contains(line);
   }
 
-  bool _isEnabled(String id, GatesConfig gates) => switch (id) {
-        _locId => gates.loc.enabled,
-        _testCoverageId => gates.testCoverage.enabled,
-        _complexityId => gates.complexity.enabled,
-        _methodSizeId => gates.methodSize.enabled,
-        _nestingId => gates.nesting.enabled,
-        _classSizeId => gates.classSize.enabled,
-        _weightOfClassId => gates.weightOfClass.enabled,
-        _unusedCodeId => gates.unusedCode.enabled,
-        _unusedFilesId => gates.unusedFiles.enabled,
-        _bannedImportsId => gates.bannedImports.enabled,
-        _duplicationId => gates.duplication.enabled,
-        _fileNamingId => gates.fileNaming.enabled,
-        _magicConstantsId => gates.magicConstants.enabled,
-        _brokenGoldensId => gates.brokenGoldens.enabled,
-        _testAssertionsId => gates.testAssertions.enabled,
-        _folderStructureId => gates.folderStructure.enabled,
-        _externalId => gates.external.enabled,
-        _publicDocsId => gates.publicDocs.enabled,
-        _hardcodedStringsId => gates.hardcodedStrings.enabled,
-        _accessibilityId => gates.accessibility.enabled,
-        _goldenId => gates.golden.enabled,
-        _mutationId => gates.mutation.enabled,
-        _ => false,
+  /// Lookup table from gate id to its configuration, built per run from
+  /// [gates]. Replaces what used to be three 22-case switch chains —
+  /// switch-expression cases now count towards cyclomatic complexity,
+  /// and a table keeps the dispatch flat.
+  Map<String, GateConfigFlags> _flagTable(GatesConfig gates) => {
+        _locId: gates.loc,
+        _testCoverageId: gates.testCoverage,
+        _complexityId: gates.complexity,
+        _methodSizeId: gates.methodSize,
+        _nestingId: gates.nesting,
+        _classSizeId: gates.classSize,
+        _weightOfClassId: gates.weightOfClass,
+        _unusedCodeId: gates.unusedCode,
+        _unusedFilesId: gates.unusedFiles,
+        _bannedImportsId: gates.bannedImports,
+        _duplicationId: gates.duplication,
+        _fileNamingId: gates.fileNaming,
+        _magicConstantsId: gates.magicConstants,
+        _brokenGoldensId: gates.brokenGoldens,
+        _testAssertionsId: gates.testAssertions,
+        _folderStructureId: gates.folderStructure,
+        _externalId: gates.external,
+        _publicDocsId: gates.publicDocs,
+        _hardcodedStringsId: gates.hardcodedStrings,
+        _accessibilityId: gates.accessibility,
+        _goldenId: gates.golden,
+        _mutationId: gates.mutation,
       };
 
-  bool _isIgnorable(String id, GatesConfig gates) => switch (id) {
-        _locId => gates.loc.ignorable,
-        _testCoverageId => gates.testCoverage.ignorable,
-        _complexityId => gates.complexity.ignorable,
-        _methodSizeId => gates.methodSize.ignorable,
-        _nestingId => gates.nesting.ignorable,
-        _classSizeId => gates.classSize.ignorable,
-        _weightOfClassId => gates.weightOfClass.ignorable,
-        _unusedCodeId => gates.unusedCode.ignorable,
-        _unusedFilesId => gates.unusedFiles.ignorable,
-        _bannedImportsId => gates.bannedImports.ignorable,
-        _duplicationId => gates.duplication.ignorable,
-        _fileNamingId => gates.fileNaming.ignorable,
-        _magicConstantsId => gates.magicConstants.ignorable,
-        _brokenGoldensId => gates.brokenGoldens.ignorable,
-        _testAssertionsId => gates.testAssertions.ignorable,
-        _folderStructureId => gates.folderStructure.ignorable,
-        _externalId => gates.external.ignorable,
-        _publicDocsId => gates.publicDocs.ignorable,
-        _hardcodedStringsId => gates.hardcodedStrings.ignorable,
-        _accessibilityId => gates.accessibility.ignorable,
-        _goldenId => gates.golden.ignorable,
-        _mutationId => gates.mutation.ignorable,
-        _ => false,
-      };
+  bool _isEnabled(String id, GatesConfig gates) =>
+      _flagTable(gates)[id]?.enabled ?? false;
 
-  GateSeverity _severity(String id, GatesConfig gates) => switch (id) {
-        _locId => gates.loc.severity,
-        _testCoverageId => gates.testCoverage.severity,
-        _complexityId => gates.complexity.severity,
-        _methodSizeId => gates.methodSize.severity,
-        _nestingId => gates.nesting.severity,
-        _classSizeId => gates.classSize.severity,
-        _weightOfClassId => gates.weightOfClass.severity,
-        _unusedCodeId => gates.unusedCode.severity,
-        _unusedFilesId => gates.unusedFiles.severity,
-        _bannedImportsId => gates.bannedImports.severity,
-        _duplicationId => gates.duplication.severity,
-        _fileNamingId => gates.fileNaming.severity,
-        _magicConstantsId => gates.magicConstants.severity,
-        _brokenGoldensId => gates.brokenGoldens.severity,
-        _testAssertionsId => gates.testAssertions.severity,
-        _folderStructureId => gates.folderStructure.severity,
-        _externalId => gates.external.severity,
-        _publicDocsId => gates.publicDocs.severity,
-        _hardcodedStringsId => gates.hardcodedStrings.severity,
-        _accessibilityId => gates.accessibility.severity,
-        _goldenId => gates.golden.severity,
-        _mutationId => gates.mutation.severity,
-        _ => GateSeverity.error,
-      };
+  bool _isIgnorable(String id, GatesConfig gates) =>
+      _flagTable(gates)[id]?.ignorable ?? false;
+
+  GateSeverity _severity(String id, GatesConfig gates) =>
+      _flagTable(gates)[id]?.severity ?? GateSeverity.error;
 
   /// Renders [result] as a human readable report. At most [maxViolations]
   /// violations are printed per failed gate; the rest is summarized.

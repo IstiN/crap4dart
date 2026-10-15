@@ -2,23 +2,59 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
+/// Common interface of the complexity calculators consumed by the
+/// `complexity` gate.
+abstract interface class MetricCalculator {
+  /// Display name used in violation messages (`CC` or `cognitive`).
+  String get metricName;
+
+  /// Computes the metric of a [MethodDeclaration] or top-level
+  /// [FunctionDeclaration].
+  int compute(AstNode node);
+}
+
+/// The body of a [MethodDeclaration] or top-level [FunctionDeclaration];
+/// both complexity calculators share this entry convention.
+FunctionBody functionBodyOf(AstNode node) {
+  final FunctionBody body;
+  switch (node) {
+    case MethodDeclaration():
+      body = node.body;
+    case FunctionDeclaration():
+      body = node.functionExpression.body;
+    default:
+      throw ArgumentError.value(
+        node.runtimeType,
+        'node',
+        'Expected a MethodDeclaration or FunctionDeclaration',
+      );
+  }
+  return body;
+}
+
 /// Computes cyclomatic complexity of Dart methods from their AST.
 ///
 /// Counting rules (base value 1, +1 for each):
-/// - [IfStatement]
+/// - [IfStatement] (an `if-case` clause adds one more; its `when` guard
+///   adds one more again)
 /// - [ForStatement] (classic and for-in)
 /// - [WhileStatement]
 /// - [DoStatement]
 /// - [CatchClause]
 /// - [SwitchCase], [SwitchPatternCase] and [SwitchDefault] members
+///   (a `when` guard on a pattern case adds one more)
+/// - [SwitchExpressionCase] members of switch *expressions*
+///   (`return switch (x) { ... }`), `when` guards included
 /// - [ConditionalExpression] (`?:`)
 /// - `&&` and `||` [BinaryExpression] operators
+/// - [LogicalOrPattern] and [LogicalAndPattern] patterns (same as the
+///   corresponding boolean operators)
 ///
 /// Lambda bodies ([FunctionExpression]) are traversed and their branches
 /// count towards the enclosing method. Nested named function declarations
 /// ([FunctionDeclaration]) are skipped — they are reported as separate
 /// methods only when declared at the top level.
-class ComplexityCalculator {
+class ComplexityCalculator implements MetricCalculator {
   /// Creates a [ComplexityCalculator].
   ///
   /// When [countLambdas] is false, lambda bodies ([FunctionExpression])
@@ -26,27 +62,18 @@ class ComplexityCalculator {
   /// enclosing method.
   const ComplexityCalculator({this.countLambdas = true});
 
+  @override
+  String get metricName => 'CC';
+
   /// Whether branches inside lambdas count towards the enclosing method.
   final bool countLambdas;
 
   /// Returns the cyclomatic complexity of the body of [node], where [node]
   /// is a [MethodDeclaration] or a top-level [FunctionDeclaration].
+  @override
   int compute(AstNode node) {
-    final FunctionBody body;
-    switch (node) {
-      case MethodDeclaration():
-        body = node.body;
-      case FunctionDeclaration():
-        body = node.functionExpression.body;
-      default:
-        throw ArgumentError.value(
-          node.runtimeType,
-          'node',
-          'Expected a MethodDeclaration or FunctionDeclaration',
-        );
-    }
     final visitor = _ComplexityVisitor(countLambdas: countLambdas);
-    body.accept(visitor);
+    functionBodyOf(node).accept(visitor);
     return visitor.complexity;
   }
 }
@@ -62,12 +89,6 @@ class _ComplexityVisitor extends RecursiveAstVisitor<void> {
   void visitFunctionExpression(FunctionExpression node) {
     if (!countLambdas) return;
     super.visitFunctionExpression(node);
-  }
-
-  @override
-  void visitIfStatement(IfStatement node) {
-    complexity++;
-    super.visitIfStatement(node);
   }
 
   @override
@@ -101,15 +122,42 @@ class _ComplexityVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSwitchDefault(SwitchDefault node) {
+    complexity++;
+    super.visitSwitchDefault(node);
+  }
+
+  @override
   void visitSwitchPatternCase(SwitchPatternCase node) {
     complexity++;
+    if (node.guardedPattern.whenClause != null) complexity++;
     super.visitSwitchPatternCase(node);
   }
 
   @override
-  void visitSwitchDefault(SwitchDefault node) {
+  void visitSwitchExpressionCase(SwitchExpressionCase node) {
     complexity++;
-    super.visitSwitchDefault(node);
+    if (node.guardedPattern.whenClause != null) complexity++;
+    super.visitSwitchExpressionCase(node);
+  }
+
+  @override
+  void visitIfStatement(IfStatement node) {
+    complexity++;
+    if (node.caseClause?.guardedPattern.whenClause != null) complexity++;
+    super.visitIfStatement(node);
+  }
+
+  @override
+  void visitLogicalOrPattern(LogicalOrPattern node) {
+    complexity++;
+    super.visitLogicalOrPattern(node);
+  }
+
+  @override
+  void visitLogicalAndPattern(LogicalAndPattern node) {
+    complexity++;
+    super.visitLogicalAndPattern(node);
   }
 
   @override

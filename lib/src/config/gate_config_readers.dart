@@ -198,7 +198,8 @@ class _GateConfigReaders {
         _ignorableKey,
         _maxComplexityKey,
         _entriesKey,
-        'count_lambdas'
+        'count_lambdas',
+        'metric'
       },
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -211,6 +212,8 @@ class _GateConfigReaders {
           entries: readComplexityEntries(map[_entriesKey], path),
           countLambdas: _ConfigScalars.readBool(
               map, 'count_lambdas', base.countLambdas, path, ctx),
+          metric: _ConfigScalars.complexityMetric(
+              map, 'metric', base.metric, path, ctx),
         );
       },
     );
