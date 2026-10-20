@@ -1,0 +1,62 @@
+# Native binary releases: on every v* tag, compile self-contained
+# executables (dart compile exe — no Dart SDK needed at runtime) and
+# attach them with checksums to the GitHub release.
+#
+# Matrix today: Linux x64 + Linux arm64 (consumer CI demand); macOS
+# and Windows can be added as additional matrix entries later.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux-x64
+          - os: ubuntu-24.04-arm
+            target: linux-arm64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      - run: dart pub get
+      - run: dart analyze
+      - name: Compile native binary
+        run: |
+          dart compile exe bin/crap4dart.dart -o crap4dart-${{ matrix.target }}
+          chmod +x crap4dart-${{ matrix.target }}
+          ./crap4dart-${{ matrix.target }} --version
+      - uses: actions/upload-artifact@v4
+        with:
+          name: crap4dart-${{ matrix.target }}
+          path: crap4dart-${{ matrix.target }}
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Checksums
+        run: |
+          cd dist
+          sha256sum crap4dart-* | tee SHA256SUMS
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/crap4dart-*
+            dist/SHA256SUMS
+          generate_release_notes: true
