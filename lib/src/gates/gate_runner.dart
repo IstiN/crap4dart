@@ -21,6 +21,7 @@ import 'method_size_gate.dart';
 import 'mutation_gate.dart';
 import 'nesting_gate.dart';
 import 'public_docs_gate.dart';
+import 'similarity_gate.dart';
 import 'test_assertions_gate.dart';
 import 'unused_code_gate.dart';
 import 'unused_files_gate.dart';
@@ -49,6 +50,7 @@ const String _hardcodedStringsId = 'hardcoded_strings';
 const String _accessibilityId = 'accessibility';
 const String _goldenId = 'golden';
 const String _mutationId = 'mutation';
+const String _similarityId = 'similarity';
 
 /// Aggregated outcome of a [GateRunner] run.
 class GateRunResult {
@@ -108,6 +110,7 @@ class GateRunner {
         const GoldenGate(),
         const WeightOfClassGate(),
         MutationGate(),
+        const SimilarityGate(),
       ];
 
   /// Runs every enabled gate against [context].
@@ -225,6 +228,7 @@ class GateRunner {
         _accessibilityId: gates.accessibility,
         _goldenId: gates.golden,
         _mutationId: gates.mutation,
+        _similarityId: gates.similarity,
       };
 
   bool _isEnabled(String id, GatesConfig gates) =>

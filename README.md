@@ -28,12 +28,12 @@ crap4dart is a Dart port of the Java tool
 ## Features
 
 - **CRAP analysis** per method, combining complexity and LCOV coverage
-- **22 quality gates**: `loc`, `test_coverage`, `golden`,
+- **23 quality gates**: `loc`, `test_coverage`, `golden`,
   `hardcoded_strings`, `accessibility`, `complexity`, `method_size`,
   `nesting`, `class_size`, `weight_of_class`, `unused_code`,
   `unused_files`, `banned_imports`, `public_docs`, `duplication`,
   `file_naming`, `magic_constants`, `broken_goldens`, `test_assertions`,
-  `folder_structure`, `external`, `mutation`
+  `folder_structure`, `external`, `mutation`, `similarity`
 - **Gate framework**: per-path thresholds (`entries`), warning
   severity, baseline mode, opt-in ignore markers
 - **Configuration** via `crap4dart.yaml` with strict validation
@@ -48,6 +48,14 @@ Published on pub.dev:
 
 ```sh
 dart pub global activate crap4dart
+
+Prebuilt native binaries (no Dart SDK needed — Linux x64/arm64) are
+published on every tagged release:
+
+```sh
+curl -LO https://github.com/IstiN/crap4dart/releases/latest/download/crap4dart-linux-x64
+chmod +x crap4dart-linux-x64 && ./crap4dart-linux-x64 --version
+```
 ```
 
 From the repository:
@@ -167,6 +175,29 @@ to keep it for debugging.
 
 The `analyze`, `check`, `install` and `profile` commands accept
 `--config <path>` to use a non-default config file.
+
+### similarity
+
+Scans any text corpus (markdown docs, source files) for file-level
+near-duplicates — the exploration tool for tuning the `similarity` gate
+before enabling it. Two files are *similar* when their 8-token shingle
+sets overlap enough: Jaccard (overall overlap) or containment (the
+smaller file largely inside the bigger one). Comments, imports, code
+fences and literal values are normalized away, so only real content
+counts.
+
+```sh
+crap4dart similarity                          # config dirs/include, console report
+crap4dart similarity docs/                    # scan one directory
+crap4dart similarity --jaccard 0.5            # threshold overrides
+crap4dart similarity --min-shingles 30        # smaller files are skipped
+crap4dart similarity --include '**/*.md' --include '**/*.dart'
+crap4dart similarity --format json            # machine-readable clusters
+```
+
+The `similarity` **gate** (in `check`) turns this into CI enforcement:
+one violation per clustered file, baseline-compatible so existing
+clusters can be grandfathered while new ones fail the run.
 
 ### Exit codes
 

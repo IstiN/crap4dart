@@ -24,6 +24,7 @@ import '../report/json_reporter.dart';
 import 'exit_codes.dart';
 import 'goldens_command.dart';
 import 'profile_command.dart';
+import 'similarity_command.dart';
 import 'skill_command.dart';
 
 /// Canonical absolute form of [path] (symlinks resolved — git reports
@@ -51,7 +52,7 @@ Future<String> gitTopLevel(String dir) async {
 }
 
 /// Current crap4dart version.
-const String crap4dartVersion = '0.14.2';
+const String crap4dartVersion = '0.15.0';
 
 /// Shared CLI flag names used by multiple commands.
 const String _configFlag = 'config';
@@ -99,6 +100,7 @@ class Crap4DartRunner {
       ))
       ..addCommand(SkillCommand(projectRoot: projectRoot))
       ..addCommand(GoldensCommand(projectRoot: projectRoot))
+      ..addCommand(SimilarityCommand(projectRoot: projectRoot))
       ..addCommand(InitCommand(projectRoot: projectRoot))
       ..addCommand(InstallCommand(projectRoot: projectRoot));
     runner.argParser.addFlag(
