@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.15.0 — 2026-10-15
+
+### Added
+
+- **`similarity` gate + `crap4dart similarity` command**: file-level
+  near-duplicate detection over any text corpus — markdown docs,
+  source files of any language, raw text. Copied docs that drifted
+  apart, twin templates differing by a heading, stale snapshot copies,
+  generated files duplicating their sources: each clustered file gets
+  a violation naming its counterparts and the strongest pair metrics.
+  8-token shingles, Jaccard + containment thresholds, transitive
+  clusters; markdown/code/raw normalization profiles (code fences,
+  comments, import-family lines and literal values are normalized
+  away). Opt-in (`enabled: false` by default) — explore with the
+  informational `similarity` command, tune, then enforce, typically
+  with a baseline so only new near-duplicates fail.
+- **Native binary releases**: every `v*` tag now builds self-contained
+  Linux x64/arm64 executables (`dart compile exe`, no Dart SDK needed
+  at runtime) with SHA256 checksums attached to the GitHub release.
+
 ## 0.14.2 — 2026-10-15
 
 ### Fixed

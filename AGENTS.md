@@ -9,7 +9,7 @@ Guidance for AI agents and contributors working on crap4dart.
 1. **CRAP metric analysis** (`analyze`) — `CRAP = CC²·(1−coverage)³ + CC`
    per method, combining AST-based cyclomatic complexity with LCOV coverage.
    Port of [crap4java](https://github.com/unclebob/crap4java).
-2. **Quality gates** (`check`) — 22 configurable gates: `loc`,
+2. **Quality gates** (`check`) — 23 configurable gates: `loc`,
    `test_coverage`, `golden`, `hardcoded_strings`, `accessibility`,
    `complexity`, `method_size`, `nesting`, `class_size`,
    `weight_of_class`, `unused_code`, `unused_files`, `banned_imports`,
@@ -21,7 +21,11 @@ Guidance for AI agents and contributors working on crap4dart.
    unchanged methods replay cached kills, survivors always re-run;
    diff-scoped under `--diff`, optional `scope_tests` per-mutant test
    scoping with full-suite survivor re-confirmation; disabled by
-   default).
+   default),
+   `similarity` (file-level near-duplicate detection over any text:
+   8-token shingles, Jaccard + containment, transitive clusters;
+   markdown/code/raw normalization profiles; opt-in, plus the
+   informational `crap4dart similarity` command).
 3. **Gate framework** — per-gate `severity: error|warning`, opt-in
    `ignorable` (ignore comments are OFF by default), per-path
    thresholds (`entries`), baseline mode
@@ -81,7 +85,8 @@ lib/src/config/              # crap4dart.yaml model, loader (strict), template
 lib/src/analysis/            # analyzer wrappers: parser, method extractor, CC
 lib/src/coverage/            # LCOV parser, per-method coverage, test runner
 lib/src/crap/                # CRAP formula, analyzer, console report
-lib/src/gates/               # Gate framework + 22 gates
+lib/src/gates/               # Gate framework + 23 gates
+lib/src/similarity/          # shingles/Jaccard engine (similarity gate)
 lib/src/files/               # source finder, git changed files, diff parser
 lib/src/report/              # JSON reporter
 lib/src/profile/             # source-instrumentation profiler, per-method timing

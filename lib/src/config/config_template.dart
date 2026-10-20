@@ -288,6 +288,32 @@ gates:
       # - id: swiftlint
       #   executable: swiftlint
       #   arguments: ['lint', '--reporter', 'checkstyle', '>'] # see docs
+  # Similarity: file-level near-duplicate detection over any text
+  # corpus (markdown docs, source files) — copied docs that drifted
+  # apart, twin templates, stale snapshots, generated files duplicating
+  # their sources. Different from `duplication` (token-level clone
+  # blocks in Dart): a violation means "this file is (mostly) a copy of
+  # that file" — reuse, generate or delete, not extract-method.
+  # Explore with `crap4dart similarity`, tune, then enable — typically
+  # with `check --save-baseline` so only NEW near-duplicates fail.
+  similarity:
+    # Disabled by default: corpora differ wildly; opt in deliberately.
+    enabled: false
+    # Directories recursively scanned for text files.
+    dirs: ['.']
+    # Glob patterns of files to analyze.
+    include: ['**/*.md']
+    # Files with fewer shingles (8-token windows) than this are skipped.
+    min_shingles: 50
+    # Pair thresholds: report when Jaccard >= this OR containment >=
+    # this (containment catches a small file largely copied into a big
+    # one). 0.8/0.95 flags near-identical twins; docs corpora with
+    # heavy boilerplate tune down to ~0.5/0.85 plus a baseline.
+    jaccard: 0.8
+    containment: 0.95
+    # Glob patterns excluded from the gate.
+    exclude: ['.git/**', '.dart_tool/**', 'build/**', 'coverage/**',
+              'node_modules/**']
   # Mutation testing: mutate one operator/literal at a time and re-run
   # the test suite per mutant. Expensive — disabled by default; enable
   # explicitly once the suite is fast. Sites in unexecuted code are

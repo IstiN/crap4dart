@@ -5,6 +5,7 @@ part 'gate_configs.dart';
 part 'gate_configs_naming.dart';
 part 'gate_flags.dart';
 part 'gate_config_mutation.dart';
+part 'similarity_gate_config.dart';
 part 'threshold_entries.dart';
 
 /// Severity of a gate violation.
@@ -134,6 +135,7 @@ class GatesConfig {
     this.folderStructure = const FolderStructureGateConfig(),
     this.external = const ExternalGateConfig(),
     this.mutation = const MutationGateConfig(),
+    this.similarity = const SimilarityGateConfig(),
     this.flutter = const FlutterGatesConfig(),
   });
 
@@ -178,6 +180,9 @@ class GatesConfig {
 
   /// Magic constants gate (`magic_constants`).
   final MagicConstantsGateConfig magicConstants;
+
+  /// Similarity gate (`similarity`).
+  final SimilarityGateConfig similarity;
 
   /// Broken goldens gate (`broken_goldens`).
   final BrokenGoldensGateConfig brokenGoldens;

@@ -73,6 +73,7 @@ The tool shall support these commands:
 - `crap4dart init`
 - `crap4dart install`
 - `crap4dart profile`
+- `crap4dart similarity [dirs...]`
 - `crap4dart --help` / `crap4dart --version`
 
 ### 4.2 analyze Options
@@ -433,7 +434,7 @@ Known gate ids: `loc`, `test_coverage`, `golden`, `hardcoded_strings`,
 `weight_of_class`, `unused_code`, `unused_files`, `banned_imports`,
 `public_docs`, `duplication`, `file_naming`, `magic_constants`,
 `broken_goldens`, `test_assertions`, `folder_structure`, `external`,
-`mutation`.
+`mutation`, `similarity`.
 
 ## 11. Quality Gates
 
@@ -443,7 +444,8 @@ Gates shall run in the fixed order: `loc`, `test_coverage`,
 `folder_structure`, `external`, `unused_code`, `unused_files`,
 `banned_imports`,
 `public_docs`, `hardcoded_strings`, `accessibility`, `golden`,
-`weight_of_class`, `mutation`. A gate disabled in the config shall
+`weight_of_class`, `mutation`, `similarity`. A gate disabled in the
+config shall
 produce a skipped result. The run shall fail when at least one gate fails;
 skipped gates shall not fail the run.
 
@@ -810,6 +812,41 @@ timeout included — is NOT monotone, so it is re-confirmed once against
 the full invocation, and only the confirmed outcome is reported and
 cached. `scope_tests` is deliberately not part of the cache meta
 guard. The summary counts scoped sites and re-confirmed kills.
+
+
+### 11.23 similarity
+
+File-level near-duplicate detection over any text corpus (markdown,
+source code of any language, raw text). Each scanned file is
+normalized per its profile — markdown drops fenced code blocks, code
+drops comments/import-family lines and maps literals to placeholders,
+raw is compared as-is — tokenized (markdown/raw: 2+ letter words,
+lowercased; code: identifiers and literal placeholders), and
+represented as the set of its 8-token shingles.
+
+Two files are *similar* when Jaccard(A,B) >= `jaccard` (default 0.8)
+OR containment(A,B) >= `containment` (default 0.95; intersection over
+the smaller set — catches a small file largely copied into a big one).
+Similar pairs merge transitively into clusters. Files with fewer than
+`min_shingles` shingles (default 50) are skipped.
+
+Config keys: `enabled` (default false — opt-in), `severity`,
+`ignorable`, `dirs` (default `['.']`), `include` (default
+`['**/*.md']`), `exclude` (default `.git/**`, `.dart_tool/**`,
+`build/**`, `coverage/**`, `node_modules/**`), `min_shingles`,
+`jaccard`, `containment`. Unknown keys are config errors, as for every
+gate.
+
+Violations: one per clustered file, no line number (similarity is a
+file-level property; in diff mode file-level violations survive only
+for files with real changes). The message names up to two counterparts
+and the strongest pair metrics. Summary: `N files in M similar-file
+clusters (K scanned)` / `K files scanned, no similar files`.
+
+The `similarity` command runs the same analysis ad hoc over explicit
+directories or the config's `dirs`, with `--jaccard`, `--containment`,
+`--min-shingles`, `--include`, `--exclude` overrides and
+`--format console|json`; it is informational and always exits 0.
 
 ## 12. Baseline
 

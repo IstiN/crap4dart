@@ -68,6 +68,7 @@ class ConfigLoader {
     'folder_structure',
     'external',
     'mutation',
+    'similarity',
   };
 
   /// Loads the configuration for the project at [projectRoot].
@@ -278,6 +279,8 @@ class ConfigLoader {
           map['external'], base.external, path),
       mutation: _ExtendedGateConfigReaders.readMutation(
           map['mutation'], base.mutation, path),
+      similarity: _ExtendedGateConfigReaders.readSimilarity(
+          map['similarity'], base.similarity, path),
       flutter: FlutterGatesConfig(
         golden: _GateConfigReaders.readGolden(
             map['golden'], base.flutter.golden, path),

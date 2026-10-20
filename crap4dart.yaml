@@ -38,15 +38,31 @@ gates:
     enabled: true
     max_lines: 80
     max_params: 8
-    # Dogfooding `entries`: GatesConfig aggregates 16 gate configs, so
-    # its constructor legitimately needs more params than a method.
+    # Dogfooding `entries`: config aggregate/flag classes legitimately
+    # need more params than a method — GatesConfig aggregates 23 gate
+    # configs (one param each) and SimilarityGateConfig carries the
+    # flag triplet + 6 similarity-specific keys.
     entries:
-      - max_params: 20
-        paths: ['lib/src/config/config.dart']
+      - max_params: 24
+        paths:
+          - 'lib/src/config/config.dart'
+          - 'lib/src/config/similarity_gate_config.dart'
   public_docs:
     enabled: true
     exclude:
       - 'test/**'
+  # File-level near-duplicate detection (crap4dart >=0.15.0): docs
+  # corpora rot through copy-paste; this catches new near-copies.
+  # Measured on this repo: md corpus clean even at jaccard 0.5 (the
+  # twin Dart test files are block-level clones — duplication gate
+  # territory, file-level similarity is not for them).
+  similarity:
+    enabled: true
+    dirs: ['.']
+    include: ['**/*.md']
+    jaccard: 0.6
+    containment: 0.9
+    exclude: ['.git/**', '.dart_tool/**', 'build/**', 'coverage/**']
   broken_goldens:
     enabled: true
     dirs: [test]

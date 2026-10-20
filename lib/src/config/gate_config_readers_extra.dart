@@ -40,6 +40,49 @@ class _ExtendedGateConfigReaders {
     );
   }
 
+  static SimilarityGateConfig readSimilarity(
+    Object? node,
+    SimilarityGateConfig base,
+    String path,
+  ) {
+    return _ConfigScalars.readGateConfig(
+      node,
+      base,
+      path,
+      'gates.similarity',
+      const {
+        _enabledKey,
+        _severityKey,
+        _ignorableKey,
+        _dirsKey,
+        'include',
+        'min_shingles',
+        'jaccard',
+        'containment',
+        _excludeKey
+      },
+      (map, base, path, ctx) {
+        final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
+        return SimilarityGateConfig(
+          enabled: flags.enabled,
+          severity: flags.severity,
+          ignorable: flags.ignorable,
+          dirs: _ConfigScalars.strList(map, _dirsKey, base.dirs, path, ctx),
+          include:
+              _ConfigScalars.strList(map, 'include', base.include, path, ctx),
+          minShingles: _ConfigScalars.readInt(
+              map, 'min_shingles', base.minShingles, path, ctx),
+          jaccard:
+              _ConfigScalars.readNum(map, 'jaccard', base.jaccard, path, ctx),
+          containment: _ConfigScalars.readNum(
+              map, 'containment', base.containment, path, ctx),
+          exclude:
+              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+        );
+      },
+    );
+  }
+
   static TestAssertionsGateConfig readTestAssertions(
     Object? node,
     TestAssertionsGateConfig base,
