@@ -189,22 +189,32 @@ with usage-error status.
   Output format; `json` keeps stdout JSON-only (progress goes to
   stderr).
 
+- `--badge <path>`
+  Write a shields-style SVG badge (`memory churn | <N> MB`); green at
+  or below, yellow at most twice, red over `--badge-threshold` MB
+  (default 500).
+
 The `memory` command shall run `dart --verbose_gc test
 --concurrency=1 -r json`, parse both output streams, and attribute GC
 events to suites and tests:
 
-- suite attribution is EXACT: the VM truncates isolate names in the GC
-  table, so the stream is scanned chronologically — a full-name spawn
-  announcement (`…test.dart_N.dill`) switches the current isolate, and
-  N maps onto the N-th suite event; a row arriving before the new
-  isolate's first seq-1 GC is a straggler of the previous isolate;
-- test attribution uses one GLOBAL clock offset (GC clock vs reporter
-  clock), voted per suite by (last GC of the file − end of its last
-  test), aggregated at the 90th percentile; GCs before a suite's first
-  test start (isolate loading) count towards the file total only;
+- GC rows count their `start` column from ISOLATE start, not VM start;
+  a suite's `suite` event `time` marks the same zero point in reporter
+  ms, so each test's window in isolate-clock ms is
+  (testStartMs − suiteEventMs … testDoneMs − suiteEventMs);
+- the VM truncates isolate names in the GC table (`test_suite:fi…`) —
+  rows are associated with the nearest preceding full-name spawn
+  announcement (`…test.dart_N.dill`, N maps onto the N-th suite event),
+  with a GC-number-continuation guard returning stragglers to the
+  previous isolate; because announcements may lag or lead their rows,
+  ONLY rows inside a suite's test windows are trusted: rows before the
+  first window (isolate loading) or after the last (teardown), and
+  rows of unmatched isolates, go to a separate UNATTRIBUTED bucket
+  that never pollutes file totals;
 - reported metrics per test/file: GC count (diagnostics only),
   reclaimed new-gen MB (churn — deterministic across runs), and signed
-  old-gen growth MB (positive and never freed = leak suspect).
+  old-gen growth MB (positive and never freed = leak suspect); the
+  report also carries the unattributed GC list and its churn.
 
 The command is informational: it exits 0 after a successful run and 1
 on usage errors (no Dart test suite found, no tests executed). Flutter

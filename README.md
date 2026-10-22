@@ -6,6 +6,7 @@ projects.
 [![Quality](https://github.com/IstiN/crap4dart/actions/workflows/quality.yml/badge.svg)](https://github.com/IstiN/crap4dart/actions/workflows/quality.yml)
 [![pub package](https://img.shields.io/pub/v/crap4dart.svg)](https://pub.dev/packages/crap4dart)
 ![CRAP](badges/crap.svg)
+![memory churn](badges/memory.svg)
 
 ## What is CRAP?
 
@@ -182,13 +183,15 @@ Runs the test suite under `dart --verbose_gc` (concurrency 1) and
 attributes GC events to tests: which tests allocate the most
 (reclaimed new-gen MB — the honest churn proxy, deterministic across
 runs) and which grow the old generation without freeing it (leak
-suspects). Per-file attribution is exact (isolate/dill-index based);
-per-test attribution is window-based with a calibrated clock offset.
+suspects). Per-test attribution uses each isolate's own clock (GC rows
+count from isolate start; the suite event time is the same zero);
+loading/teardown GCs land in a separate unattributed bucket.
 
 ```sh
 crap4dart memory                  # run the suite, print both leaderboards
 crap4dart memory --top 5          # shorter leaderboards
 crap4dart memory --format json    # machine-readable report (JSON-only stdout)
+crap4dart memory --badge badges/memory.svg   # shields-style churn badge
 ```
 
 Informational only — always exits 0 on a successful run. Thresholds

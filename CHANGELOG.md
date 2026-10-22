@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.16.0 — 2026-10-22
+
+### Added
+
+- `memory` command (phase 1 of the memory-profiling plan): runs
+  `dart --verbose_gc test --concurrency=1 -r json` and attributes GC
+  events to tests — allocation churn (reclaimed new-gen MB,
+  deterministic across runs) and old-gen growth (leak suspects).
+  Per-test windows use each isolate's own clock (GC rows count from
+  isolate start; the suite event time is the same zero); loading and
+  teardown GCs land in an unattributed bucket. `--badge` writes a
+  shields-style churn SVG (see `badges/memory.svg`).
+- Dogfooding across three repos (file-level numbers stable across
+  runs): crap4dart 497 tests / 245 MB (no heavy files — the earlier
+  "30 MB" hotspots were detector artifacts, fixed by the
+  window-only attribution); dmtools-dart 4254 tests / 1.5 GB (top:
+  AiSyncTools transport test 35 MB, justified); flutter_agent 12387
+  tests / 84 GB (top: `AC3 — status without id stays bounded` 2.5 GB
+  churn + 14.7 MB retained — reported upstream).
+
 ## 0.15.0 — 2026-10-15
 
 ### Added
