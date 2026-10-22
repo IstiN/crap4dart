@@ -176,6 +176,25 @@ to keep it for debugging.
 The `analyze`, `check`, `install` and `profile` commands accept
 `--config <path>` to use a non-default config file.
 
+### memory
+
+Runs the test suite under `dart --verbose_gc` (concurrency 1) and
+attributes GC events to tests: which tests allocate the most
+(reclaimed new-gen MB — the honest churn proxy, deterministic across
+runs) and which grow the old generation without freeing it (leak
+suspects). Per-file attribution is exact (isolate/dill-index based);
+per-test attribution is window-based with a calibrated clock offset.
+
+```sh
+crap4dart memory                  # run the suite, print both leaderboards
+crap4dart memory --top 5          # shorter leaderboards
+crap4dart memory --format json    # machine-readable report (JSON-only stdout)
+```
+
+Informational only — always exits 0 on a successful run. Thresholds
+and the `memory_pressure` gate come with baseline machinery later:
+raw GC counts are machine-dependent, allocated MB are not.
+
 ### similarity
 
 Scans any text corpus (markdown docs, source files) for file-level
