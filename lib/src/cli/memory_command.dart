@@ -5,6 +5,7 @@ import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as p;
 
 import 'exit_codes.dart';
+import '../memory/flutter_memory.dart';
 import '../memory/memory_profiler.dart';
 import '../report/badge_svg.dart';
 
@@ -38,6 +39,14 @@ class MemoryCommand extends Command<int> {
             'the --badge-threshold MB).',
       )
       ..addOption(
+        _engineOption,
+        allowed: ['auto', 'dart', 'flutter'],
+        defaultsTo: 'auto',
+        help: 'Test engine: auto-detects Flutter from pubspec.yaml. '
+            'Flutter mode rides `flutter test --verbose` and re-runs each '
+            'spawned flutter_tester with --verbose_gc (files run twice).',
+      )
+      ..addOption(
         _badgeThresholdOption,
         defaultsTo: '500',
         help: 'Churn threshold (MB) for the badge color.',
@@ -59,12 +68,14 @@ class MemoryCommand extends Command<int> {
   @override
   Future<int> run() async {
     final root = projectRoot ?? Directory.current.path;
-    if (!_isDartProject(root)) {
+    final engine = _resolveEngine(root);
+    if (engine == 'none') {
       stderr.writeln(_noSuiteMessage(root));
       return ExitCodes.usageError;
     }
-    stderr.writeln('Running dart --verbose_gc test (this may take a while)');
-    final report = await _profiler.profile(root, argResults!.rest);
+    final report = engine == 'flutter'
+        ? await _profileFlutter(root)
+        : await _profileDart(root);
     if (report.testCount == 0) {
       stderr.writeln('memory: no tests executed');
       return ExitCodes.usageError;
@@ -72,6 +83,45 @@ class MemoryCommand extends Command<int> {
     _printReport(report);
     _maybeWriteBadge(report);
     return ExitCodes.success;
+  }
+
+  static const _engineDart = 'dart';
+  static const _engineFlutter = 'flutter';
+
+  /// `dart`, `flutter`, or `none` (no suite at all).
+  String _resolveEngine(String root) {
+    final chosen = argResults![_engineOption] as String?;
+    final isFlutter = _isFlutterProject(root);
+    if (chosen == _engineDart || chosen == _engineFlutter) return chosen!;
+    if (_isDartProject(root) || isFlutter) {
+      return isFlutter ? _engineFlutter : _engineDart;
+    }
+    return 'none';
+  }
+
+  /// The dart-engine path (dart --verbose_gc test).
+  Future<MemoryReport> _profileDart(String root) async {
+    stderr.writeln('Running dart --verbose_gc test (this may take a while)');
+    return _profiler.profile(root, argResults!.rest);
+  }
+
+  /// The flutter-engine path: rides flutter test --verbose, measuring
+  /// every spawned flutter_tester (each file runs twice).
+  Future<MemoryReport> _profileFlutter(String root) async {
+    stderr.writeln(
+      'Running flutter test (each file executes twice: the tool run '
+      'plus the measured copy) — this may take a while',
+    );
+    return runFlutterMemory(root, stderr.writeln);
+  }
+
+  /// Whether [root] declares the Flutter SDK dependency.
+  bool _isFlutterProject(String root) {
+    final pubspec = File(p.join(root, 'pubspec.yaml'));
+    if (!pubspec.existsSync()) return false;
+    return pubspec.readAsStringSync().contains(
+          RegExp('^  flutter:\\s*\$', multiLine: true),
+        );
   }
 
   /// Writes the SVG badge when --badge was given.
@@ -98,11 +148,9 @@ class MemoryCommand extends Command<int> {
     stderr.writeln('Badge written to $path');
   }
 
-  /// The error text for a directory without a runnable Dart suite.
+  /// The error text for a directory without a runnable suite.
   String _noSuiteMessage(String root) =>
-      'memory: no Dart test suite found in $root '
-      '(the memory profiler runs `dart test`; Flutter projects are '
-      'not supported yet)';
+      'memory: no Dart or Flutter test suite found in $root';
 
   /// Prints the report in the selected format.
   void _printReport(MemoryReport report) {
@@ -128,10 +176,12 @@ class MemoryCommand extends Command<int> {
       'memory: ${report.testCount} tests, ${report.totalGcs.length} GCs, '
       'churn ${report.totalChurnMb.toStringAsFixed(1)} MB new-gen, '
       'old-gen ${report.totalOldGrowthMb >= 0 ? '+' : ''}'
-      '${report.totalOldGrowthMb.toStringAsFixed(1)} MB',
+      '${report.totalOldGrowthMb.toStringAsFixed(1)} MB'
+      '${report.totalAllocatedMb > 0 ? ', allocated ${report.totalAllocatedMb.toStringAsFixed(1)} MB' : ''}',
     );
     stdout.writeln('');
-    stdout.writeln('top $top by allocation churn (reclaimed new-gen MB):');
+    stdout.writeln('top $top by allocation volume '
+        '(allocated MB; reclaimed new-gen MB on the Dart engine):');
     _printTable(report.topChurn.take(top).toList());
     stdout.writeln('');
     stdout.writeln('top $top by old-gen growth (leak suspects first):');
@@ -145,13 +195,13 @@ class MemoryCommand extends Command<int> {
       return;
     }
     stdout.writeln(
-      '  ${'GCs'.padLeft(5)}  ${'churn MB'.padLeft(9)}  '
+      '  ${'GCs'.padLeft(5)}  ${'alloc MB'.padLeft(9)}  '
       '${'old Δ MB'.padLeft(9)}  test',
     );
     for (final entry in entries) {
       stdout.writeln(
         '${entry.gcs.length.toString().padLeft(7)}  '
-        '${entry.churnNewMb.toStringAsFixed(1).padLeft(9)}  '
+        '${entry.allocatedMb.toStringAsFixed(1).padLeft(9)}  '
         '${entry.oldGrowthMb.toStringAsFixed(1).padLeft(9)}  '
         '${entry.label}',
       );
@@ -165,6 +215,7 @@ class MemoryCommand extends Command<int> {
         'testCount': report.testCount,
         'gcCount': report.totalGcs.length,
         'totalChurnMb': _round1(report.totalChurnMb),
+        'totalAllocatedMb': _round1(report.totalAllocatedMb),
         'totalOldGrowthMb': _round1(report.totalOldGrowthMb),
         'suites': [
           for (final suite in report.suites) suite.toJson(),
@@ -181,5 +232,6 @@ class MemoryCommand extends Command<int> {
 
 const String _topOption = 'top';
 const String _formatOption = 'format';
+const String _engineOption = 'engine';
 const String _badgeOption = 'badge';
 const String _badgeThresholdOption = 'badge-threshold';

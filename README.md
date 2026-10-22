@@ -179,13 +179,21 @@ The `analyze`, `check`, `install` and `profile` commands accept
 
 ### memory
 
-Runs the test suite under `dart --verbose_gc` (concurrency 1) and
-attributes GC events to tests: which tests allocate the most
-(reclaimed new-gen MB — the honest churn proxy, deterministic across
-runs) and which grow the old generation without freeing it (leak
-suspects). Per-test attribution uses each isolate's own clock (GC rows
-count from isolate start; the suite event time is the same zero);
-loading/teardown GCs land in a separate unattributed bucket.
+Runs the test suite and attributes allocation volume and GC activity
+to individual tests: which tests allocate the most and which grow the
+old generation without freeing it (leak suspects).
+
+- **Dart projects** run under `dart --verbose_gc` (concurrency 1):
+  churn = reclaimed new-gen MB per GC row (deterministic across runs);
+  attribution uses each isolate's own clock (GC rows count from
+  isolate start; the suite event time is the same zero);
+  loading/teardown GCs land in a separate unattributed bucket.
+- **Flutter projects** (auto-detected, or `--engine flutter`) ride
+  `flutter test --verbose -j1`: every traced `flutter_tester` spawn is
+  re-run with the VM Service enabled, driven over package:test's
+  remote protocol, and measured through the VM's allocation profile —
+  per-test ALLOCATED bytes exactly, plus GC events and old-gen growth.
+  Every file executes twice (the tool's run plus the measured copy).
 
 ```sh
 crap4dart memory                  # run the suite, print both leaderboards

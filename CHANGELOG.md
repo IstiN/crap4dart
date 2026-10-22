@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.17.0 — 2026-10-23
+
+### Added
+
+- `memory --engine auto|dart|flutter` (default `auto`): Flutter test
+  suites are now measurable. `auto` picks `flutter` when pubspec.yaml
+  declares a `flutter:` dependency, else `dart`.
+  - `flutter test` passes no VM flags through and the engine's
+    `--dart-flags` whitelist rejects `--verbose_gc`; the Flutter mode
+    instead re-runs every `flutter_tester` spawn traced by
+    `flutter test --verbose --no-pub -j1 -r json` with the VM Service
+    enabled, drives the suite over package:test's remote protocol
+    (initial -> success -> run/close per test) and measures through
+    the VM Service:
+    - per-test ALLOCATED bytes — the allocation profile is reset
+      before each test and read after it (exact, more precise than
+      the Dart engine's reclaimed-new-gen proxy);
+    - GC events from the `GC` stream, attributed by arrival;
+    - old-gen growth chained across consecutive service events;
+    - suite-load allocations read once before the first reset.
+  - The tool deletes each file's temp dill when the file finishes and
+    at -j1 outruns the measured copy: dills are snapshotted at trace
+    time and the snapshots measured (and cleaned up after).
+  - Every file executes twice (the tool's run plus the measured copy);
+    trace paths must not contain commas (the tool prints its argv via
+    plain `List.toString()`).
+- Reports (both engines) gained `totalAllocatedMb` (JSON) and an
+  `allocated` headline/column; the churn leaderboard sorts by
+  allocation volume (Dart engine: reclaimed new-gen proxy; Flutter
+  engine: profile-allocated bytes).
+
 ## 0.16.0 — 2026-10-22
 
 ### Added

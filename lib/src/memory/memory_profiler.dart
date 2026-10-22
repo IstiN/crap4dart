@@ -19,11 +19,21 @@ class MemoryEntry {
   /// GC events attributed to this entry.
   final List<GcEvent> gcs = [];
 
+  /// Bytes allocated during this entry's window, from the VM
+  /// allocation profile (Flutter engine; `null` when unavailable —
+  /// the Dart engine reports reclaimed new-gen volume instead).
+  int? allocatedBytes;
+
   /// Reclaimed new-gen volume — the honest "allocated MB" proxy.
   double get churnNewMb => gcs.fold(0, (sum, gc) => sum + gc.reclaimedNewMb);
 
   /// Signed old-gen growth: positive and never freed = leak suspect.
   double get oldGrowthMb => gcs.fold(0, (sum, gc) => sum + gc.oldDeltaMb);
+
+  /// Allocation volume: profile bytes when available, otherwise the
+  /// reclaimed-new-gen proxy of the Dart engine's GC table.
+  double get allocatedMb =>
+      allocatedBytes == null ? churnNewMb : allocatedBytes! / 1048576;
 
   /// The JSON shape of this entry.
   Map<String, dynamic> toJson() => {
@@ -31,12 +41,19 @@ class MemoryEntry {
         if (suitePath != null) 'suite': suitePath,
         'gcs': gcs.length,
         'churnNewMb': double.parse(churnNewMb.toStringAsFixed(1)),
+        if (allocatedBytes != null)
+          'allocatedMb': double.parse(allocatedMb.toStringAsFixed(1)),
         'oldGrowthMb': double.parse(oldGrowthMb.toStringAsFixed(1)),
       };
 }
 
 /// The full memory report of one suite run.
 class MemoryReport {
+  /// Total allocation volume across suites (profile-based for the
+  /// Flutter engine, reclaimed-proxy for the Dart engine).
+  double get totalAllocatedMb =>
+      suites.fold(0, (sum, suite) => sum + suite.allocatedMb);
+
   /// Creates a [MemoryReport].
   MemoryReport({
     required this.testCount,
@@ -69,7 +86,7 @@ class MemoryReport {
   List<MemoryEntry> get topChurn => [
         for (final test in tests)
           if (test.gcs.isNotEmpty) test,
-      ]..sort((a, b) => b.churnNewMb.compareTo(a.churnNewMb));
+      ]..sort((a, b) => b.allocatedMb.compareTo(a.allocatedMb));
 
   /// Tests with GC activity, sorted by old-gen growth, descending
   /// (leak suspects first).
