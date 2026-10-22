@@ -177,6 +177,39 @@ with usage-error status.
   Restrict the report to methods touched by `git diff` (see §9.3). `--diff`
   uses base `HEAD`; `--diff-base` implies `--diff` with the given ref.
 
+### 4.7 memory Options
+
+- `[paths...]`
+  Explicit test paths forwarded to `dart test`.
+
+- `--top <n>` (default 20)
+  How many entries each leaderboard prints.
+
+- `--format console|json` (default console)
+  Output format; `json` keeps stdout JSON-only (progress goes to
+  stderr).
+
+The `memory` command shall run `dart --verbose_gc test
+--concurrency=1 -r json`, parse both output streams, and attribute GC
+events to suites and tests:
+
+- suite attribution is EXACT: the VM truncates isolate names in the GC
+  table, so the stream is scanned chronologically — a full-name spawn
+  announcement (`…test.dart_N.dill`) switches the current isolate, and
+  N maps onto the N-th suite event; a row arriving before the new
+  isolate's first seq-1 GC is a straggler of the previous isolate;
+- test attribution uses one GLOBAL clock offset (GC clock vs reporter
+  clock), voted per suite by (last GC of the file − end of its last
+  test), aggregated at the 90th percentile; GCs before a suite's first
+  test start (isolate loading) count towards the file total only;
+- reported metrics per test/file: GC count (diagnostics only),
+  reclaimed new-gen MB (churn — deterministic across runs), and signed
+  old-gen growth MB (positive and never freed = leak suspect).
+
+The command is informational: it exits 0 after a successful run and 1
+on usage errors (no Dart test suite found, no tests executed). Flutter
+projects are not supported yet.
+
 ### 4.7 Invalid Usage
 
 The tool shall exit with usage-error status when argument parsing fails

@@ -36,6 +36,10 @@ Guidance for AI agents and contributors working on crap4dart.
    a `Stopwatch`, runs the test suite, and reports per-method timing
    (source instrumentation, not VM service sampling); configured via the
    `profile` config key (`enabled`, `threshold_ms`, `top`).
+6. **Memory profiling** (`memory`) — runs the suite under
+   `--verbose_gc` (concurrency 1) and attributes GC events to tests:
+   allocation churn (reclaimed new-gen MB) and old-gen growth (leak
+   suspects). Informational only, no config keys yet.
 
 The full contract is specified in [spec.md](spec.md). Keep `spec.md`,
 `README.md`, `lib/src/config/config_template.dart` and this file in sync
