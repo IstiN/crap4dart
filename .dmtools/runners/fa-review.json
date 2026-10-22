@@ -1,0 +1,23 @@
+{
+  "parent": {
+    "path": "pr_review@latest"
+  },
+  "merge": [
+    "params.cliPrompts"
+  ],
+  "params": {
+    "envVariables": {
+      "AI_AGENT_PROVIDER": "fa",
+      "FA_PROVIDER_TYPE": "zai",
+      "FA_PROVIDER_CONFIG": "{\"baseUrl\":\"https://api.z.ai/api/coding/paas/v4\",\"model\":\"glm-5.3-flash\",\"input\":[\"text\",\"image\"],\"apiKeyEnvVar\":\"ZAI_API_KEY\"}"
+    },
+    "inputJql": "",
+    "customParams": {
+      "allowApproveWithSuggestions": true,
+      "formalGithubReview": true
+    },
+    "cliPrompts": [
+      "pack:instructions/pr_review/review_verdict_rules.md"
+    ]
+  }
+}
