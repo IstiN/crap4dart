@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 
 import 'exit_codes.dart';
 import '../memory/memory_profiler.dart';
+import '../report/badge_svg.dart';
 
 /// The `memory` command: runs the test suite under `--verbose_gc`,
 /// attributes GC events and reclaimed memory to tests, and reports the
@@ -29,6 +30,17 @@ class MemoryCommand extends Command<int> {
         allowed: ['console', 'json'],
         defaultsTo: 'console',
         help: 'Output format.',
+      )
+      ..addOption(
+        _badgeOption,
+        help: 'Write a shields-style SVG badge with the suite churn '
+            'to this path (green below, yellow at most twice, red over '
+            'the --badge-threshold MB).',
+      )
+      ..addOption(
+        _badgeThresholdOption,
+        defaultsTo: '500',
+        help: 'Churn threshold (MB) for the badge color.',
       );
   }
 
@@ -58,7 +70,32 @@ class MemoryCommand extends Command<int> {
       return ExitCodes.usageError;
     }
     _printReport(report);
+    _maybeWriteBadge(report);
     return ExitCodes.success;
+  }
+
+  /// Writes the SVG badge when --badge was given.
+  void _maybeWriteBadge(MemoryReport report) {
+    final path = argResults![_badgeOption] as String?;
+    if (path == null || path.isEmpty) return;
+    final threshold =
+        double.tryParse(argResults![_badgeThresholdOption] as String) ?? 500;
+    final churn = report.totalChurnMb;
+    final color = churn <= threshold
+        ? BadgeColors.green
+        : churn <= 2 * threshold
+            ? BadgeColors.yellow
+            : BadgeColors.red;
+    File(path)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        renderBadgeSvg(
+          label: 'memory churn',
+          message: '${churn.round()} MB',
+          colorHex: color,
+        ),
+      );
+    stderr.writeln('Badge written to $path');
   }
 
   /// The error text for a directory without a runnable Dart suite.
@@ -129,7 +166,6 @@ class MemoryCommand extends Command<int> {
         'gcCount': report.totalGcs.length,
         'totalChurnMb': _round1(report.totalChurnMb),
         'totalOldGrowthMb': _round1(report.totalOldGrowthMb),
-        'clockOffsetSeconds': report.clockOffsetSeconds,
         'suites': [
           for (final suite in report.suites) suite.toJson(),
         ],
@@ -145,3 +181,5 @@ class MemoryCommand extends Command<int> {
 
 const String _topOption = 'top';
 const String _formatOption = 'format';
+const String _badgeOption = 'badge';
+const String _badgeThresholdOption = 'badge-threshold';

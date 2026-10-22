@@ -15,9 +15,10 @@ void main() {
       };
       // Suite 1 (heavy test): its isolate reclaimed 3.8 MB.
       expect(byPath['test/heavy_test.dart']!.churnNewMb, closeTo(3.8, 0.01));
-      // Suite 2 (light test): 1.8 MB in-window + 1.0 MB loading GC
-      // (loading rows count towards the file total, never a test).
-      expect(byPath['test/light_test.dart']!.churnNewMb, closeTo(2.8, 0.01));
+      // Suite 2 (light test): file total carries only the 1.8 MB
+      // in-window row; the 1.0 MB loading GC is unattributed.
+      expect(byPath['test/light_test.dart']!.churnNewMb, closeTo(1.8, 0.01));
+      expect(report.unattributedChurnMb, closeTo(1.0, 0.01));
       // Per-test: each file has a single test owning its GCs.
       final heavy =
           report.tests.singleWhere((t) => t.label == 'heavy allocates a lot');
@@ -62,6 +63,9 @@ void main() {
         closeTo(3.8 + 2.0, 0.01),
       );
       expect(byPath['test/light_test.dart']!.churnNewMb, closeTo(1.0, 0.01));
+      final lightTest =
+          report.tests.singleWhere((t) => t.label == 'light test stays quiet');
+      expect(lightTest.churnNewMb, closeTo(1.0, 0.01));
     });
   });
 }

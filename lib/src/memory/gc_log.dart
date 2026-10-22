@@ -54,12 +54,16 @@ class GcEvent {
 }
 
 /// Tracks which isolate owns the rows arriving on the GC stream:
-/// announcement lines switch the current isolate; rows before the new
-/// isolate's first seq-1 GC are stragglers of the previous one.
+/// announcement lines switch the current isolate, and every row is
+/// matched against BOTH isolates' GC-number continuations — the VM
+/// numbers each isolate's GCs from 1, so a row continuing the previous
+/// isolate's numbering (even after the new one opened) is a straggler
+/// of the previous one.
 class _IsolateTracker {
   var current = '';
   var previous = '';
-  var _opened = false; // a seq-1 row seen for [current]
+  var _currentLastSeq = 0;
+  var _previousLastSeq = 0;
 
   /// Consumes an announcement line; `true` when [line] was one.
   bool announce(String line) {
@@ -67,21 +71,28 @@ class _IsolateTracker {
     if (full == null) return false;
     if (full != current) {
       previous = current;
+      _previousLastSeq = _currentLastSeq;
       current = full;
-      _opened = false;
+      _currentLastSeq = 0;
     }
     return true;
   }
 
-  /// Reatributes [event] when it is a straggler of the previous
-  /// isolate: a fresh isolate's GC numbers start at 1, so a row right
-  /// after a spawn with a higher number and no seq-1 seen yet is the
-  /// PREVIOUS isolate's late flush.
+  /// Attributes [event] by GC-number continuation: the current
+  /// isolate's next expected number wins; a row continuing the
+  /// previous isolate's numbering is its late flush and returns to it.
   GcEvent assign(GcEvent event) {
-    if (!_opened && current.isNotEmpty && event.seq > 1) {
+    if (event.seq == _currentLastSeq + 1) {
+      _currentLastSeq = event.seq;
+      return event;
+    }
+    if (previous.isNotEmpty && event.seq == _previousLastSeq + 1) {
+      _previousLastSeq = event.seq;
       return event.copyWith(isolate: previous);
     }
-    if (event.seq <= 1) _opened = true;
+    // Unrecognized numbering: best effort — keep it with the current
+    // isolate.
+    _currentLastSeq = event.seq;
     return event;
   }
 }

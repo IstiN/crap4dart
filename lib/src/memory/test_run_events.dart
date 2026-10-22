@@ -3,13 +3,18 @@ import 'dart:convert';
 /// A suite (test file) seen in the package:test JSON reporter stream.
 class TestSuiteEvent {
   /// Creates a [TestSuiteEvent].
-  const TestSuiteEvent({required this.id, required this.path});
+  const TestSuiteEvent({required this.id, required this.path, this.timeMs = 0});
 
   /// Suite id from the reporter.
   final int id;
 
   /// Test file path as reported.
   final String path;
+
+  /// The `suite` event time, ms since run start — the moment the
+  /// suite's isolate spawns. GC rows count THEIR time from isolate
+  /// start, so this value is the isolate-clock zero in reporter time.
+  final int timeMs;
 }
 
 /// One test's span: name, suite, start/end times (ms since suite run
@@ -88,7 +93,11 @@ class TestRunEvents {
     final id = suite['id'] as int?;
     final path = suite['path'] as String?;
     if (id == null || path == null) return;
-    suitesById.putIfAbsent(id, () => TestSuiteEvent(id: id, path: path));
+    suitesById.putIfAbsent(
+      id,
+      () => TestSuiteEvent(
+          id: id, path: path, timeMs: event['time'] as int? ?? 0),
+    );
   }
 
   void _addTestStart(Map<String, dynamic> event) {

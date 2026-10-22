@@ -43,7 +43,7 @@ class MemoryReport {
     required this.totalGcs,
     required this.suites,
     required this.tests,
-    required this.clockOffsetSeconds,
+    required this.unattributedGcs,
   });
 
   /// Tests executed (spans with a result).
@@ -58,9 +58,12 @@ class MemoryReport {
   /// Per-test entries.
   final List<MemoryEntry> tests;
 
-  /// The estimated offset between the GC clock (VM monotonic seconds)
-  /// and the reporter clock (ms since run start) — for transparency.
-  final double clockOffsetSeconds;
+  /// GCs that no test window claims: isolate loading (kernel
+  /// compilation) and teardown. Their isolate identity in the stream
+  /// is unreliable (the VM truncates names and spawn announcements
+  /// lag/lead their rows), so they are reported as a separate bucket
+  /// instead of polluting file totals.
+  final List<GcEvent> unattributedGcs;
 
   /// Tests with GC activity, sorted by allocation churn, descending.
   List<MemoryEntry> get topChurn => [
@@ -82,6 +85,10 @@ class MemoryReport {
   /// Net old-gen growth of the run.
   double get totalOldGrowthMb =>
       totalGcs.fold(0, (sum, gc) => sum + gc.oldDeltaMb);
+
+  /// Reclaimed new-gen MB of the unattributed bucket.
+  double get unattributedChurnMb =>
+      unattributedGcs.fold(0, (sum, gc) => sum + gc.reclaimedNewMb);
 }
 
 /// What a suite run returns: both output streams.
@@ -212,16 +219,21 @@ class MemoryProfiler {
         suitePath: suite?.path,
       );
     }
-    final gcsBySuite = _gcsBySuite(
-      gcs,
-      isolateToSuite,
-      suiteEntries,
-    );
-    final offset = _globalOffset(gcsBySuite, spansBySuite);
+    final gcsBySuite = _gcsBySuite(gcs, isolateToSuite);
+    final unattributed = <GcEvent>[];
     for (final entry in gcsBySuite.entries) {
       final spans = spansBySuite[entry.key];
       if (spans == null || spans.isEmpty) continue;
-      _assignSuiteGcs(entry.value, spans, testEntries, offset);
+      final suite = events.suitesById[entry.key];
+      _assignSuiteGcs(
+        entry.value,
+        spans,
+        testEntries,
+        suiteEntries,
+        entry.key,
+        suite?.timeMs ?? 0,
+        unattributed,
+      );
     }
     final tests =
         testEntries.values.where((entry) => entry.label.isNotEmpty).toList();
@@ -231,73 +243,70 @@ class MemoryProfiler {
       totalGcs: gcs,
       suites: suiteEntries.values.toList(),
       tests: tests,
-      clockOffsetSeconds: offset,
+      unattributedGcs: [
+        ...unattributed,
+        for (final gc in gcs)
+          if (isolateToSuite[gc.isolate] == null) gc,
+      ],
     );
   }
 
-  /// GCs grouped by suite id; also lands every GC on its suite entry.
+  /// GCs grouped by suite id (candidate attribution — windows refine
+  /// it; suite file totals carry only window-attributed rows).
   static Map<int, List<GcEvent>> _gcsBySuite(
     List<GcEvent> gcs,
     Map<String, TestSuiteEvent> isolateToSuite,
-    Map<int, MemoryEntry> suiteEntries,
   ) {
     final gcsBySuite = <int, List<GcEvent>>{};
     for (final gc in gcs) {
       final suite = isolateToSuite[gc.isolate];
       if (suite == null) continue;
-      suiteEntries[suite.id]?.gcs.add(gc);
       gcsBySuite.putIfAbsent(suite.id, () => []).add(gc);
     }
     return gcsBySuite;
   }
 
-  /// One GLOBAL offset (GC clock − reporter clock), voted per suite by
-  /// (last GC of the file − end of its last test). A file whose last
-  /// GC fires well before its last test ends votes BELOW the true
-  /// offset, and a rare post-end teardown GC votes above it; the 90th
-  /// percentile sits just under the truth and ignores both tails —
-  /// and unlike first-GC anchors, loading GCs cannot pollute these
-  /// pairs.
-  static double _globalOffset(
-    Map<int, List<GcEvent>> gcsBySuite,
-    Map<int, List<TestSpan>> spansBySuite,
-  ) {
-    final votes = <double>[];
-    for (final entry in gcsBySuite.entries) {
-      final spans = spansBySuite[entry.key];
-      if (spans == null || spans.isEmpty) continue;
-      final lastGc = entry.value
-          .reduce((a, b) => a.startSeconds >= b.startSeconds ? a : b);
-      votes.add(lastGc.startSeconds - spans.last.endOrStartMs / 1000);
-    }
-    if (votes.isEmpty) return 0.0;
-    votes.sort();
-    return votes[(votes.length * 0.9).floor().clamp(0, votes.length - 1)];
-  }
-
-  /// Assigns one suite's GCs to its tests using the global [offset].
+  /// Assigns one suite's GCs to its tests. GC rows count time from
+  /// ISOLATE start; the suite event time [suiteTimeMs] (reporter ms)
+  /// marks that same zero point, so a test's window in isolate-clock
+  /// seconds is ((span ms − suiteTimeMs) / 1000).
   static void _assignSuiteGcs(
     List<GcEvent> suiteGcs,
     List<TestSpan> spans,
     Map<int, MemoryEntry> testEntries,
-    double offset,
+    Map<int, MemoryEntry> suiteEntries,
+    int suiteId,
+    int suiteTimeMs,
+    List<GcEvent> unattributed,
   ) {
+    final lastEndMs = spans.last.endOrStartMs - suiteTimeMs;
     for (final gc in suiteGcs) {
-      final gcMs = ((gc.startSeconds - offset) * 1000).round();
-      // Before the first test start: isolate LOADING (kernel
-      // compilation) — file total only, not any test's.
-      if (gcMs < spans.first.startMs) continue;
-      final span = _spanAt(spans, gcMs);
-      testEntries[span?.id]?.gcs.add(gc);
+      final gcMs = (gc.startSeconds * 1000).round();
+      // Outside every test window: isolate LOADING (kernel compile)
+      // before the first start, TEARDOWN after the last end. Their
+      // isolate identity is unreliable — keep them unattributed.
+      if (gcMs < spans.first.startMs - suiteTimeMs || gcMs > lastEndMs) {
+        unattributed.add(gc);
+        continue;
+      }
+      final span = _spanAt(spans, gcMs, suiteTimeMs);
+      if (span == null) {
+        unattributed.add(gc);
+        continue;
+      }
+      testEntries[span.id]!.gcs.add(gc);
+      suiteEntries[suiteId]?.gcs.add(gc);
     }
   }
 
-  /// The span whose window contains [gcMs], preferring the smallest.
-  static TestSpan? _spanAt(List<TestSpan> spans, int gcMs) {
+  /// The span whose isolate-clock window contains [gcMs], preferring
+  /// the smallest.
+  static TestSpan? _spanAt(List<TestSpan> spans, int gcMs, int suiteTimeMs) {
     TestSpan? best;
     for (final span in spans) {
       if (span.endMs == null) continue;
-      if (gcMs >= span.startMs && gcMs <= span.endOrStartMs) {
+      if (gcMs >= span.startMs - suiteTimeMs &&
+          gcMs <= span.endOrStartMs - suiteTimeMs) {
         final current = best;
         if (current == null ||
             span.endOrStartMs - span.startMs <

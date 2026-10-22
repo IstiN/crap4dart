@@ -58,6 +58,18 @@ void main() {
     expect(result.stdout, contains('allocation churn'));
   }, timeout: const Timeout(Duration(minutes: 2)));
 
+  test('memory --badge writes the churn SVG', () async {
+    final badge = '${workDir.path}/badges/memory.svg';
+    final result = await runCliInProcess(
+      workDir,
+      ['memory', '--badge', badge, '--badge-threshold', '500'],
+    );
+    expect(result.exitCode, 0, reason: result.stderr);
+    final svg = File(badge).readAsStringSync();
+    expect(svg, contains('memory churn'));
+    expect(svg, contains('MB'));
+  }, timeout: const Timeout(Duration(minutes: 2)));
+
   test('memory --format json stays JSON-only on stdout', () async {
     final result = await runCliInProcess(
       workDir,
