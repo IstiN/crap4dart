@@ -42,6 +42,13 @@ void main() {
       result.violations.map((v) => v.message),
       everyElement(contains("prefix 'gates'")),
     );
+    expect(
+      result.violations.first.message,
+      allOf(
+        contains('3 files (3 occurrences)'),
+        contains('declare one shared prefix constant and compose'),
+      ),
+    );
   });
 
   test('whole-literal equality is not required', () async {

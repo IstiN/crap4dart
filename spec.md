@@ -763,10 +763,14 @@ With `deep_search` (default false) the gate additionally counts
 dot-segment prefixes of dotted string literals as candidates:
 `'gates.loc.entries'` yields the prefix candidates `'gates'` and
 `'gates.loc'` (the full value is already counted as a whole literal).
-A prefix repeating across `min_files` files flags per occurrence,
-asking for a shared prefix constant composed with the variable
-remainder. Off by default: prefix matching has a wider
-false-positive surface, opt in deliberately.
+A prefix repeating across `min_files` files flags per occurrence;
+the message names the scope (files and occurrences) and the fix
+shape: declare one shared prefix constant and compose every
+occurrence from it (`'<prefixConstant>.<rest>'`). Whole-literal
+findings word the fix as extracting a shared constant and referencing
+it from every site; both end with the verification clause — all
+occurrences must mean the same thing. Off by default: prefix matching
+has a wider false-positive surface, opt in deliberately.
 
 The message asks to extract a shared constant and verify all
 occurrences mean the same thing — the gate highlights, intent stays

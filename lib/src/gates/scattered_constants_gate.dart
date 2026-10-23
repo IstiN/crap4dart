@@ -75,22 +75,28 @@ class ScatteredConstantsGate implements Gate {
       final relative = context.relativePath(file);
       for (final hit in collector.hits) {
         literals
-            .putIfAbsent(hit.key, () => _ScatteredLiteral(hit.display))
+            .putIfAbsent(hit.key, () => _ScatteredLiteral(hit.key, hit.display))
             .add(relative, hit.line);
       }
     }
     final violations = <GateViolation>[];
     for (final literal in literals.values) {
       if (literal.files.length < config.minFiles) continue;
+      final advice = literal.isPrefix
+          ? 'declare one shared prefix constant and compose every '
+              "occurrence from it ('<prefixConstant>.<rest>')"
+          : 'extract a shared constant and reference it from every '
+              'site';
+      final scope = '${literal.files.length} files (${literal.sites.length} '
+          'occurrences)';
       for (final site in literal.sites) {
         violations.add(
           GateViolation(
             file: site.file,
             line: site.line,
-            message: 'literal ${literal.display} appears in '
-                '${literal.files.length} files — extract a shared '
-                'constant and verify all occurrences mean the same '
-                'thing',
+            message: 'literal ${literal.display} repeats in $scope — '
+                '$advice; verify all occurrences mean the same thing '
+                'first',
           ),
         );
       }
@@ -108,8 +114,15 @@ class ScatteredConstantsGate implements Gate {
 
 /// One literal value tracked across the corpus.
 class _ScatteredLiteral {
-  /// Creates a tracker for the literal rendered as [display].
-  _ScatteredLiteral(this.display);
+  /// Creates a tracker for a literal with canonical [key] rendered as
+  /// [display].
+  _ScatteredLiteral(this.key, this.display);
+
+  /// Canonical key; the `p:` namespace marks prefix candidates.
+  final String key;
+
+  /// Whether this is a dot-segment prefix candidate.
+  bool get isPrefix => key.startsWith('p:');
 
   /// Human readable form for messages.
   final String display;
