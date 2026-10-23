@@ -1,4 +1,5 @@
 import '../coverage/lcov_parser.dart';
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
@@ -13,7 +14,7 @@ class CoverageGate implements Gate {
   const CoverageGate();
 
   @override
-  String get id => 'test_coverage';
+  String get id => GateIds.testCoverage;
 
   @override
   Future<GateResult> run(GateContext context) async {

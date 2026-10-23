@@ -2,6 +2,7 @@ import '../common/constants.dart';
 import 'package:path/path.dart' as p;
 
 import '../config/config.dart';
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
@@ -35,7 +36,7 @@ class FileNamingGate implements Gate {
   };
 
   @override
-  String get id => 'file_naming';
+  String get id => GateIds.fileNaming;
 
   @override
   Future<GateResult> run(GateContext context) async {

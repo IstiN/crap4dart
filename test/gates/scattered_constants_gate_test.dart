@@ -73,4 +73,13 @@ void main() {
     });
     expect(result.passed, isFalse);
   });
+
+  test('a literal inside a const initializer counts with its file', () async {
+    final result = await runOn({
+      'lib/a.dart': "const option = 'console-or-json-choice';\n",
+      'lib/b.dart': "final x = 'console-or-json-choice';\n",
+      'lib/c.dart': "final y = 'console-or-json-choice';\n",
+    });
+    expect(result.passed, isFalse);
+  });
 }

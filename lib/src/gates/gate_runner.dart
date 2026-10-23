@@ -10,6 +10,7 @@ import 'duplication_gate.dart';
 import 'external_gate.dart';
 import 'file_naming_gate.dart';
 import 'folder_structure_gate.dart';
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 import 'golden_gate.dart';
@@ -31,34 +32,8 @@ import 'unused_code_gate.dart';
 import 'unused_files_gate.dart';
 import 'weight_of_class_gate.dart';
 
-/// Gate id constants shared by the enabled/ignorable/severity lookups.
-const String _locId = 'loc';
-const String _testCoverageId = 'test_coverage';
-const String _complexityId = 'complexity';
-const String _methodSizeId = 'method_size';
-const String _nestingId = 'nesting';
-const String _recordNamedFieldsId = 'record_named_fields';
-const String _inlineRecordTypesId = 'inline_record_types';
-const String _recordSizeId = 'record_size';
-const String _classSizeId = 'class_size';
-const String _weightOfClassId = 'weight_of_class';
-const String _unusedCodeId = 'unused_code';
-const String _unusedFilesId = 'unused_files';
-const String _bannedImportsId = 'banned_imports';
-const String _duplicationId = 'duplication';
-const String _fileNamingId = 'file_naming';
-const String _magicConstantsId = 'magic_constants';
-const String _scatteredConstantsId = 'scattered_constants';
-const String _brokenGoldensId = 'broken_goldens';
-const String _testAssertionsId = 'test_assertions';
-const String _folderStructureId = 'folder_structure';
-const String _externalId = 'external';
-const String _publicDocsId = 'public_docs';
-const String _hardcodedStringsId = 'hardcoded_strings';
-const String _accessibilityId = 'accessibility';
-const String _goldenId = 'golden';
-const String _mutationId = 'mutation';
-const String _similarityId = 'similarity';
+/// Gate id constants shared by the enabled/ignorable/severity
+/// lookups live in [GateIds].
 
 /// Aggregated outcome of a [GateRunner] run.
 class GateRunResult {
@@ -218,33 +193,33 @@ class GateRunner {
   /// switch-expression cases now count towards cyclomatic complexity,
   /// and a table keeps the dispatch flat.
   Map<String, GateConfigFlags> _flagTable(GatesConfig gates) => {
-        _locId: gates.loc,
-        _testCoverageId: gates.testCoverage,
-        _complexityId: gates.complexity,
-        _methodSizeId: gates.methodSize,
-        _nestingId: gates.nesting,
-        _recordNamedFieldsId: gates.recordNamedFields,
-        _inlineRecordTypesId: gates.inlineRecordTypes,
-        _recordSizeId: gates.recordSize,
-        _classSizeId: gates.classSize,
-        _weightOfClassId: gates.weightOfClass,
-        _unusedCodeId: gates.unusedCode,
-        _unusedFilesId: gates.unusedFiles,
-        _bannedImportsId: gates.bannedImports,
-        _duplicationId: gates.duplication,
-        _fileNamingId: gates.fileNaming,
-        _magicConstantsId: gates.magicConstants,
-        _scatteredConstantsId: gates.scatteredConstants,
-        _brokenGoldensId: gates.brokenGoldens,
-        _testAssertionsId: gates.testAssertions,
-        _folderStructureId: gates.folderStructure,
-        _externalId: gates.external,
-        _publicDocsId: gates.publicDocs,
-        _hardcodedStringsId: gates.hardcodedStrings,
-        _accessibilityId: gates.accessibility,
-        _goldenId: gates.golden,
-        _mutationId: gates.mutation,
-        _similarityId: gates.similarity,
+        GateIds.loc: gates.loc,
+        GateIds.testCoverage: gates.testCoverage,
+        GateIds.complexity: gates.complexity,
+        GateIds.methodSize: gates.methodSize,
+        GateIds.nesting: gates.nesting,
+        GateIds.recordNamedFields: gates.recordNamedFields,
+        GateIds.inlineRecordTypes: gates.inlineRecordTypes,
+        GateIds.recordSize: gates.recordSize,
+        GateIds.classSize: gates.classSize,
+        GateIds.weightOfClass: gates.weightOfClass,
+        GateIds.unusedCode: gates.unusedCode,
+        GateIds.unusedFiles: gates.unusedFiles,
+        GateIds.bannedImports: gates.bannedImports,
+        GateIds.duplication: gates.duplication,
+        GateIds.fileNaming: gates.fileNaming,
+        GateIds.magicConstants: gates.magicConstants,
+        GateIds.scatteredConstants: gates.scatteredConstants,
+        GateIds.brokenGoldens: gates.brokenGoldens,
+        GateIds.testAssertions: gates.testAssertions,
+        GateIds.folderStructure: gates.folderStructure,
+        GateIds.external: gates.external,
+        GateIds.publicDocs: gates.publicDocs,
+        GateIds.hardcodedStrings: gates.hardcodedStrings,
+        GateIds.accessibility: gates.accessibility,
+        GateIds.golden: gates.golden,
+        GateIds.mutation: gates.mutation,
+        GateIds.similarity: gates.similarity,
       };
 
   bool _isEnabled(String id, GatesConfig gates) =>

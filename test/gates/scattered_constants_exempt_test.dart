@@ -25,13 +25,16 @@ void main() {
     );
   }
 
-  test('literals in constant declarations are exempt', () async {
+  test('a local const per file is itself the scatter', () async {
+    // One shared constant would be imported; N local consts with the
+    // same value are N unlinked definitions of the same fact.
     final result = await runOn({
       'lib/a.dart': 'const secondsPerDay = 86400;\n',
-      'lib/b.dart': 'const day = 86400;\nfinal y = 86400;\n',
-      'lib/c.dart': 'final z = 86400;\n',
+      'lib/b.dart': 'const day = 86400;\n',
+      'lib/c.dart': 'const daySeconds = 86400;\n',
     });
-    expect(result.passed, isTrue, reason: result.violations.toString());
+    expect(result.passed, isFalse);
+    expect(result.violations, hasLength(3));
   });
 
   test('small numbers and short strings are coincidence', () async {

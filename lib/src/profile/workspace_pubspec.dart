@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -10,8 +11,6 @@ class WorkspacePubspec {
   /// The workspace member being profiled.
   final String projectRoot;
 
-  static const String _pubspecFileName = 'pubspec.yaml';
-
   /// Writes a standalone `pubspec.yaml` for the temp copy: strips the
   /// `resolution: workspace` marker (the temp dir belongs to no
   /// workspace), absolutizes relative `path:` dependencies (from one
@@ -20,7 +19,7 @@ class WorkspacePubspec {
   /// it is what makes conflicting member constraints resolve inside the
   /// workspace, and without it `pub get` in the temp dir fails.
   void writeStandalone(Directory tempDir) {
-    final src = File(p.join(projectRoot, _pubspecFileName));
+    final src = File(p.join(projectRoot, kPubspec));
     final absRoot = p.absolute(projectRoot);
     final overrides = dependencyOverrides();
     final rewritten = StringBuffer();
@@ -46,7 +45,7 @@ class WorkspacePubspec {
         ..writeln('dependency_overrides:')
         ..write(overrides);
     }
-    File(p.join(tempDir.path, _pubspecFileName))
+    File(p.join(tempDir.path, kPubspec))
         .writeAsStringSync(rewritten.toString());
   }
 
@@ -70,7 +69,7 @@ class WorkspacePubspec {
   /// when the pubspec is absent, not a workspace root, or declares no
   /// overrides.
   String? _overridesOfPubspecAt(String dir) {
-    final pubspec = File(p.join(dir, _pubspecFileName));
+    final pubspec = File(p.join(dir, kPubspec));
     if (!pubspec.existsSync()) return null;
     final content = pubspec.readAsStringSync();
     if (!RegExp(r'^workspace:', multiLine: true).hasMatch(content)) {

@@ -3,6 +3,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:path/path.dart' as p;
 
 import '../analysis/dart_parser.dart';
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
@@ -15,7 +16,7 @@ class UnusedFilesGate implements Gate {
   const UnusedFilesGate();
 
   @override
-  String get id => 'unused_files';
+  String get id => GateIds.unusedFiles;
 
   @override
   Future<GateResult> run(GateContext context) async {

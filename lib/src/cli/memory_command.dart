@@ -86,16 +86,13 @@ class MemoryCommand extends Command<int> {
     return ExitCodes.success;
   }
 
-  static const _engineDart = 'dart';
-  static const _engineFlutter = 'flutter';
-
   /// `dart`, `flutter`, or `none` (no suite at all).
   String _resolveEngine(String root) {
     final chosen = argResults![_engineOption] as String?;
     final isFlutter = _isFlutterProject(root);
-    if (chosen == _engineDart || chosen == _engineFlutter) return chosen!;
+    if (chosen == kDart || chosen == kFlutter) return chosen!;
     if (_isDartProject(root) || isFlutter) {
-      return isFlutter ? _engineFlutter : _engineDart;
+      return isFlutter ? kFlutter : kDart;
     }
     return 'none';
   }
@@ -232,7 +229,7 @@ class MemoryCommand extends Command<int> {
 }
 
 const String _topOption = 'top';
-const String _formatOption = 'format';
+const String _formatOption = kFormat;
 const String _engineOption = 'engine';
 const String _badgeOption = 'badge';
 const String _badgeThresholdOption = 'badge-threshold';

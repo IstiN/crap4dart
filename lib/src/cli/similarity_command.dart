@@ -1,3 +1,4 @@
+import '../gates/gate_ids.dart';
 import '../common/constants.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -59,7 +60,7 @@ class SimilarityCommand extends Command<int> {
   final String? projectRoot;
 
   @override
-  final String name = 'similarity';
+  final String name = GateIds.similarity;
 
   @override
   final String description = 'Scan for near-duplicate files (docs, code) '
@@ -229,7 +230,7 @@ class SimilarityCommand extends Command<int> {
   }
 }
 
-const String _formatOption = 'format';
+const String _formatOption = kFormat;
 const String _jaccardOption = 'jaccard';
 const String _containmentOption = 'containment';
 const String _minShinglesOption = 'min-shingles';

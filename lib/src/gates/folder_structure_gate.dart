@@ -2,6 +2,7 @@ import '../common/constants.dart';
 import 'dart:io';
 
 import '../config/config.dart';
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
@@ -17,7 +18,7 @@ class FolderStructureGate implements Gate {
   const FolderStructureGate();
 
   @override
-  String get id => 'folder_structure';
+  String get id => GateIds.folderStructure;
 
   @override
   Future<GateResult> run(GateContext context) async {

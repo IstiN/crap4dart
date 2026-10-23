@@ -25,7 +25,7 @@ class MutationExecution {
     this.timeoutSeconds = 60,
     this.maxMutants = 500,
     this.cache = true,
-    this.testArgs = const ['test'],
+    this.testArgs = const [kTest],
     this.testScope = false,
   });
 

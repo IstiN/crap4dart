@@ -14,8 +14,6 @@ import 'workspace_pubspec.dart';
 const double _microsPerMillisecond = 1000.0;
 
 /// Directories and files the profiler works with.
-const String _testDirName = 'test';
-const String _pubspecFileName = 'pubspec.yaml';
 const String _dartToolDirName = '.dart_tool';
 
 /// Per-method timing data collected from an instrumented test run.
@@ -348,7 +346,7 @@ class ProfileRunner {
     for (final entity in Directory(projectRoot).listSync()) {
       final name = p.basename(entity.path);
       if (_isManagedCopy(name)) continue;
-      if (skipPubspec && name == _pubspecFileName) continue;
+      if (skipPubspec && name == kPubspec) continue;
       final target = p.join(tempDir.path, name);
       try {
         Link(target).createSync(entity.path, recursive: false);
@@ -364,15 +362,15 @@ class ProfileRunner {
       name == 'lib' ||
       name == 'build' ||
       name == _dartToolDirName ||
-      name == _testDirName;
+      name == kTest;
 
   /// Copies `test/` into [tempDir] — it must contain real files, not
   /// symlinks, because `dart test` resolves `package:` imports relative
   /// to the test file's real path, not to the working directory.
   void _copyTestDir(String projectRoot, Directory tempDir) {
-    final testDir = Directory(p.join(projectRoot, _testDirName));
+    final testDir = Directory(p.join(projectRoot, kTest));
     if (testDir.existsSync()) {
-      _copyPath(testDir.path, p.join(tempDir.path, _testDirName));
+      _copyPath(testDir.path, p.join(tempDir.path, kTest));
     }
   }
 
@@ -499,7 +497,7 @@ class ProfileRunner {
 
   /// Reads the package name from `pubspec.yaml`.
   String? _readPackageName(String root) {
-    final pubspec = File(p.join(root, _pubspecFileName));
+    final pubspec = File(p.join(root, kPubspec));
     if (!pubspec.existsSync()) return null;
     final match = RegExp(
       r'^name:\s*(.+)$',
@@ -512,7 +510,7 @@ class ProfileRunner {
   /// the package is a workspace member whose resolution lives in a parent
   /// workspace pubspec that does not list the profiling temp dir.
   bool _isWorkspaceMember(String root) {
-    final pubspec = File(p.join(root, _pubspecFileName));
+    final pubspec = File(p.join(root, kPubspec));
     if (!pubspec.existsSync()) return false;
     return RegExp(
       r'^resolution:\s*workspace\s*$',

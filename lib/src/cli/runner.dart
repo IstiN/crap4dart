@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -57,10 +58,10 @@ Future<String> gitTopLevel(String dir) async {
 const String crap4dartVersion = '0.19.0';
 
 /// Shared CLI flag names used by multiple commands.
-const String _configFlag = 'config';
+const String _configFlag = kConfig;
 const String _changedFlag = 'changed';
 const String _runTestsFlag = 'run-tests';
-const String _formatFlag = 'format';
+const String _formatFlag = kFormat;
 const String _forceFlag = 'force';
 const String _diffBaseFlag = 'diff-base';
 const String _diffFlag = 'diff';
@@ -73,7 +74,7 @@ const String _jsonFormat = 'json';
 /// Option names used by a single command family.
 const String _thresholdFlagName = 'threshold';
 const String _lcovFlag = 'lcov';
-const String _configHelp = 'Path to a crap4dart.yaml config file.';
+const String _configHelp = kConfigHelp;
 
 /// Command-line entry point of crap4dart.
 class Crap4DartRunner {
@@ -534,7 +535,7 @@ class CheckCommand extends Command<int> with CommandHelpers {
       )
       ..addOption('only', help: 'Run only these gates (comma-separated ids).')
       ..addOption('skip', help: 'Skip these gates (comma-separated ids).')
-      ..addOption(_configFlag, help: 'Path to a crap4dart.yaml config file.')
+      ..addOption(_configFlag, help: kConfigHelp)
       ..addFlag(
         _runTestsFlag,
         negatable: false,

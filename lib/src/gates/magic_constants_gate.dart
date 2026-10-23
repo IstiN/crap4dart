@@ -1,6 +1,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 
 import '../config/config.dart';
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'literal_locations.dart';
 import 'gate_context.dart';
@@ -16,7 +17,7 @@ class MagicConstantsGate implements Gate {
   const MagicConstantsGate();
 
   @override
-  String get id => 'magic_constants';
+  String get id => GateIds.magicConstants;
 
   @override
   Future<GateResult> run(GateContext context) async {

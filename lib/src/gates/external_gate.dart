@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:xml/xml.dart';
 
 import '../config/config.dart';
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
@@ -19,7 +20,7 @@ class ExternalGate implements Gate {
   const ExternalGate();
 
   @override
-  String get id => 'external';
+  String get id => GateIds.external;
 
   @override
   Future<GateResult> run(GateContext context) async {

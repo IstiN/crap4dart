@@ -55,8 +55,12 @@ class _ConfigScalars {
   ) {
     final value = map[key];
     if (value == null) return base;
-    if (value is String && (value == 'error' || value == 'warning')) {
-      return GateSeverity.parse(value);
+    if (value is String) {
+      try {
+        return GateSeverity.parse(value);
+      } on ArgumentError {
+        // fall through to the config error below
+      }
     }
     throw ConfigException(
       path,

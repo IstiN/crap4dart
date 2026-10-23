@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:glob/glob.dart';
 
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
@@ -15,7 +16,7 @@ class LocGate implements Gate {
   const LocGate();
 
   @override
-  String get id => 'loc';
+  String get id => GateIds.loc;
 
   @override
   Future<GateResult> run(GateContext context) async {

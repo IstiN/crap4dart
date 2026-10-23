@@ -3,6 +3,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analysis/dart_parser.dart';
 import 'file_visitor.dart';
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
@@ -18,7 +19,7 @@ class PublicDocsGate implements Gate {
   const PublicDocsGate();
 
   @override
-  String get id => 'public_docs';
+  String get id => GateIds.publicDocs;
 
   @override
   Future<GateResult> run(GateContext context) async {

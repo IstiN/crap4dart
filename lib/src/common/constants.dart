@@ -24,8 +24,17 @@ const String kJson = 'json';
 /// The `console` output format shared by the reporting commands.
 const String kConsole = 'console';
 
-/// The `diff` subcommand of git.
+/// The `diff` subcommand of git and the shared `--diff` CLI flag.
 const String kDiff = 'diff';
+
+/// The shared `--format` CLI option name.
+const String kFormat = 'format';
+
+/// The shared `--config` CLI option name.
+const String kConfig = 'config';
+
+/// The help text of the shared `--config` option.
+const String kConfigHelp = 'Path to a crap4dart.yaml config file.';
 
 /// The file name of a package's pubspec.
 const String kPubspec = 'pubspec.yaml';

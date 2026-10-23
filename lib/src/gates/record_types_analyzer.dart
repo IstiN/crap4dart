@@ -2,6 +2,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
 
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
@@ -78,17 +79,17 @@ GateResult runRecordGate(
 }
 
 String _passSummary(String id, int signatures) => switch (id) {
-      'record_named_fields' =>
+      GateIds.recordNamedFields =>
         '$signatures signatures checked, record fields named',
-      'inline_record_types' =>
+      GateIds.inlineRecordTypes =>
         '$signatures signatures checked, no inline record types',
       _ => '$signatures signatures checked, no records over the field cap',
     };
 
 String _failSummary(String id, List<GateViolation> violations) => switch (id) {
-      'record_named_fields' =>
+      GateIds.recordNamedFields =>
         '${violations.length} positional record fields or .\$N accesses',
-      'inline_record_types' =>
+      GateIds.inlineRecordTypes =>
         '${violations.length} inline record types in signatures',
       _ => '${violations.length} records over the field cap',
     };

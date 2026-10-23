@@ -56,17 +56,17 @@ class ProfileCommand extends Command<int> with CommandHelpers {
         help: 'Exclude tests with these tags (comma-separated).',
       )
       ..addOption(
-        'config',
-        help: 'Path to a crap4dart.yaml config file.',
+        kConfig,
+        help: kConfigHelp,
       )
       ..addOption(
-        'format',
+        kFormat,
         allowed: [kConsole, kJson],
         defaultsTo: kConsole,
         help: 'Output format (json writes only JSON to stdout).',
       )
       ..addFlag(
-        'diff',
+        kDiff,
         negatable: false,
         help: 'Profile only methods on lines changed since HEAD.',
       )

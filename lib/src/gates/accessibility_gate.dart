@@ -3,6 +3,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analysis/dart_parser.dart';
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
@@ -28,7 +29,7 @@ class AccessibilityGate implements Gate {
   };
 
   @override
-  String get id => 'accessibility';
+  String get id => GateIds.accessibility;
 
   @override
   Future<GateResult> run(GateContext context) async {

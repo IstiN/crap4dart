@@ -1,3 +1,4 @@
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 import 'record_types_analyzer.dart';
@@ -22,7 +23,7 @@ class RecordSizeGate implements Gate {
   const RecordSizeGate();
 
   @override
-  String get id => 'record_size';
+  String get id => GateIds.recordSize;
 
   @override
   Future<GateResult> run(GateContext context) async {

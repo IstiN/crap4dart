@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
+import '../gates/gate_ids.dart';
 import 'config.dart';
 
 part 'config_scalars.dart';
@@ -46,35 +47,7 @@ class ConfigLoader {
   static const String configFileName = 'crap4dart.yaml';
 
   /// Known gate identifiers under the `gates` key.
-  static const Set<String> knownGates = {
-    'loc',
-    'test_coverage',
-    'golden',
-    'hardcoded_strings',
-    'accessibility',
-    'complexity',
-    'method_size',
-    'nesting',
-    'record_named_fields',
-    'inline_record_types',
-    'record_size',
-    'class_size',
-    'weight_of_class',
-    'unused_code',
-    'unused_files',
-    'banned_imports',
-    'public_docs',
-    'duplication',
-    'file_naming',
-    'magic_constants',
-    'scattered_constants',
-    'broken_goldens',
-    'test_assertions',
-    'folder_structure',
-    'external',
-    'mutation',
-    'similarity',
-  };
+  static const Set<String> knownGates = {...GateIds.all};
 
   /// Loads the configuration for the project at [projectRoot].
   ///
@@ -113,7 +86,7 @@ class ConfigLoader {
         _gatesKey,
         _profileKey,
         _sourcesKey,
-        'exclude'
+        _excludeKey
       },
       path,
       '',
@@ -127,7 +100,7 @@ class ConfigLoader {
       sources: _readSources(root[_sourcesKey], defaults.sources, path),
       exclude: _ConfigScalars.strList(
         root,
-        'exclude',
+        _excludeKey,
         defaults.exclude,
         path,
         '',
@@ -238,72 +211,72 @@ class ConfigLoader {
       }
     }
     return GatesConfig(
-      loc: _GateConfigReaders.readLoc(map['loc'], base.loc, path),
+      loc: _GateConfigReaders.readLoc(map[GateIds.loc], base.loc, path),
       testCoverage: _GateConfigReaders.readTestCoverage(
-        map['test_coverage'],
+        map[GateIds.testCoverage],
         base.testCoverage,
         path,
       ),
       complexity: _GateConfigReaders.readComplexity(
-          map['complexity'], base.complexity, path),
+          map[GateIds.complexity], base.complexity, path),
       methodSize: _GateConfigReaders.readMethodSize(
-          map['method_size'], base.methodSize, path),
-      nesting:
-          _GateConfigReaders.readNesting(map['nesting'], base.nesting, path),
+          map[GateIds.methodSize], base.methodSize, path),
+      nesting: _GateConfigReaders.readNesting(
+          map[GateIds.nesting], base.nesting, path),
       recordNamedFields: _ExtendedGateConfigReaders.readRecordNamedFields(
-          map['record_named_fields'], base.recordNamedFields, path),
+          map[GateIds.recordNamedFields], base.recordNamedFields, path),
       inlineRecordTypes: _ExtendedGateConfigReaders.readInlineRecordTypes(
-          map['inline_record_types'], base.inlineRecordTypes, path),
+          map[GateIds.inlineRecordTypes], base.inlineRecordTypes, path),
       recordSize: _ExtendedGateConfigReaders.readRecordSize(
-          map['record_size'], base.recordSize, path),
+          map[GateIds.recordSize], base.recordSize, path),
       classSize: _GateConfigReaders.readClassSize(
-          map['class_size'], base.classSize, path),
+          map[GateIds.classSize], base.classSize, path),
       weightOfClass: _GateConfigReaders.readWeightOfClass(
-        map['weight_of_class'],
+        map[GateIds.weightOfClass],
         base.weightOfClass,
         path,
       ),
       unusedCode: _GateConfigReaders.readUnusedCode(
-          map['unused_code'], base.unusedCode, path),
+          map[GateIds.unusedCode], base.unusedCode, path),
       unusedFiles: _GateConfigReaders.readUnusedFiles(
-          map['unused_files'], base.unusedFiles, path),
+          map[GateIds.unusedFiles], base.unusedFiles, path),
       bannedImports: _GateConfigReaders.readBannedImports(
-        map['banned_imports'],
+        map[GateIds.bannedImports],
         base.bannedImports,
         path,
       ),
       publicDocs: _GateConfigReaders.readPublicDocs(
-          map['public_docs'], base.publicDocs, path),
+          map[GateIds.publicDocs], base.publicDocs, path),
       duplication: _GateConfigReaders.readDuplication(
-          map['duplication'], base.duplication, path),
+          map[GateIds.duplication], base.duplication, path),
       fileNaming: _GateConfigReaders.readFileNaming(
-          map['file_naming'], base.fileNaming, path),
+          map[GateIds.fileNaming], base.fileNaming, path),
       magicConstants: _GateConfigReaders.readMagicConstants(
-          map['magic_constants'], base.magicConstants, path),
+          map[GateIds.magicConstants], base.magicConstants, path),
       scatteredConstants: _ExtendedGateConfigReaders.readScatteredConstants(
-          map['scattered_constants'], base.scatteredConstants, path),
+          map[GateIds.scatteredConstants], base.scatteredConstants, path),
       brokenGoldens: _ExtendedGateConfigReaders.readBrokenGoldens(
-          map['broken_goldens'], base.brokenGoldens, path),
+          map[GateIds.brokenGoldens], base.brokenGoldens, path),
       testAssertions: _ExtendedGateConfigReaders.readTestAssertions(
-          map['test_assertions'], base.testAssertions, path),
+          map[GateIds.testAssertions], base.testAssertions, path),
       folderStructure: _ExtendedGateConfigReaders.readFolderStructure(
-          map['folder_structure'], base.folderStructure, path),
+          map[GateIds.folderStructure], base.folderStructure, path),
       external: _ExtendedGateConfigReaders.readExternal(
-          map['external'], base.external, path),
+          map[GateIds.external], base.external, path),
       mutation: _ExtendedGateConfigReaders.readMutation(
-          map['mutation'], base.mutation, path),
+          map[GateIds.mutation], base.mutation, path),
       similarity: _ExtendedGateConfigReaders.readSimilarity(
-          map['similarity'], base.similarity, path),
+          map[GateIds.similarity], base.similarity, path),
       flutter: FlutterGatesConfig(
         golden: _GateConfigReaders.readGolden(
-            map['golden'], base.flutter.golden, path),
+            map[GateIds.golden], base.flutter.golden, path),
         hardcodedStrings: _GateConfigReaders.readHardcodedStrings(
-          map['hardcoded_strings'],
+          map[GateIds.hardcodedStrings],
           base.flutter.hardcodedStrings,
           path,
         ),
         accessibility: _GateConfigReaders.readAccessibility(
-            map['accessibility'], base.flutter.accessibility, path),
+            map[GateIds.accessibility], base.flutter.accessibility, path),
       ),
     );
   }

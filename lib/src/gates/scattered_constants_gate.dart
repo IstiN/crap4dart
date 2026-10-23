@@ -1,5 +1,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/source/line_info.dart';
 
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 import 'literal_locations.dart';
@@ -20,12 +23,19 @@ import 'literal_locations.dart';
 /// same thing: the gate highlights, intent stays human (the same value
 /// is sometimes coincidence).
 ///
-/// False-positive controls mirror `magic_constants`: string literals
-/// shorter than `min_length` and numbers with magnitude at or below
-/// `min_value` are treated as coincidence (0, 1, 10, 100 happen
-/// everywhere); map keys, index expressions and switch-case labels are
-/// protocol identifiers, not constants; literals inside constant
-/// declarations are already extracted.
+/// Unlike the in-file `magic_constants` gate, literals inside
+/// constant declarations are NOT exempt: N files each declaring their
+/// own local const with the same value is precisely the scatter this
+/// gate exists to catch — the fact should live in one shared constant
+/// every file imports. (Protocol positions stay exempt: map keys,
+/// index expressions and case labels are access vocabulary, not
+/// constants; the shared values behind them should be referenced by
+/// name, which removes the literal entirely.)
+///
+/// False-positive controls: string literals shorter than `min_length`
+/// and numbers with magnitude at or below `min_value` are treated as
+/// coincidence (0, 1, 10, 100 happen everywhere); directive URIs are
+/// structural references.
 ///
 /// Whole-literal matching alone misses *partial* reuse: `'gates.loc'`,
 /// `'gates.nesting'`, ... share the structured head `'gates'` without
@@ -44,7 +54,7 @@ class ScatteredConstantsGate implements Gate {
   const ScatteredConstantsGate();
 
   @override
-  String get id => 'scattered_constants';
+  String get id => GateIds.scatteredConstants;
 
   @override
   Future<GateResult> run(GateContext context) async {
@@ -64,7 +74,6 @@ class ScatteredConstantsGate implements Gate {
       parsed.unit.accept(collector);
       final relative = context.relativePath(file);
       for (final hit in collector.hits) {
-        if (collector.exemptLines.contains(hit.line)) continue;
         literals
             .putIfAbsent(hit.key, () => _ScatteredLiteral(hit.display))
             .add(relative, hit.line);
@@ -138,16 +147,17 @@ class _Hit {
 
 /// Collects literal occurrences eligible for cross-file comparison:
 /// strings of at least [minLength] characters and numbers of magnitude
-/// at least [minValue]. Literals inside constant declarations are
-/// collected but land in [exemptLines] — they are already extracted.
-class _LiteralCollector extends ExemptingLiteralVisitor {
+/// at least [minValue]. Constant-declaration literals count too —
+/// across files, a local const per file is itself the scatter.
+class _LiteralCollector extends RecursiveAstVisitor<void> {
   _LiteralCollector(
-    super.lineInfo, {
+    this._lineInfo, {
     required this.minLength,
     required this.minValue,
     required this.deepSearch,
   });
 
+  final LineInfo _lineInfo;
   final int minLength;
   final int minValue;
 
@@ -211,5 +221,5 @@ class _LiteralCollector extends ExemptingLiteralVisitor {
   static String _display(String value) =>
       value.length > 40 ? "'${value.substring(0, 40)}…'" : "'$value'";
 
-  int _line(AstNode node) => lineInfo.getLocation(node.offset).lineNumber;
+  int _line(AstNode node) => _lineInfo.getLocation(node.offset).lineNumber;
 }

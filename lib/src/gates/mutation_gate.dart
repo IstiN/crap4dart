@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import '../analysis/method_extractor.dart';
 import '../config/config.dart';
 import '../coverage/lcov_parser.dart';
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 import 'mutation_cache.dart';
@@ -56,7 +57,7 @@ class MutationGate implements Gate {
       : _engine = MutationEngine(runner: runner);
 
   @override
-  String get id => 'mutation';
+  String get id => GateIds.mutation;
 
   final MutationEngine _engine;
 

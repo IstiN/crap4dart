@@ -2,6 +2,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
 
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
@@ -16,7 +17,7 @@ class UnusedCodeGate implements Gate {
   const UnusedCodeGate();
 
   @override
-  String get id => 'unused_code';
+  String get id => GateIds.unusedCode;
 
   @override
   Future<GateResult> run(GateContext context) async {

@@ -1,6 +1,7 @@
 import '../analysis/complexity.dart';
 import '../config/config.dart';
 import '../analysis/method_extractor.dart';
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
@@ -14,7 +15,7 @@ class ClassSizeGate implements Gate {
   const ClassSizeGate();
 
   @override
-  String get id => 'class_size';
+  String get id => GateIds.classSize;
 
   @override
   Future<GateResult> run(GateContext context) async {

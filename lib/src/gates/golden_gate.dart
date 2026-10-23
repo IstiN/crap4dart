@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:path/path.dart' as p;
 
 import '../analysis/dart_parser.dart';
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
@@ -30,7 +31,7 @@ class GoldenGate implements Gate {
   };
 
   @override
-  String get id => 'golden';
+  String get id => GateIds.golden;
 
   @override
   Future<GateResult> run(GateContext context) async {

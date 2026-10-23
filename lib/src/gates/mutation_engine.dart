@@ -386,7 +386,7 @@ Future<MutantOutcome> runMutantTests(
     );
   } on ProcessException catch (e) {
     throw MutationTestUnavailableException(
-      '${isFlutter ? 'flutter' : 'dart'} not found on PATH: ${e.message}',
+      '${isFlutter ? kFlutter : kDart} not found on PATH: ${e.message}',
     );
   }
   // Drain the output so the child never blocks on a full pipe.

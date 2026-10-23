@@ -10,6 +10,7 @@ import 'package:path/path.dart' as p;
 import '../analysis/dart_parser.dart';
 import '../config/config.dart';
 
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
@@ -68,7 +69,7 @@ class DuplicationGate implements Gate {
   const DuplicationGate();
 
   @override
-  String get id => 'duplication';
+  String get id => GateIds.duplication;
 
   @override
   Future<GateResult> run(GateContext context) async {
