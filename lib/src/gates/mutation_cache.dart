@@ -29,6 +29,10 @@ String fnv1a64Hex(String text) {
   return hash.toRadixString(16).padLeft(16, '0');
 }
 
+/// Fresh per-method outcomes of one mutation run: the method digest
+/// the outcomes belong to, plus each mutant's cached verdict.
+typedef FreshOutcomes = ({String digest, List<CachedOutcome> outcomes});
+
 /// Mutation-relevant configuration fingerprint. Stored in the cache
 /// envelope; any mismatch wipes the cache (full re-execution) because
 /// cached outcomes were produced under different semantics.
@@ -215,7 +219,7 @@ class MutationCache {
   /// still-valid old outcomes; methods absent from [liveMethodKeys]
   /// (deleted or excluded files) are pruned.
   void mergeRun(
-    Map<String, ({String digest, List<CachedOutcome> outcomes})> fresh,
+    Map<String, FreshOutcomes> fresh,
     Set<String> liveMethodKeys,
   ) {
     methods.removeWhere((key, _) => !liveMethodKeys.contains(key));

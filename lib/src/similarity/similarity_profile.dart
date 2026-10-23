@@ -105,6 +105,10 @@ String normalizeMarkdown(String content) {
   return prose.toString();
 }
 
+/// One source line stripped of block comments: the kept text and
+/// whether an unterminated `/*` carries into the next line.
+typedef _StrippedLine = ({String text, bool stillInBlock});
+
 /// Source code: strips block/line comments and import-family lines,
 /// replaces literals with placeholders, lowercases identifiers.
 String normalizeCode(String content) {
@@ -112,35 +116,35 @@ String normalizeCode(String content) {
   var inBlockComment = false;
   for (final raw in content.split('\n')) {
     final opened = inBlockComment;
-    final (stripped, stillOpen) =
-        _stripBlockComments(raw, inBlockComment: opened);
-    inBlockComment = stillOpen;
-    if (_isCodeNoise(stripped)) continue;
-    kept.add(stripped.trim());
+    final stripped = _stripBlockComments(raw, inBlockComment: opened);
+    inBlockComment = stripped.stillInBlock;
+    if (_isCodeNoise(stripped.text)) continue;
+    kept.add(stripped.text.trim());
   }
   return kept.join('\n');
 }
 
-/// The [line] with its block comments removed; `stillInBlock` carries
-/// an unterminated `/*` across lines.
-(String, bool) _stripBlockComments(
+/// The [line] with its block comments removed; [inBlockComment]
+/// carries an unterminated `/*` across lines.
+_StrippedLine _stripBlockComments(
   String line, {
   required bool inBlockComment,
 }) {
   if (inBlockComment) {
     final close = line.indexOf('*/');
-    if (close < 0) return ('', true);
+    if (close < 0) return (text: '', stillInBlock: true);
     return _stripBlockComments(line.substring(close + 2),
         inBlockComment: false);
   }
   final open = line.indexOf('/*');
-  if (open < 0) return (line, false);
+  if (open < 0) return (text: line, stillInBlock: false);
   final close = line.indexOf('*/', open + 2);
-  if (close < 0) return (line.substring(0, open), true);
-  final (rest, stillOpen) = _stripBlockComments(
-      line.replaceRange(open, close + 2, ''),
+  if (close < 0) {
+    return (text: line.substring(0, open), stillInBlock: true);
+  }
+  final stripped = _stripBlockComments(line.replaceRange(open, close + 2, ''),
       inBlockComment: false);
-  return (rest, stillOpen);
+  return (text: stripped.text, stillInBlock: stripped.stillInBlock);
 }
 
 /// Whether a stripped code line carries no comparison signal (empty,

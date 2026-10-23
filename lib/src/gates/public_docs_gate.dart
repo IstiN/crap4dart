@@ -23,13 +23,13 @@ class PublicDocsGate implements Gate {
   @override
   Future<GateResult> run(GateContext context) async {
     final config = context.config.gates.publicDocs;
-    final (checked, violations) = visitGateFiles(
+    final (:checked, :violations) = visitGateFiles(
       context,
       config.exclude,
       (relative, parsed) {
         final visitor = _DocsVisitor(relative, parsed);
         parsed.unit.accept(visitor);
-        return (visitor.checked, visitor.violations);
+        return (checked: visitor.checked, violations: visitor.violations);
       },
     );
     final summary = violations.isEmpty

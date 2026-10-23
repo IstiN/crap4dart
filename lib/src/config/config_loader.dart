@@ -54,6 +54,7 @@ class ConfigLoader {
     'complexity',
     'method_size',
     'nesting',
+    'named_record_shapes',
     'class_size',
     'weight_of_class',
     'unused_code',
@@ -245,6 +246,8 @@ class ConfigLoader {
           map['method_size'], base.methodSize, path),
       nesting:
           _GateConfigReaders.readNesting(map['nesting'], base.nesting, path),
+      namedRecordShapes: _ExtendedGateConfigReaders.readNamedRecordShapes(
+          map['named_record_shapes'], base.namedRecordShapes, path),
       classSize: _GateConfigReaders.readClassSize(
           map['class_size'], base.classSize, path),
       weightOfClass: _GateConfigReaders.readWeightOfClass(

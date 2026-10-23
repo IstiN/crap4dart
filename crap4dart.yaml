@@ -34,6 +34,13 @@ gates:
   complexity:
     enabled: true
     max_complexity: 12
+  # Wave-6 type-surface gate: every record shape lives behind one
+  # named declaration — inline signature types become typedefs,
+  # positional fields become named, `.$N` accesses are banned.
+  # Warning severity; dogfooding cleanup accompanies the enablement.
+  named_record_shapes:
+    enabled: true
+    severity: warning
   method_size:
     enabled: true
     max_lines: 80

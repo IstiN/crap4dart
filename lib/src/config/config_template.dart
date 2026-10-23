@@ -130,6 +130,14 @@ gates:
     enabled: true
     # Maximum number of nested blocks in a method body.
     max_nesting: 5
+  # Flag anonymous record shapes: inline record types in signatures
+  # (declare the shape as a typedef), positional record fields
+  # (`(int, int)` -> `({int x, int y})`) and positional field access
+  # (`.\$1`). Record values (literals, destructuring) stay legal; record
+  # type aliases are the blessed form and are not scanned.
+  named_record_shapes:
+    enabled: true
+    severity: warning
   # Limit class size: method count and weighted methods per class
   # (WMC = sum of cyclomatic complexities). Catches god-classes that
   # pass the per-method complexity gate.

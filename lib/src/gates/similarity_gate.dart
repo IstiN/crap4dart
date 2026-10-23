@@ -65,8 +65,8 @@ class SimilarityGate implements Gate {
       file: context.relativePath('${context.projectRoot}/$path'),
       message: 'similar to ${others.join(', ')}'
           '${more > 0 ? ' (+$more more)' : ''} — near-duplicate content '
-          '(jaccard ${metrics?.$1.toStringAsFixed(2)}, '
-          'containment ${metrics?.$2.toStringAsFixed(2)}); reuse the shared '
+          '(jaccard ${metrics?.jaccard.toStringAsFixed(2)}, '
+          'containment ${metrics?.containment.toStringAsFixed(2)}); reuse the shared '
           'source, generate one of them, or delete the stale copy',
     );
   }

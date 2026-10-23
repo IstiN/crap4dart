@@ -267,6 +267,28 @@ class NestingGateConfig implements GateConfigFlags {
   final int maxNesting;
 }
 
+/// Named record shapes gate settings (`named_record_shapes`).
+class NamedRecordShapesGateConfig implements GateConfigFlags {
+  /// Creates a [NamedRecordShapesGateConfig].
+  const NamedRecordShapesGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.warning,
+    this.ignorable = false,
+  });
+
+  /// Whether the gate is enabled.
+  final bool enabled;
+
+  /// Whether violations fail the run or are reported as warnings.
+  /// Defaults to `warning`: a positional record shape is a readability
+  /// debt, not a bug.
+  final GateSeverity severity;
+
+  /// Whether `// crap:ignore` comments may suppress violations of this
+  /// gate. Disabled by default — suppression must be opted into.
+  final bool ignorable;
+}
+
 /// Class size gate settings (`class_size`).
 class ClassSizeGateConfig implements GateConfigFlags {
   /// Creates a [ClassSizeGateConfig].

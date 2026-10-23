@@ -6,6 +6,14 @@ import '../analysis/dart_parser.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
+/// One `entries` rule: a path glob and the per-path limits it sets
+/// (`null` thresholds keep the gate defaults).
+typedef _MethodEntry = ({Glob glob, int? maxLines, int? maxParams});
+
+/// Effective limits for one file: the matched entry's values or the
+/// gate defaults.
+typedef _MethodLimits = ({int maxLines, int maxParams});
+
 /// The `method_size` gate: fails methods longer than
 /// `gates.method_size.max_lines` or with more than
 /// `gates.method_size.max_params` parameters. Per-path overrides may
@@ -56,17 +64,11 @@ class MethodSizeGate implements Gate {
 
   /// The effective limits for [relative]: the first matching entry
   /// (unset thresholds fall back to the gate defaults), or the defaults.
-  ({int maxLines, int maxParams}) _limitsFor(
+  _MethodLimits _limitsFor(
     String relative,
     int defaultLines,
     int defaultParams,
-    List<
-            ({
-              Glob glob,
-              int? maxLines,
-              int? maxParams,
-            })>
-        globs,
+    List<_MethodEntry> globs,
   ) {
     for (final entry in globs) {
       if (entry.glob.matches(relative)) {

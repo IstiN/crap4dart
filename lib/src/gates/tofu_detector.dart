@@ -3,7 +3,19 @@ import 'dart:math' as math;
 import 'package:image/image.dart' as img;
 
 part 'tofu_detector_cross.dart';
+
 part 'tofu_detector_boxes.dart';
+
+/// A horizontal ink span inside one row: inclusive start, exclusive
+/// end column.
+typedef _Span = ({int start, int end});
+
+/// Clamped pixel scan bounds of a ring: inclusive (x0, y0) to
+/// (x1, y1).
+typedef _RingBounds = ({int x0, int y0, int x1, int y1});
+
+/// A rectangle's vertical extent: first and last row.
+typedef _Vertical = ({int top, int bottom});
 
 /// Detects broken text/icon placeholders in golden images, by shape:
 ///
@@ -75,8 +87,8 @@ class TofuDetector {
     if (ring == null) return false;
     var ink = 0;
     var total = 0;
-    for (var ry = ring.$2; ry <= ring.$3; ry++) {
-      for (var rx = ring.$1; rx <= ring.$4; rx++) {
+    for (var ry = ring.y0; ry <= ring.y1; ry++) {
+      for (var rx = ring.x0; rx <= ring.x1; rx++) {
         if (_inBox(rx, ry, y, runStart, runWidth)) continue;
         total++;
         if (_isInk(image.getPixel(rx, ry), background)) ink++;
@@ -88,7 +100,7 @@ class TofuDetector {
 
   /// The ring's clamped scan bounds: (x0, y0, x1, y1), or `null` when
   /// the ring is fully outside the image.
-  static (int, int, int, int)? _ringBounds(
+  static _RingBounds? _ringBounds(
     img.Image image,
     int y,
     int runStart,
@@ -100,7 +112,7 @@ class TofuDetector {
     final y0 = (y - ring).clamp(0, image.height - 1);
     final y1 = (y + runWidth + ring).clamp(0, image.height - 1);
     if (y1 < y0 || x1 < x0) return null;
-    return (x0, y0, x1, y1);
+    return (x0: x0, y0: y0, x1: x1, y1: y1);
   }
 
   /// Whether (x, y) lies inside the box body (ring scan skips these).
@@ -211,14 +223,14 @@ class TofuDetector {
 
   /// The ink bands inside [runStart, runStart+runWidth) at row [row]:
   /// contiguous ink segments separated by background.
-  static List<(int, int)> inkBands(
+  static List<_Span> _inkBands(
     img.Image image,
     int row,
     int runStart,
     int runWidth,
     int background,
   ) {
-    final bands = <(int, int)>[];
+    final bands = <_Span>[];
     var x = runStart;
     while (x < runStart + runWidth) {
       if (!_isInk(image.getPixel(x, row), background)) {
@@ -230,7 +242,7 @@ class TofuDetector {
           _isInk(image.getPixel(x, row), background)) {
         x++;
       }
-      bands.add((start, x));
+      bands.add((start: start, end: x));
     }
     return bands;
   }

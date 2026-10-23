@@ -80,15 +80,15 @@ class _SolidGlyphScanner {
   bool scan(img.Image image) {
     final background = TofuDetector.dominantBackground(image);
     // (top, bottom) -> distinct rectangles' (x0, x1) extents.
-    final groups = <(int, int), Set<(int, int)>>{};
+    final groups = <_Vertical, Set<_Span>>{};
     for (var y = 1; y < image.height - 1; y++) {
       TofuDetector.forEachInkRun(image, y, background, (start, width) {
         if (width < 6 || width > 48) return;
         final rect = _SolidRect.at(image, y, start, width, background);
         if (rect == null) return;
         groups
-            .putIfAbsent(rect, () => <(int, int)>{})
-            .add((start, start + width - 1));
+            .putIfAbsent(rect, () => <_Span>{})
+            .add((start: start, end: start + width - 1));
       });
     }
     return _hasAlignedPair(groups);
@@ -96,12 +96,13 @@ class _SolidGlyphScanner {
 
   /// Whether any vertical-extent group holds two distinct rectangles
   /// with a small horizontal gap (a word's letter spacing).
-  bool _hasAlignedPair(Map<(int, int), Set<(int, int)>> groups) {
+  bool _hasAlignedPair(Map<_Vertical, Set<_Span>> groups) {
     for (final rects in groups.values) {
       final xs = rects.toList()
-        ..sort((a, b) => a.$1 != b.$1 ? a.$1 - b.$1 : a.$2 - b.$2);
+        ..sort(
+            (a, b) => a.start != b.start ? a.start - b.start : a.end - b.end);
       for (var i = 1; i < xs.length; i++) {
-        if (xs[i].$1 - xs[i - 1].$2 <= 16) return true;
+        if (xs[i].start - xs[i - 1].end <= 16) return true;
       }
     }
     return false;
@@ -118,7 +119,7 @@ class _SolidRect {
 
   /// The rectangle covering row [y]'s ink run, or `null` when the run
   /// is not a bounded solid rectangle with vertical glyph-size edges.
-  static (int, int)? at(
+  static _Vertical? at(
     img.Image image,
     int y,
     int runStart,
@@ -142,7 +143,7 @@ class _SolidRect {
         image, top, runStart, runWidth, height, background)) {
       return null;
     }
-    return (top, bottom);
+    return (top: top, bottom: bottom);
   }
 
   /// Walks up (step -1) or down (step 1) from [y] while the row is

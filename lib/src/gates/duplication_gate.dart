@@ -46,6 +46,9 @@ class _FileTokens {
   final int totalLines;
 }
 
+/// Inclusive-start, exclusive-end character range inside one file.
+typedef _CharRange = ({int start, int end});
+
 /// The `duplication` gate: fails files whose duplicated line percentage
 /// exceeds the configured threshold.
 ///
@@ -289,7 +292,7 @@ class DuplicationGate implements Gate {
     final mask = _TokenMask.build(parsed, config);
     final skippedRanges = config.matching.ignoreImports
         ? _directiveRanges(parsed.unit)
-        : const <(int, int)>[];
+        : const <_CharRange>[];
     Token? token = parsed.unit.beginToken;
     final end = parsed.unit.endToken;
     while (token != null) {
@@ -312,14 +315,14 @@ class DuplicationGate implements Gate {
 
   /// Char ranges of the compilation unit's import/export/part
   /// directives, for `ignore_imports` skipping.
-  List<(int, int)> _directiveRanges(CompilationUnit unit) => [
+  List<_CharRange> _directiveRanges(CompilationUnit unit) => [
         for (final directive in unit.directives)
-          (directive.offset, directive.end),
+          (start: directive.offset, end: directive.end),
       ];
 
   /// Whether [offset] falls inside any of [ranges].
-  bool _inRanges(List<(int, int)> ranges, int offset) =>
-      ranges.any((r) => offset >= r.$1 && offset < r.$2);
+  bool _inRanges(List<_CharRange> ranges, int offset) =>
+      ranges.any((r) => offset >= r.start && offset < r.end);
 
   /// Normalizes a token for duplicate detection.
   ///

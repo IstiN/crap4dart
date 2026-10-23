@@ -2,6 +2,9 @@ import '../coverage/lcov_parser.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
+/// Line totals over a set of covered files.
+typedef _CoverageTotals = ({int hit, int found});
+
 /// The `test_coverage` gate: enforces `gates.test_coverage.min_percent`
 /// line coverage computed from the loaded LCOV data, aggregated over the
 /// files under `gates.test_coverage.dirs` (default: `lib`).
@@ -72,7 +75,7 @@ class CoverageGate implements Gate {
             ),
       ];
 
-  ({int hit, int found}) _totals(List<FileCoverage> files) {
+  _CoverageTotals _totals(List<FileCoverage> files) {
     var hit = 0;
     var found = 0;
     for (final file in files) {

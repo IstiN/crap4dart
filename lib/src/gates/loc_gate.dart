@@ -5,6 +5,9 @@ import 'package:glob/glob.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
+/// One `entries` rule: a path glob and the line limit it sets.
+typedef _LocEntry = ({Glob glob, int maxLines});
+
 /// The `loc` gate: fails files longer than `gates.loc.max_lines`.
 /// Per-path overrides may relax or tighten the limit via `entries`.
 class LocGate implements Gate {
@@ -52,7 +55,7 @@ class LocGate implements Gate {
   int _limitFor(
     String relative,
     int defaultMax,
-    List<({Glob glob, int maxLines})> globs,
+    List<_LocEntry> globs,
   ) {
     for (final entry in globs) {
       if (entry.glob.matches(relative)) return entry.maxLines;

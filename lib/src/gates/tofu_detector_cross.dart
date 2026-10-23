@@ -113,7 +113,7 @@ class _XCrossScanner {
       final row = y + dy;
       if (row >= image.height) break;
       final bands =
-          TofuDetector.inkBands(image, row, runStart, runWidth, background);
+          TofuDetector._inkBands(image, row, runStart, runWidth, background);
       // 2-band rows are digit/letter walls (a single stroke outline);
       // the tofu cross always adds its diagonals (>= 3 bands, more
       // when anti-aliasing splits strokes).
@@ -126,9 +126,9 @@ class _XCrossScanner {
 
   /// Whether the first band hugs the run's left edge and the last its
   /// right edge — the tofu box's side walls.
-  bool _wallsAtEdges(List<(int, int)> bands, int runStart, int runWidth) =>
-      bands.first.$1 - runStart <= 2 &&
-      runStart + runWidth - bands.last.$2 <= 2;
+  bool _wallsAtEdges(List<_Span> bands, int runStart, int runWidth) =>
+      bands.first.start - runStart <= 2 &&
+      runStart + runWidth - bands.last.end <= 2;
 
   static bool _isInkAt(img.Image image, int x, int y, int background) =>
       TofuDetector._isInk(image.getPixel(x, y), background);
@@ -160,7 +160,7 @@ class _XPhaseTracker {
   int _divergeRows = 0;
 
   /// Feeds one wall row's [bands]; `true` once the X cycle is proven.
-  bool step(List<(int, int)> bands, int runStart, int runWidth) {
+  bool step(List<_Span> bands, int runStart, int runWidth) {
     final inner = bands.sublist(1, bands.length - 1);
     if (inner.isEmpty) return false;
     return _merged
@@ -171,7 +171,7 @@ class _XPhaseTracker {
   /// Converge phase: inner bands shrink inside the walls with real
   /// movement every row; when a single narrow central band remains,
   /// the crossing is reached (but not yet proven).
-  bool _stepConverge(List<(int, int)> inner, int runStart, int runWidth) {
+  bool _stepConverge(List<_Span> inner, int runStart, int runWidth) {
     final extent = _shrinkExtent(inner, runStart, runWidth);
     if (extent == null) return false;
     if (_goodRows == 0 && !_anchoredNearWalls(extent, runStart, runWidth)) {
@@ -183,48 +183,47 @@ class _XPhaseTracker {
     }
     _anchor(extent);
     if (inner.length != 1) return false;
-    if (extent.$2 - extent.$1 > runWidth * 0.35) return false;
+    if (extent.end - extent.start > runWidth * 0.35) return false;
     _merged = true;
-    _divStart = extent.$1;
-    _divEnd = extent.$2;
+    _divStart = extent.start;
+    _divEnd = extent.end;
     return false;
   }
 
   /// Whether the anchored extent starts near the LEFT wall and ends
   /// near the RIGHT wall (corner-origin diagonals, not inset glyphs).
-  bool _anchoredNearWalls((int, int) extent, int runStart, int runWidth) {
+  bool _anchoredNearWalls(_Span extent, int runStart, int runWidth) {
     final wall = (runWidth * _wallRatio).round() * 2;
-    return extent.$1 - runStart <= wall &&
-        runStart + runWidth - extent.$2 <= wall;
+    return extent.start - runStart <= wall &&
+        runStart + runWidth - extent.end <= wall;
   }
 
   /// The shrinking inner extent at this row, or `null` when the bands
   /// stopped converging (grew, stalled, or slid into a wall).
-  (int, int)? _shrinkExtent(
-      List<(int, int)> inner, int runStart, int runWidth) {
-    final start = inner.first.$1;
-    final end = inner.last.$2;
+  _Span? _shrinkExtent(List<_Span> inner, int runStart, int runWidth) {
+    final start = inner.first.start;
+    final end = inner.last.end;
     if (start < _prevStart || end > _prevEnd) return null;
     final wall = (runWidth * _wallRatio).round();
     if (start - runStart <= wall || runStart + runWidth - end <= wall) {
       return null;
     }
     if (end - start >= _prevEnd - _prevStart) return null; // stalled
-    return (start, end);
+    return (start: start, end: end);
   }
 
   /// Records the accepted row: the first one only anchors the baseline
   /// (the initialization gap would otherwise fake a huge first move).
-  void _anchor((int, int) extent) {
+  void _anchor(_Span extent) {
     _goodRows = _goodRows == 0 ? 1 : _goodRows + 1;
-    _prevStart = extent.$1;
-    _prevEnd = extent.$2;
+    _prevStart = extent.start;
+    _prevEnd = extent.end;
   }
 
   /// Diverge phase: the fused band splits and widens — a V never does.
-  bool _stepDiverge(List<(int, int)> inner) {
-    final start = inner.first.$1;
-    final end = inner.last.$2;
+  bool _stepDiverge(List<_Span> inner) {
+    final start = inner.first.start;
+    final end = inner.last.end;
     if (inner.length >= 2 && (start < _divStart || end > _divEnd)) {
       _divergeRows++;
       _divStart = math.min(_divStart, start);

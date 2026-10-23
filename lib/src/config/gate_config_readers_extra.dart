@@ -308,4 +308,26 @@ class _ExtendedGateConfigReaders {
     if (value is String && value.isNotEmpty) return value;
     throw ConfigException(path, '$ctx.$key', 'expected a non-empty string');
   }
+
+  static NamedRecordShapesGateConfig readNamedRecordShapes(
+    Object? node,
+    NamedRecordShapesGateConfig base,
+    String path,
+  ) {
+    return _ConfigScalars.readGateConfig(
+      node,
+      base,
+      path,
+      'gates.named_record_shapes',
+      const {_enabledKey, _severityKey, _ignorableKey},
+      (map, base, path, ctx) {
+        final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
+        return NamedRecordShapesGateConfig(
+          enabled: flags.enabled,
+          severity: flags.severity,
+          ignorable: flags.ignorable,
+        );
+      },
+    );
+  }
 }

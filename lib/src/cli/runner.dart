@@ -11,6 +11,7 @@ import '../coverage/lcov_parser.dart';
 import '../crap/crap_analyzer.dart';
 import '../crap/crap_report.dart';
 import '../files/changed_files.dart';
+import 'prepared_run.dart';
 import '../files/diff_parser.dart';
 import '../files/source_finder.dart';
 import '../gates/baseline.dart';
@@ -161,7 +162,7 @@ mixin CommandHelpers on Command<int> {
 
   /// Resolves `--diff` / `--diff-base` and returns the diff map together with
   /// the base ref.
-  Future<({DiffLineMap? map, String? base, bool ok})> resolveDiff(
+  Future<ResolvedDiff> resolveDiff(
     String projectRoot,
   ) async {
     final diffBase = argResults![_diffBaseFlag] as String?;
@@ -260,15 +261,7 @@ mixin CommandHelpers on Command<int> {
   ///
   /// Pass an already loaded [config] to avoid parsing it twice when the caller
   /// needs to validate command-specific arguments before file selection.
-  Future<
-      ({
-        Crap4DartConfig? config,
-        List<String>? files,
-        DiffLineMap? diffMap,
-        String? diffBase,
-        bool partialSelection,
-        int? exitCode,
-      })> prepareRun(
+  Future<PreparedRun> prepareRun(
     String projectRoot,
     String emptyMessage, {
     Crap4DartConfig? config,

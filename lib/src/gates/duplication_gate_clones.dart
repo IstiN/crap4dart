@@ -1,5 +1,8 @@
 part of 'duplication_gate.dart';
 
+/// Inclusive-start, exclusive-end token range inside one file.
+typedef _TokenRange = ({int start, int end});
+
 /// The duplication engine: window indexing, fingerprint verification,
 /// maximal-extent clone groups, and the greedy longest-first
 /// non-overlapping selection (PMD CPD Match semantics).
@@ -55,7 +58,7 @@ class _CloneDetector {
     List<_CloneGroup> candidates,
   ) {
     final accepted = <_CloneGroup>[];
-    final taken = <int, List<(int, int)>>{};
+    final taken = <int, List<_TokenRange>>{};
     for (final group in candidates) {
       if (group.occurrences.any(
         (o) => _overlaps(taken[o.fileIndex], o.startToken, o.endToken),
@@ -65,7 +68,7 @@ class _CloneDetector {
       for (final o in group.occurrences) {
         taken
             .putIfAbsent(o.fileIndex, () => [])
-            .add((o.startToken, o.endToken));
+            .add((start: o.startToken, end: o.endToken));
         final tokens = files[o.fileIndex].tokens;
         for (var i = o.startToken; i < o.endToken; i++) {
           tokens[i].duplicated = true;
@@ -77,9 +80,9 @@ class _CloneDetector {
   }
 
   /// Whether [start]..[end) overlaps any accepted range of one file.
-  bool _overlaps(List<(int, int)>? ranges, int start, int end) {
+  bool _overlaps(List<_TokenRange>? ranges, int start, int end) {
     if (ranges == null) return false;
-    return ranges.any((r) => start < r.$2 && r.$1 < end);
+    return ranges.any((r) => start < r.end && r.start < end);
   }
 
   /// Token codes from the raw lexemes.
@@ -188,7 +191,7 @@ class _CloneDetector {
   ) {
     final ref = positions.first;
     final refCodes = codeCache[ref.fileIndex]!;
-    final extents = <(int, int)>[];
+    final extents = <_TokenRange>[];
     final occs = <_TokenPos>[];
     for (final pos in positions) {
       final codes = codeCache[pos.fileIndex]!;
@@ -219,7 +222,7 @@ class _CloneDetector {
     // its own window and clipped to the same length.
     var commonLen = matching.minTokens;
     for (var i = 1; i < extents.length; i++) {
-      final (s, e) = extents[i];
+      final (s, e) = (extents[i].start, extents[i].end);
       commonLen = min(commonLen, e - s);
     }
     final refLines = files[occs.first.fileIndex].tokens;
@@ -236,8 +239,8 @@ class _CloneDetector {
       for (var i = 1; i < occs.length; i++)
         _CloneOccurrence(
           occs[i].fileIndex,
-          extents[i].$1,
-          extents[i].$1 + commonLen,
+          extents[i].start,
+          extents[i].start + commonLen,
         ),
     ]);
   }
@@ -259,7 +262,7 @@ class _CloneDetector {
   /// Maximal extent of the window at [curStart] shared with the
   /// reference window at [refStart]: grown left and right while the
   /// surrounding codes match.
-  (int, int) _extent(
+  _TokenRange _extent(
     List<int> cur,
     int curStart,
     List<int> ref,
@@ -278,7 +281,7 @@ class _CloneDetector {
       end++;
       refE++;
     }
-    return (start, end);
+    return (start: start, end: end);
   }
 
   /// Computes `base^exp mod 2^64`.

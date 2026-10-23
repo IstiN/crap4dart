@@ -71,7 +71,7 @@ void main() {
     File('${root.path}/b.md').writeAsStringSync(proseA);
     File('${root.path}/c.md').writeAsStringSync(proseC);
     final report = analyze();
-    expect(report.metricsFor('a.md')?.$1, 1.0);
+    expect(report.metricsFor('a.md')?.jaccard, 1.0);
     expect(report.metricsFor('c.md'), isNull);
   });
 }

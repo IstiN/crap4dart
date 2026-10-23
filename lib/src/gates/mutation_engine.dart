@@ -154,8 +154,12 @@ class _RunState {
   final scopedSurvivors = <int>[];
 
   /// Fresh per-method outcomes to merge into the cache after the run.
-  final fresh = <String, ({String digest, List<CachedOutcome> outcomes})>{};
+  final fresh = <String, _FreshOutcomes>{};
 }
+
+/// Fresh per-method outcomes of one mutation run (see
+/// MutationCache.mergeRun).
+typedef _FreshOutcomes = ({String digest, List<CachedOutcome> outcomes});
 
 /// Applies single-token mutations one at a time and runs the project's
 /// test command against each mutant, restoring the file afterwards.
@@ -331,7 +335,7 @@ class MutationEngine {
   }
 
   void _accumulate(
-    Map<String, ({String digest, List<CachedOutcome> outcomes})> fresh,
+    Map<String, _FreshOutcomes> fresh,
     MethodRef method,
     CachedOutcome outcome,
   ) {
@@ -353,7 +357,7 @@ class MutationEngine {
 
   void _persist(
     MutationCacheSession? caching,
-    Map<String, ({String digest, List<CachedOutcome> outcomes})> fresh,
+    Map<String, FreshOutcomes> fresh,
   ) {
     if (caching == null) return;
     caching.cache.mergeRun(fresh, caching.liveKeys);

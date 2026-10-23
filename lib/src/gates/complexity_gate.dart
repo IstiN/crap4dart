@@ -7,6 +7,9 @@ import '../config/config.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
+/// One `entries` rule: a path glob and the complexity limit it sets.
+typedef _ComplexityEntry = ({Glob glob, int maxComplexity});
+
 /// The `complexity` gate: fails methods whose complexity exceeds
 /// `gates.complexity.max_complexity`. `gates.complexity.metric` selects
 /// the metric — `cyclomatic` (default) or `cognitive` (SonarSource-style,
@@ -88,7 +91,7 @@ class ComplexityGate implements Gate {
   int _limitFor(
     String relative,
     int defaultMax,
-    List<({Glob glob, int maxComplexity})> globs,
+    List<_ComplexityEntry> globs,
   ) {
     for (final entry in globs) {
       if (entry.glob.matches(relative)) return entry.maxComplexity;

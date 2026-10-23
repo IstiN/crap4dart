@@ -17,6 +17,10 @@ const int _yellowCode = 1;
 const int _redCode = 3;
 const int _blackCode = 2;
 
+/// One accumulated stripe run: the pixel classification code and the
+/// number of consecutive pixels in the run.
+typedef _Segment = ({int kind, int length});
+
 /// The `broken_goldens` gate: scans golden PNG files for rendered
 /// Flutter error artifacts — yellow/black overflow stripes and the red
 /// build-error screen (dark red background with yellow text).
@@ -155,11 +159,11 @@ class BrokenGoldensGate implements Gate {
     var transitions = 0;
     var last = _noneCode;
     var yellows = 0;
-    var segments = <(int, int)>[];
+    var segments = <_Segment>[];
     var segmentLength = 0;
     void closeSegment() {
       if (last != _noneCode && segmentLength > 0) {
-        segments.add((last, segmentLength));
+        segments.add((kind: last, length: segmentLength));
       }
       segmentLength = 0;
     }
@@ -200,7 +204,7 @@ class BrokenGoldensGate implements Gate {
     int run,
     int transitions,
     int yellows,
-    List<(int, int)> segments,
+    List<_Segment> segments,
     int minRun,
   ) {
     if (run < minRun || transitions < 4 || yellows * 3 < run) return false;
@@ -211,14 +215,14 @@ class BrokenGoldensGate implements Gate {
   /// lengths — the 45-degree checkerboard's row signature (8px yellow,
   /// 8px black). The edge segments may be cut by the image border, so
   /// only complete interior segments are compared.
-  bool _segmentsAreCheckerboard(List<(int, int)> segments) {
+  bool _segmentsAreCheckerboard(List<_Segment> segments) {
     if (segments.length < 5) return false;
     final interior = segments.sublist(1, segments.length - 1);
     var yellowLength = 0;
     var yellowCount = 0;
     var blackLength = 0;
     var blackCount = 0;
-    for (final (kind, length) in interior) {
+    for (final (:kind, :length) in interior) {
       if (kind == _yellowCode) {
         yellowLength += length;
         yellowCount++;
