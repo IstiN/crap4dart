@@ -3,6 +3,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
 
 import 'gate_ids.dart';
+import '../config/config.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 import 'literal_locations.dart';
@@ -79,37 +80,44 @@ class ScatteredConstantsGate implements Gate {
             .add(relative, hit.line);
       }
     }
-    final violations = <GateViolation>[];
-    for (final literal in literals.values) {
-      if (literal.files.length < config.minFiles) continue;
-      final advice = literal.isPrefix
-          ? 'declare one shared prefix constant and compose every '
-              "occurrence from it ('<prefixConstant>.<rest>')"
-          : 'extract a shared constant and reference it from every '
-              'site';
-      final scope = '${literal.files.length} files (${literal.sites.length} '
-          'occurrences)';
-      for (final site in literal.sites) {
-        violations.add(
-          GateViolation(
-            file: site.file,
-            line: site.line,
-            message: 'literal ${literal.display} repeats in $scope — '
-                '$advice; verify all occurrences mean the same thing '
-                'first',
-          ),
-        );
-      }
-    }
+    final violations = [
+      for (final literal in literals.values) ..._violationsFor(literal, config),
+    ];
     final summary = violations.isEmpty
         ? '$checked files scanned, no literals repeat across files'
-        : '${literals.values.where((l) => l.files.length >= config.minFiles).length} '
-            'literals scattered over ${config.minFiles}+ files '
-            '(${violations.length} occurrences)';
+        : '${violations.length} scattered-literal occurrences';
     return violations.isEmpty
         ? GateResult.pass(id, summary: summary)
         : GateResult.fail(id, violations, summary: summary);
   }
+}
+
+/// Violations for one scattered literal, or nothing when its file
+/// count is under its kind's threshold.
+List<GateViolation> _violationsFor(
+  _ScatteredLiteral literal,
+  ScatteredConstantsGateConfig config,
+) {
+  // Structural heads (prefix candidates) repeat across fewer files
+  // before they are a fact: 'gates.' in two config readers is already
+  // one business fact hardcoded twice.
+  final threshold = literal.isPrefix ? config.prefixMinFiles : config.minFiles;
+  if (literal.files.length < threshold) return const [];
+  final advice = literal.isPrefix
+      ? 'declare one shared prefix constant and compose every '
+          "occurrence from it ('<prefixConstant>.<rest>')"
+      : 'extract a shared constant and reference it from every site';
+  final scope = '${literal.files.length} files (${literal.sites.length} '
+      'occurrences)';
+  return [
+    for (final site in literal.sites)
+      GateViolation(
+        file: site.file,
+        line: site.line,
+        message: 'literal ${literal.display} repeats in $scope — '
+            '$advice; verify all occurrences mean the same thing first',
+      ),
+  ];
 }
 
 /// One literal value tracked across the corpus.

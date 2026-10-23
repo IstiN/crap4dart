@@ -1,6 +1,5 @@
 import 'package:path/path.dart' as p;
 
-import 'package:crap4dart/src/config/config_loader.dart';
 import 'package:crap4dart/src/gates/gate.dart';
 import 'package:crap4dart/src/gates/scattered_constants_gate.dart';
 import 'package:test/test.dart';
@@ -58,9 +57,15 @@ void main() {
       'lib/c.dart': "final c = 'toolchain.test';\n",
     });
     expect(result.passed, isFalse);
+    // Every nesting level is a candidate: 'toolchain' (3 files) and
+    // 'toolchain.build' (2 files, prefix_min_files default).
     expect(
       result.violations.map((v) => v.message),
-      everyElement(contains("prefix 'toolchain'")),
+      everyElement(contains('declare one shared prefix constant')),
+    );
+    expect(
+      result.violations.map((v) => v.message),
+      everyElement(contains("prefix 'toolchain")),
     );
   });
 
@@ -74,14 +79,5 @@ void main() {
       configYaml: 'gates:\n  scattered_constants:\n    enabled: true\n',
     );
     expect(result.passed, isTrue, reason: result.violations.toString());
-  });
-
-  test('deep_search: false is the default', () async {
-    final project = createTempProject();
-    addTearDown(() => project.deleteSync(recursive: true));
-    final config = const ConfigLoader().loadString(
-      'gates:\n  scattered_constants:\n    enabled: true\n',
-    );
-    expect(config.gates.scatteredConstants.deepSearch, isFalse);
   });
 }

@@ -253,6 +253,9 @@ gates:
     # Count dot-segment prefixes of dotted literals too ('gates' in
     # 'gates.loc', 'gates.nesting', ...) — partial-reuse detection.
     deep_search: false
+    # Prefixes flag from fewer files than whole literals: a
+    # structural head in 2 files is already a shared fact.
+    prefix_min_files: 2
     exclude:
       - '**.g.dart'
       - '**.freezed.dart'

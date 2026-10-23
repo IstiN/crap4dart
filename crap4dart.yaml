@@ -54,13 +54,17 @@ gates:
     max_params: 8
     # Dogfooding `entries`: config aggregate/flag classes legitimately
     # need more params than a method — GatesConfig aggregates 27 gate
-    # configs (one param each) and SimilarityGateConfig carries the
-    # flag triplet + 6 similarity-specific keys.
+    # configs (one param each), SimilarityGateConfig carries the flag
+    # triplet + 6 similarity keys, ScatteredConstantsGateConfig adds
+    # the deep-search knobs.
     entries:
       - max_params: 27
         paths:
           - 'lib/src/config/config.dart'
           - 'lib/src/config/similarity_gate_config.dart'
+      - max_params: 9
+        paths:
+          - 'lib/src/config/gate_configs.dart'
   public_docs:
     enabled: true
     exclude:
