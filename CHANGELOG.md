@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.18.0 — 2026-10-23
 
 - New `record_named_fields` gate: record type annotations with unnamed
   fields and `.$N` positional accesses are flagged.
