@@ -648,6 +648,7 @@ class ScatteredConstantsGateConfig implements GateConfigFlags {
     this.minValue = 100,
     this.deepSearch = false,
     this.prefixMinFiles = 2,
+    this.ignore = const [],
     this.exclude = const [
       _generatedGlob,
       _freezedGlob,
@@ -687,6 +688,12 @@ class ScatteredConstantsGateConfig implements GateConfigFlags {
   /// default: a structural head repeated in two files is already one
   /// business fact hardcoded twice.
   final int prefixMinFiles;
+
+  /// Literal values never flagged — whole-literal hits by value,
+  /// prefix hits by head (numbers match their decimal form). Generic
+  /// vocabulary whose extraction adds churn without benefit (`test`,
+  /// `dart`, `flutter`, ...) lives here.
+  final List<String> ignore;
 
   /// Glob patterns excluded from the gate.
   final List<String> exclude;

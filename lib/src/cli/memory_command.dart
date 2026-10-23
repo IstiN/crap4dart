@@ -31,7 +31,7 @@ class MemoryCommand extends Command<int> {
         _formatOption,
         allowed: [kConsole, kJson],
         defaultsTo: kConsole,
-        help: 'Output format.',
+        help: kOutputFormatHelp,
       )
       ..addOption(
         _badgeOption,
@@ -164,7 +164,7 @@ class MemoryCommand extends Command<int> {
   /// dependency requirement — that check needs resolution, keep it
   /// light).
   bool _isDartProject(String root) {
-    final pubspec = File(p.join(root, 'pubspec.yaml'));
+    final pubspec = File(p.join(root, kPubspec));
     return pubspec.existsSync() && Directory(p.join(root, kTest)).existsSync();
   }
 

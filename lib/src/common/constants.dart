@@ -36,6 +36,20 @@ const String kConfig = 'config';
 /// The help text of the shared `--config` option.
 const String kConfigHelp = 'Path to a crap4dart.yaml config file.';
 
+/// The help text of the shared `--format` option.
+const String kOutputFormatHelp =
+    'Output format (json writes only JSON to stdout).';
+
+/// The help text of the shared `--diff-base` option.
+const String kDiffBaseHelp =
+    'Like --diff, but diffs against the given git ref.';
+
+/// The default LCOV report path, relative to the project root.
+const String kDefaultLcovPath = 'coverage/lcov.info';
+
+/// Matches the `name:` entry of a pubspec.
+const String kPubspecNamePattern = r'^name:\s*(.+)$';
+
 /// The file name of a package's pubspec.
 const String kPubspec = 'pubspec.yaml';
 

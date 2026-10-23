@@ -36,7 +36,10 @@ import 'literal_locations.dart';
 /// False-positive controls: string literals shorter than `min_length`
 /// and numbers with magnitude at or below `min_value` are treated as
 /// coincidence (0, 1, 10, 100 happen everywhere); directive URIs are
-/// structural references.
+/// structural references; values listed in `ignore` are never
+/// flagged — repositories in fast development can exempt generic
+/// vocabulary (`'test'`, `'dart'`, `'flutter'`) whose extraction
+/// adds churn without benefit.
 ///
 /// Whole-literal matching alone misses *partial* reuse: `'gates.loc'`,
 /// `'gates.nesting'`, ... share the structured head `'gates'` without
@@ -71,6 +74,7 @@ class ScatteredConstantsGate implements Gate {
         minLength: config.minLength,
         minValue: config.minValue,
         deepSearch: config.deepSearch,
+        ignoreValues: config.ignore.toSet(),
       );
       parsed.unit.accept(collector);
       final relative = context.relativePath(file);
@@ -176,6 +180,7 @@ class _LiteralCollector extends RecursiveAstVisitor<void> {
     required this.minLength,
     required this.minValue,
     required this.deepSearch,
+    required this.ignoreValues,
   });
 
   final LineInfo _lineInfo;
@@ -186,12 +191,18 @@ class _LiteralCollector extends RecursiveAstVisitor<void> {
   /// candidates (partial-reuse detection).
   final bool deepSearch;
 
+  /// Literal values never flagged: whole-literal hits by value,
+  /// prefix hits by head. Generic vocabulary whose extraction adds
+  /// churn without benefit lives here.
+  final Set<String> ignoreValues;
+
   final List<_Hit> hits = [];
 
   @override
   void visitIntegerLiteral(IntegerLiteral node) {
     final value = node.value;
     if (value == null || value.abs() <= minValue) return;
+    if (ignoreValues.contains('$value')) return;
     hits.add(_Hit('i:$value', '$value', _line(node)));
   }
 
@@ -199,6 +210,7 @@ class _LiteralCollector extends RecursiveAstVisitor<void> {
   void visitDoubleLiteral(DoubleLiteral node) {
     final value = node.value;
     if (value.abs() <= minValue) return;
+    if (ignoreValues.contains('$value')) return;
     hits.add(_Hit('d:$value', '$value', _line(node)));
   }
 
@@ -219,6 +231,7 @@ class _LiteralCollector extends RecursiveAstVisitor<void> {
 
   void _collectString(String value, AstNode node) {
     if (value.length < minLength) return;
+    if (ignoreValues.contains(value)) return;
     hits.add(_Hit('s:$value', _display(value), _line(node)));
     if (deepSearch) _collectPrefixes(value, node);
   }
@@ -229,7 +242,7 @@ class _LiteralCollector extends RecursiveAstVisitor<void> {
     var index = value.indexOf('.');
     while (index > 0) {
       final prefix = value.substring(0, index);
-      if (prefix.length >= minLength) {
+      if (prefix.length >= minLength && !ignoreValues.contains(prefix)) {
         hits.add(
           _Hit('p:$prefix', "prefix '$prefix'", _line(node)),
         );

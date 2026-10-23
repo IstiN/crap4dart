@@ -60,7 +60,7 @@ class GateContext {
     try {
       final content = File(pubspecPath).readAsStringSync();
       final match = RegExp(
-        r'^name:\s*(.+)$',
+        kPubspecNamePattern,
         multiLine: true,
       ).firstMatch(content);
       return match?.group(1)?.trim();

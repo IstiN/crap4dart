@@ -256,6 +256,11 @@ gates:
     # Prefixes flag from fewer files than whole literals: a
     # structural head in 2 files is already a shared fact.
     prefix_min_files: 2
+    # Literal values never flagged (fast-development repos: generic
+    # vocabulary whose extraction adds churn without benefit).
+    # Whole literals match by value, prefixes by head, numbers by
+    # their decimal form.
+    # ignore: [test, dart, flutter]
     exclude:
       - '**.g.dart'
       - '**.freezed.dart'

@@ -93,7 +93,7 @@ class CrapConfig {
 class CoverageConfig {
   /// Creates a [CoverageConfig].
   const CoverageConfig({
-    this.lcovPath = 'coverage/lcov.info',
+    this.lcovPath = kDefaultLcovPath,
     this.runTests = true,
     this.required = true,
     this.branchCoverage = true,

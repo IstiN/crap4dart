@@ -28,7 +28,6 @@ class CoverageRunner {
   final ProcessSpawner _spawn;
 
   /// Default LCOV output path, relative to the project root.
-  static const String defaultLcovPath = 'coverage/lcov.info';
 
   /// Runs the tests of the project at [projectRoot] and returns the path to
   /// the generated `lcov.info`, or `null` when coverage could not be
@@ -46,7 +45,7 @@ class CoverageRunner {
   }
 
   Future<String?> _run(String projectRoot) async {
-    final lcovPath = p.join(projectRoot, defaultLcovPath);
+    final lcovPath = p.join(projectRoot, kDefaultLcovPath);
     final isFlutter = isFlutterProject(projectRoot);
     stderr.writeln(
       isFlutter
@@ -87,7 +86,7 @@ class CoverageRunner {
         '--in',
         'coverage',
         '--out',
-        'coverage/lcov.info',
+        kDefaultLcovPath,
         '--report-on',
         'lib',
       ],

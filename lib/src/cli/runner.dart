@@ -336,7 +336,7 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
         _formatFlag,
         allowed: [_consoleFormat, _jsonFormat],
         defaultsTo: _consoleFormat,
-        help: 'Output format (json writes only JSON to stdout).',
+        help: kOutputFormatHelp,
       )
       ..addFlag(
         _diffFlag,
@@ -345,7 +345,7 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
       )
       ..addOption(
         _diffBaseFlag,
-        help: 'Like --diff, but diffs against the given git ref.',
+        help: kDiffBaseHelp,
       )
       ..addOption(
         'badge',
@@ -545,7 +545,7 @@ class CheckCommand extends Command<int> with CommandHelpers {
         _formatFlag,
         allowed: [_consoleFormat, _jsonFormat],
         defaultsTo: _consoleFormat,
-        help: 'Output format (json writes only JSON to stdout).',
+        help: kOutputFormatHelp,
       )
       ..addFlag(
         _diffFlag,
@@ -554,7 +554,7 @@ class CheckCommand extends Command<int> with CommandHelpers {
       )
       ..addOption(
         _diffBaseFlag,
-        help: 'Like --diff, but diffs against the given git ref.',
+        help: kDiffBaseHelp,
       )
       ..addFlag(
         'save-baseline',

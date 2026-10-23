@@ -328,6 +328,7 @@ class _ExtendedGateConfigReaders {
         'min_value',
         'deep_search',
         'prefix_min_files',
+        'ignore',
         _excludeKey
       },
       (map, base, path, ctx) {
@@ -346,11 +347,42 @@ class _ExtendedGateConfigReaders {
               map, 'deep_search', base.deepSearch, path, ctx),
           prefixMinFiles: _ConfigScalars.readInt(
               map, 'prefix_min_files', base.prefixMinFiles, path, ctx),
+          ignore: _readIgnoreValues(map['ignore'], base.ignore, path),
           exclude:
               _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
         );
       },
     );
+  }
+
+  /// The `ignore` list accepts strings and integers (numbers are
+  /// matched by their decimal form, so `ignore: [86400]` works).
+  static List<String> _readIgnoreValues(
+    Object? node,
+    List<String> base,
+    String path,
+  ) {
+    if (node == null) return base;
+    if (node is! YamlList) {
+      throw ConfigException(
+        path,
+        'gates.scattered_constants.ignore',
+        'expected a list of values',
+      );
+    }
+    const ctx = 'gates.scattered_constants.ignore';
+    final values = <String>[];
+    for (final n in node.nodes) {
+      final value = n is YamlScalar ? n.value : null;
+      if (value is String) {
+        values.add(value);
+      } else if (value is int) {
+        values.add('$value');
+      } else {
+        throw ConfigException(path, ctx, 'expected strings or integers');
+      }
+    }
+    return values;
   }
 
   static RecordNamedFieldsGateConfig readRecordNamedFields(

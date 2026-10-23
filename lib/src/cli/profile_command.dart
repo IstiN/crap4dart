@@ -63,7 +63,7 @@ class ProfileCommand extends Command<int> with CommandHelpers {
         kFormat,
         allowed: [kConsole, kJson],
         defaultsTo: kConsole,
-        help: 'Output format (json writes only JSON to stdout).',
+        help: kOutputFormatHelp,
       )
       ..addFlag(
         kDiff,
@@ -72,7 +72,7 @@ class ProfileCommand extends Command<int> with CommandHelpers {
       )
       ..addOption(
         'diff-base',
-        help: 'Like --diff, but diffs against the given git ref.',
+        help: kDiffBaseHelp,
       );
   }
 

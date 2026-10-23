@@ -53,7 +53,7 @@ class SimilarityCommand extends Command<int> {
         help: 'Glob of files to skip (repeatable); default: the config '
             'exclude list.',
       )
-      ..addOption(_configFlag, help: _configHelp);
+      ..addOption(_configFlag, help: kConfigHelp);
   }
 
   /// Project root override (default: the current working directory).
@@ -237,4 +237,3 @@ const String _minShinglesOption = 'min-shingles';
 const String _includeOption = 'include';
 const String _excludeOption = 'exclude';
 const String _configFlag = 'config';
-const String _configHelp = 'Path to a crap4dart.yaml config file.';

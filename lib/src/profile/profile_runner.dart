@@ -500,7 +500,7 @@ class ProfileRunner {
     final pubspec = File(p.join(root, kPubspec));
     if (!pubspec.existsSync()) return null;
     final match = RegExp(
-      r'^name:\s*(.+)$',
+      kPubspecNamePattern,
       multiLine: true,
     ).firstMatch(pubspec.readAsStringSync());
     return match?.group(1)?.trim();
