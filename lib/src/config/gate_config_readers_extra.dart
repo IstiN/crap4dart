@@ -327,7 +327,6 @@ class _ExtendedGateConfigReaders {
         'min_length',
         'min_value',
         'deep_search',
-        'prefix_min_files',
         'ignore',
         _excludeKey
       },
@@ -345,8 +344,6 @@ class _ExtendedGateConfigReaders {
               map, 'min_value', base.minValue, path, ctx),
           deepSearch: _ConfigScalars.readBool(
               map, 'deep_search', base.deepSearch, path, ctx),
-          prefixMinFiles: _ConfigScalars.readInt(
-              map, 'prefix_min_files', base.prefixMinFiles, path, ctx),
           ignore: _readIgnoreValues(map['ignore'], base.ignore, path),
           exclude:
               _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),

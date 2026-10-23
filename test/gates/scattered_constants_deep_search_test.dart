@@ -57,15 +57,12 @@ void main() {
       'lib/c.dart': "final c = 'toolchain.test';\n",
     });
     expect(result.passed, isFalse);
-    // Every nesting level is a candidate: 'toolchain' (3 files) and
-    // 'toolchain.build' (2 files, prefix_min_files default).
+    // Every nesting level is a candidate; each obeys min_files, so
+    // only the 'toolchain' head (3 files) fires.
+    expect(result.violations, hasLength(3));
     expect(
       result.violations.map((v) => v.message),
-      everyElement(contains('declare one shared prefix constant')),
-    );
-    expect(
-      result.violations.map((v) => v.message),
-      everyElement(contains("prefix 'toolchain")),
+      everyElement(contains("prefix 'toolchain'")),
     );
   });
 

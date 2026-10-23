@@ -122,11 +122,7 @@ List<GateViolation> _violationsFor(
   _ScatteredLiteral literal,
   ScatteredConstantsGateConfig config,
 ) {
-  // Structural heads (prefix candidates) repeat across fewer files
-  // before they are a fact: 'gates.' in two config readers is already
-  // one business fact hardcoded twice.
-  final threshold = literal.isPrefix ? config.prefixMinFiles : config.minFiles;
-  if (literal.files.length < threshold) return const [];
+  if (literal.files.length < config.minFiles) return const [];
   final advice = literal.isPrefix
       ? 'declare one shared prefix constant and compose every '
           "occurrence from it ('<prefixConstant>.<rest>')"

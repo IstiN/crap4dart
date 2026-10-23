@@ -17,9 +17,7 @@ void main() {
   }) async {
     final project = createTempProject();
     addTearDown(() => project.deleteSync(recursive: true));
-    for (final entry in files.entries) {
-      writeFile(project, entry.key, entry.value);
-    }
+    files.forEach((relative, content) => writeFile(project, relative, content));
     return ScatteredConstantsGate().run(
       makeContext(
         project,
@@ -29,20 +27,39 @@ void main() {
     );
   }
 
-  test('prefix_min_files raises the prefix bar', () async {
-    final result = await runOn(
-      {
-        'lib/a.dart': "final a = 'gates.loc';\n",
-        'lib/b.dart': "final b = 'gates.nesting';\n",
-      },
-      configYaml: 'gates:\n'
+  test('prefixes obey the same min_files as whole literals', () async {
+    // Two files: below min_files, no finding — deep search changes
+    // WHAT is matched, not the threshold.
+    final two = await runOn({
+      'lib/a.dart': "final a = 'gates.loc';\n",
+      'lib/b.dart': "final b = 'gates.nesting';\n",
+    });
+    expect(two.passed, isTrue, reason: two.violations.toString());
+
+    final three = await runOn({
+      'lib/a.dart': "final a = 'gates.loc';\n",
+      'lib/b.dart': "final b = 'gates.nesting';\n",
+      'lib/c.dart': "final c = 'gates.loc.entries';\n",
+    });
+    expect(three.passed, isFalse);
+    expect(three.violations, hasLength(3));
+    expect(
+      three.violations.map((v) => v.message),
+      everyElement(contains("prefix 'gates'")),
+    );
+  });
+
+  test('prefix_min_files is not a config key', () async {
+    expect(
+      () => const ConfigLoader().loadString('gates:\n'
           '  scattered_constants:\n'
           '    enabled: true\n'
           '    deep_search: true\n'
-          '    prefix_min_files: 3\n',
+          '    prefix_min_files: 2\n'),
+      throwsA(isA<ConfigException>()),
     );
-    expect(result.passed, isTrue, reason: result.violations.toString());
   });
+
   test('deep_search: false is the default', () async {
     final project = createTempProject();
     addTearDown(() => project.deleteSync(recursive: true));

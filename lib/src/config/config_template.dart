@@ -253,20 +253,20 @@ gates:
     min_length: 4
     min_value: 100
     # Count dot-segment prefixes of dotted literals too ('gates' in
-    # 'gates.loc', 'gates.nesting', ...) — partial-reuse detection.
+    # 'gates.loc', 'gates.nesting', ...) — partial-reuse detection
+    # under the same min_files threshold.
     deep_search: false
-    # Prefixes flag from fewer files than whole literals: a
-    # structural head in 2 files is already a shared fact.
-    prefix_min_files: 2
     # Literal values never flagged (fast-development repos: generic
     # vocabulary whose extraction adds churn without benefit).
     # Whole literals match by value, prefixes by head, numbers by
     # their decimal form.
     # ignore: [test, dart, flutter]
+    # Glob patterns excluded from the gate.
     exclude:
       - '$kGeneratedGlob'
       - '$kFreezedGlob'
       - '$kMocksGlob'
+      - 'test/**'
       - 'test/**'
   # Forbid mechanical file names (numeric suffixes, generic names).
   file_naming:

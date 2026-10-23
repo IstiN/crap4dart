@@ -647,7 +647,6 @@ class ScatteredConstantsGateConfig implements GateConfigFlags {
     this.minLength = 4,
     this.minValue = 100,
     this.deepSearch = false,
-    this.prefixMinFiles = 2,
     this.ignore = const [],
     this.exclude = const [
       _generatedGlob,
@@ -682,12 +681,6 @@ class ScatteredConstantsGateConfig implements GateConfigFlags {
   /// candidates (partial-reuse detection, e.g. `'gates'` inside
   /// `'gates.loc'`, `'gates.nesting'`, ...).
   final bool deepSearch;
-
-  /// Minimum number of distinct files a dot-segment prefix must appear
-  /// in before its occurrences are flagged. Lower than [minFiles] by
-  /// default: a structural head repeated in two files is already one
-  /// business fact hardcoded twice.
-  final int prefixMinFiles;
 
   /// Literal values never flagged — whole-literal hits by value,
   /// prefix hits by head (numbers match their decimal form). Generic

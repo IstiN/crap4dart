@@ -593,9 +593,9 @@ gates:
   constant declarations are never flagged. With `deep_search` (default
   off) the gate also counts dot-segment prefixes of dotted literals —
   `'gates.loc'` / `'gates.nesting'` / ... share the head `'gates'` —
-  and flags prefixes repeating across `prefix_min_files` (default 2)
-  files with concrete advice: declare one shared prefix constant and
-  compose every occurrence from it. Warning severity by default.
+  and flags prefix heads under the same `min_files` threshold with
+  concrete advice: declare one shared prefix constant and compose
+  every occurrence from it. Warning severity by default.
 - **duplication** — detects exact copy-paste token blocks across Dart
   source files. A block counts when it is at least `min_tokens` tokens
   (default 50) and `min_lines` lines (default 5) long. `report` chooses
