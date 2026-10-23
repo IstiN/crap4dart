@@ -1,4 +1,3 @@
-
 import 'package:crap4dart/src/gates/gate.dart';
 import 'package:crap4dart/src/gates/record_named_fields_gate.dart';
 import 'package:test/test.dart';
