@@ -128,6 +128,15 @@ class GcLogParser {
     return events;
   }
 
+  /// Parses a single table row outside a stream context (flutter
+  /// mode: one suite per process — every row belongs to it), `null`
+  /// for non-row lines.
+  static GcEvent? tryParseRow(String line) {
+    if (!isRow(line)) return null;
+    final isolate = _fields(line)[0].trim().replaceFirst('[ ', '');
+    return _parseRow(line, isolate);
+  }
+
   /// The full isolate name carried by an announcement line
   /// (`<name>: hard_threshold=…MB`), or `null` for other lines.
   static String? fullIsolateName(String line) {

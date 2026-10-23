@@ -55,7 +55,7 @@ void main() {
     expect(result.exitCode, 0, reason: result.stderr);
     expect(result.stderr, contains('verbose_gc'));
     expect(result.stdout, contains('memory: 2 tests'));
-    expect(result.stdout, contains('allocation churn'));
+    expect(result.stdout, contains('allocation volume'));
   }, timeout: const Timeout(Duration(minutes: 2)));
 
   test('memory --badge writes the churn SVG', () async {
@@ -87,7 +87,7 @@ void main() {
     try {
       final result = await runCliInProcess(empty, ['memory']);
       expect(result.exitCode, 1);
-      expect(result.stderr, contains('no Dart test suite'));
+      expect(result.stderr, contains('no Dart or Flutter test suite'));
     } finally {
       empty.deleteSync(recursive: true);
     }

@@ -194,6 +194,10 @@ with usage-error status.
   or below, yellow at most twice, red over `--badge-threshold` MB
   (default 500).
 
+- `--engine auto|dart|flutter` (default auto)
+  Which test engine to measure; `auto` picks `flutter` when
+  `pubspec.yaml` declares a `flutter:` dependency, else `dart`.
+
 The `memory` command shall run `dart --verbose_gc test
 --concurrency=1 -r json`, parse both output streams, and attribute GC
 events to suites and tests:
@@ -216,9 +220,32 @@ events to suites and tests:
   old-gen growth MB (positive and never freed = leak suspect); the
   report also carries the unattributed GC list and its churn.
 
+On Flutter projects (`--engine flutter`, or auto-detected), the
+command shall run `flutter test --verbose --no-pub -j1 -r json` and
+measure every traced `flutter_tester` spawn alongside it:
+
+- `flutter test` passes no VM flags through and the engine's
+  `--dart-flags` whitelist rejects `--verbose_gc`, so each traced
+  spawn is re-run with the VM Service enabled instead
+  (`--vm-service-port=0` replacing `--disable-vm-service`), pointed at
+  a local WebSocket server, and DRIVEN over package:test's remote
+  protocol (`initial` -> `success` -> `run`/`close` per test);
+- the tool deletes each file's temp dill when the file finishes, and
+  at `-j1` it outruns the measured copy — the dill is snapshotted the
+  moment its spawn line is traced, and the snapshot is measured;
+- per-test metrics come from the VM Service of the measured copy:
+  ALLOCATED bytes (`getAllocationProfile` reset before each test,
+  read after it — exact), GC events (the `GC` stream, attributed by
+  arrival to the running test), old-gen growth (chained across
+  consecutive service events); suite-load allocations are read once
+  before the first reset;
+- every file executes twice (the tool's run plus the measured copy) —
+  the documented cost; spawn trace paths must not contain commas (the
+  tool's plain `List.toString()` trace limitation).
+
 The command is informational: it exits 0 after a successful run and 1
-on usage errors (no Dart test suite found, no tests executed). Flutter
-projects are not supported yet.
+on usage errors (no Dart or Flutter test suite found, no tests
+executed).
 
 ### 4.7 Invalid Usage
 
