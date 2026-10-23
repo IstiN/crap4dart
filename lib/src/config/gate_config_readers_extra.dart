@@ -1,6 +1,6 @@
 part of 'config_loader.dart';
 
-const String _externalCtx = '$kGatePrefix.external';
+const String _externalCtx = '$kGatePrefix.${GateIds.external}';
 
 /// Readers for the newer gates (broken_goldens, test_assertions,
 /// folder_structure) — split out of [_GateConfigReaders] to keep both
@@ -15,7 +15,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      '$kGatePrefix.broken_goldens',
+      '$kGatePrefix.${GateIds.brokenGoldens}',
       const {
         _enabledKey,
         _severityKey,
@@ -49,7 +49,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      '$kGatePrefix.similarity',
+      '$kGatePrefix.${GateIds.similarity}',
       const {
         _enabledKey,
         _severityKey,
@@ -92,7 +92,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      '$kGatePrefix.test_assertions',
+      '$kGatePrefix.${GateIds.testAssertions}',
       const {
         _enabledKey,
         _severityKey,
@@ -124,7 +124,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      '$kGatePrefix.folder_structure',
+      '$kGatePrefix.${GateIds.folderStructure}',
       const {
         _enabledKey,
         _severityKey,
@@ -158,7 +158,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      '$kGatePrefix.mutation',
+      '$kGatePrefix.${GateIds.mutation}',
       const {
         _enabledKey,
         _severityKey,
@@ -264,7 +264,7 @@ class _ExtendedGateConfigReaders {
     if (node is! YamlList) {
       throw ConfigException(
         path,
-        '$kGatePrefix.external.rules',
+        '$kGatePrefix.${GateIds.external}.rules',
         'expected a list of rules',
       );
     }
@@ -275,7 +275,7 @@ class _ExtendedGateConfigReaders {
 
   /// Parses one `gates.external.rules` entry.
   static ExternalToolRule _readExternalRule(Object? n, String path) {
-    const ctx = '$kGatePrefix.external.rules';
+    const ctx = '$kGatePrefix.${GateIds.external}.rules';
     if (n is! YamlMap) {
       throw ConfigException(path, ctx, 'expected rule maps');
     }
@@ -318,7 +318,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      '$kGatePrefix.scattered_constants',
+      '$kGatePrefix.${GateIds.scatteredConstants}',
       const {
         _enabledKey,
         _severityKey,
@@ -391,7 +391,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      '$kGatePrefix.record_named_fields',
+      '$kGatePrefix.${GateIds.recordNamedFields}',
       const {_enabledKey, _severityKey, _ignorableKey},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -413,7 +413,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      '$kGatePrefix.inline_record_types',
+      '$kGatePrefix.${GateIds.inlineRecordTypes}',
       const {_enabledKey, _severityKey, _ignorableKey},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -435,7 +435,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      '$kGatePrefix.record_size',
+      '$kGatePrefix.${GateIds.recordSize}',
       const {_enabledKey, _severityKey, _ignorableKey, 'max_fields'},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);

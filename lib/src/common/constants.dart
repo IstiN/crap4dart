@@ -71,7 +71,8 @@ const String kMocksGlob = '**.mocks.dart';
 const String kNotFlutterProject = 'not a Flutter project';
 
 /// The shared prefix of every `gates.*` config path; sites compose
-/// `'$kGatePrefix.loc'`-style paths from it.
+/// `'$kGatePrefix.'` + `GateIds.x` paths from it, so a gate rename is
+/// a one-line change and an id typo is a compile error.
 const String kGatePrefix = 'gates';
 
 /// Milliseconds per second (memory and profile reports).
