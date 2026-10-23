@@ -2,7 +2,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
 
-import 'gate_ids.dart';
 import '../config/config.dart';
 import 'gate.dart';
 import 'gate_context.dart';
@@ -10,10 +9,6 @@ import 'literal_locations.dart';
 
 /// The `scattered_constants` gate: flags hardcoded literals that appear
 /// in at least `min_files` distinct files.
-///
-/// `ignore` accepts two entry kinds: plain values (never flagged as
-/// whole literals or prefix heads) and file-path globs (any entry
-/// containing a `/`; literals inside matching files are exempt).
 ///
 /// The per-file counterpart `magic_constants` counts in-file repeats
 /// only, so a literal used once per file in K files is invisible to
@@ -37,6 +32,10 @@ import 'literal_locations.dart';
 /// constants; the shared values behind them should be referenced by
 /// name, which removes the literal entirely.)
 ///
+/// Partial reuse — shared dot-segment heads, substrings of existing
+/// constants — is the `scattered_fragments` gate's domain; this gate
+/// matches whole values only.
+///
 /// False-positive controls: string literals shorter than `min_length`
 /// and numbers with magnitude at or below `min_value` are treated as
 /// coincidence (0, 1, 10, 100 happen everywhere); directive URIs are
@@ -45,16 +44,6 @@ import 'literal_locations.dart';
 /// vocabulary (`'test'`, `'dart'`, `'flutter'`) whose extraction
 /// adds churn without benefit.
 ///
-/// Whole-literal matching alone misses *partial* reuse: `'gates.loc'`,
-/// `'gates.nesting'`, ... share the structured head `'gates'` without
-/// any two literals being equal. With `deep_search` enabled the gate
-/// also counts dot-segment prefixes of dotted string literals
-/// (`'gates.loc.entries'` yields the candidates `'gates'` and
-/// `'gates.loc'`) and flags prefixes repeating across `min_files`
-/// files — the fix is a shared prefix constant composed with the
-/// variable remainder. Off by default: prefix matching has a wider FP
-/// surface, opt in deliberately.
-///
 /// Default severity is `warning`: scattering is a design signal, not a
 /// bug.
 class ScatteredConstantsGate implements Gate {
@@ -62,7 +51,7 @@ class ScatteredConstantsGate implements Gate {
   const ScatteredConstantsGate();
 
   @override
-  String get id => GateIds.scatteredConstants;
+  String get id => 'scattered_constants';
 
   @override
   Future<GateResult> run(GateContext context) async {
@@ -71,33 +60,23 @@ class ScatteredConstantsGate implements Gate {
     // with a `/` are file-path globs and exempt the files themselves
     // (a crypto package full of magic numbers, a fast-moving test
     // tree, ...).
-    final ignoreValues = <String>{};
-    final ignorePaths = <String>[];
-    for (final entry in config.ignore) {
-      if (entry.contains('/')) {
-        ignorePaths.add(entry);
-      } else {
-        ignoreValues.add(entry);
-      }
-    }
+    final ignore = IgnoreConfig.partition(config.ignore);
     var checked = 0;
     final literals = <String, _ScatteredLiteral>{};
-    for (final file in context.files) {
-      if (context.matchesAnyGlob(file, config.exclude) ||
-          context.matchesAnyGlob(file, ignorePaths)) {
-        continue;
-      }
+    for (final scanned in context.parsedCorpus(
+      config.exclude,
+      ignore.pathGlobs,
+    )) {
+      final parsed = scanned.parsed;
+      final relative = scanned.relativePath;
       checked++;
-      final parsed = context.parsed(file);
       final collector = _LiteralCollector(
         parsed.lineInfo,
         minLength: config.minLength,
         minValue: config.minValue,
-        deepSearch: config.deepSearch,
-        ignoreValues: ignoreValues,
+        ignoreValues: ignore.values,
       );
       parsed.unit.accept(collector);
-      final relative = context.relativePath(file);
       for (final hit in collector.hits) {
         literals
             .putIfAbsent(hit.key, () => _ScatteredLiteral(hit.key, hit.display))
@@ -117,16 +96,12 @@ class ScatteredConstantsGate implements Gate {
 }
 
 /// Violations for one scattered literal, or nothing when its file
-/// count is under its kind's threshold.
+/// count is under the threshold.
 List<GateViolation> _violationsFor(
   _ScatteredLiteral literal,
-  ScatteredConstantsGateConfig config,
+  ScatteredGateConfig config,
 ) {
   if (literal.files.length < config.minFiles) return const [];
-  final advice = literal.isPrefix
-      ? 'declare one shared prefix constant and compose every '
-          "occurrence from it ('<prefixConstant>.<rest>')"
-      : 'extract a shared constant and reference it from every site';
   final scope = '${literal.files.length} files (${literal.sites.length} '
       'occurrences)';
   return [
@@ -135,45 +110,23 @@ List<GateViolation> _violationsFor(
         file: site.file,
         line: site.line,
         message: 'literal ${literal.display} repeats in $scope — '
-            '$advice; verify all occurrences mean the same thing first',
+            'extract a shared constant and reference it from every '
+            'site; verify all occurrences mean the same thing first',
       ),
   ];
 }
 
 /// One literal value tracked across the corpus.
-class _ScatteredLiteral {
+class _ScatteredLiteral extends LiteralSites {
   /// Creates a tracker for a literal with canonical [key] rendered as
   /// [display].
   _ScatteredLiteral(this.key, this.display);
 
-  /// Canonical key; the `p:` namespace marks prefix candidates.
+  /// Canonical key.
   final String key;
-
-  /// Whether this is a dot-segment prefix candidate.
-  bool get isPrefix => key.startsWith('p:');
 
   /// Human readable form for messages.
   final String display;
-
-  /// Distinct files containing the literal.
-  final Set<String> files = {};
-
-  /// Every occurrence, in scan order.
-  final List<_Site> sites = [];
-
-  /// Records one occurrence.
-  void add(String file, int line) {
-    files.add(file);
-    sites.add(_Site(file, line));
-  }
-}
-
-/// One occurrence site of a scattered literal.
-class _Site {
-  const _Site(this.file, this.line);
-
-  final String file;
-  final int line;
 }
 
 /// A collected literal occurrence: canonical key plus display form and
@@ -195,7 +148,6 @@ class _LiteralCollector extends RecursiveAstVisitor<void> {
     this._lineInfo, {
     required this.minLength,
     required this.minValue,
-    required this.deepSearch,
     required this.ignoreValues,
   });
 
@@ -203,13 +155,9 @@ class _LiteralCollector extends RecursiveAstVisitor<void> {
   final int minLength;
   final int minValue;
 
-  /// Whether dot-segment prefixes of dotted string literals count as
-  /// candidates (partial-reuse detection).
-  final bool deepSearch;
-
-  /// Literal values never flagged: whole-literal hits by value,
-  /// prefix hits by head. Generic vocabulary whose extraction adds
-  /// churn without benefit lives here.
+  /// Literal values never flagged: whole-literal hits by value.
+  /// Generic vocabulary whose extraction adds churn without benefit
+  /// lives here.
   final Set<String> ignoreValues;
 
   final List<_Hit> hits = [];
@@ -240,7 +188,7 @@ class _LiteralCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
-    final value = node.stringValue;
+    final value = stringValueOf(node);
     if (value == null) return;
     _collectString(value, node);
   }
@@ -249,22 +197,6 @@ class _LiteralCollector extends RecursiveAstVisitor<void> {
     if (value.length < minLength) return;
     if (ignoreValues.contains(value)) return;
     hits.add(_Hit('s:$value', _display(value), _line(node)));
-    if (deepSearch) _collectPrefixes(value, node);
-  }
-
-  /// Emits the dot-segment prefixes of [value] as prefix candidates:
-  /// the reusable head of a structured literal.
-  void _collectPrefixes(String value, AstNode node) {
-    var index = value.indexOf('.');
-    while (index > 0) {
-      final prefix = value.substring(0, index);
-      if (prefix.length >= minLength && !ignoreValues.contains(prefix)) {
-        hits.add(
-          _Hit('p:$prefix', "prefix '$prefix'", _line(node)),
-        );
-      }
-      index = value.indexOf('.', index + 1);
-    }
   }
 
   /// String literals render quoted and truncated in messages.

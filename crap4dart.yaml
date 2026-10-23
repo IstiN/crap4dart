@@ -65,6 +65,7 @@ gates:
       - max_params: 10
         paths:
           - 'lib/src/config/gate_configs.dart'
+          - 'lib/src/config/gate_configs_scattered.dart'
   public_docs:
     enabled: true
     exclude:
@@ -81,8 +82,21 @@ gates:
     enabled: true
     severity: warning
     min_files: 2
-    deep_search: true
     ignore: [test, dart, flutter, threshold, profile, error]
+    exclude:
+      - '**.g.dart'
+      - '**.freezed.dart'
+      - '**.mocks.dart'
+      - 'test/**'
+  # Deep search: repeated separator segments + substring candidates
+  # against existing constants.
+  scattered_fragments:
+    enabled: true
+    severity: warning
+    min_files: 2
+    min_length: 7
+    separators: .
+    ignore: [test, dart, flutter, json, package, threshold, profile, error]
     exclude:
       - '**.g.dart'
       - '**.freezed.dart'

@@ -29,14 +29,14 @@ crap4dart is a Dart port of the Java tool
 ## Features
 
 - **CRAP analysis** per method, combining complexity and LCOV coverage
-- **27 quality gates**: `loc`, `test_coverage`, `golden`,
+- **28 quality gates**: `loc`, `test_coverage`, `golden`,
   `hardcoded_strings`, `accessibility`, `complexity`, `method_size`,
   `nesting`, `record_named_fields`, `inline_record_types`,
   `record_size`, `class_size`, `weight_of_class`, `unused_code`,
   `unused_files`, `banned_imports`, `public_docs`, `duplication`,
   `file_naming`, `magic_constants`, `scattered_constants`,
-  `broken_goldens`, `test_assertions`, `folder_structure`, `external`,
-  `mutation`, `similarity`
+  `scattered_fragments`, `broken_goldens`, `test_assertions`,
+  `folder_structure`, `external`, `mutation`, `similarity`
 - **Gate framework**: per-path thresholds (`entries`), warning
   severity, baseline mode, opt-in ignore markers
 - **Configuration** via `crap4dart.yaml` with strict validation

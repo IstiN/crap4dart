@@ -2,6 +2,15 @@
 
 ## 0.19.0 — 2026-10-23
 
+- New `scattered_fragments` gate: the deep search split out of
+  `scattered_constants` (one concern per gate). Splits literals on
+  configurable `separators` (default `.`) and flags repeated segments
+  of `min_length`+ chars across `min_files`+ files, plus hardcoded
+  values that contain or duplicate an existing named constant
+  (replacement candidates; `min_length` floors trivial matches).
+  `scattered_constants` is whole-value only again (`deep_search`
+  removed); both gates share the `ignore` values/path-globs option.
+
 - New `scattered_constants` gate: flags literals appearing in
   `min_files` (default 3) distinct files — cross-file aggregation of
   magic constants (the "change 86400 in every service" hazard).

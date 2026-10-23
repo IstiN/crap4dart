@@ -252,10 +252,6 @@ gates:
     min_files: 3
     min_length: 4
     min_value: 100
-    # Count dot-segment prefixes of dotted literals too ('gates' in
-    # 'gates.loc', 'gates.nesting', ...) — partial-reuse detection
-    # under the same min_files threshold.
-    deep_search: false
     # Literal values never flagged (fast-development repos: generic
     # vocabulary whose extraction adds churn without benefit).
     # Whole literals match by value, prefixes by head, numbers by
@@ -267,6 +263,23 @@ gates:
       - '$kFreezedGlob'
       - '$kMocksGlob'
       - 'test/**'
+      - 'test/**'
+  # Deep search over literal fragments: repeated separator segments
+  # and substring candidates against existing named constants —
+  # partial reuse the whole-value gate cannot see. Findings are
+  # candidates; verify intent before extracting.
+  scattered_fragments:
+    enabled: true
+    severity: warning
+    min_files: 2
+    min_length: 5
+    # Fragment boundary characters.
+    separators: .
+    ignore: []
+    exclude:
+      - '**.g.dart'
+      - '**.freezed.dart'
+      - '**.mocks.dart'
       - 'test/**'
   # Forbid mechanical file names (numeric suffixes, generic names).
   file_naming:

@@ -9,12 +9,12 @@ Guidance for AI agents and contributors working on crap4dart.
 1. **CRAP metric analysis** (`analyze`) — `CRAP = CC²·(1−coverage)³ + CC`
    per method, combining AST-based cyclomatic complexity with LCOV coverage.
    Port of [crap4java](https://github.com/unclebob/crap4java).
-2. **Quality gates** (`check`) — 27 configurable gates: `loc`,
+2. **Quality gates** (`check`) — 28 configurable gates: `loc`,
    `test_coverage`, `golden`, `hardcoded_strings`, `accessibility`,
    `complexity`, `method_size`, `nesting`, `record_named_fields`,
    `inline_record_types`, `record_size`, `class_size`,
    `weight_of_class`, `unused_code`, `unused_files`, `banned_imports`,
-   `public_docs`, `duplication`, `file_naming`, `magic_constants`, `scattered_constants`,
+   `public_docs`, `duplication`, `file_naming`, `magic_constants`, `scattered_constants`, `scattered_fragments`,
    `broken_goldens`, `test_assertions`, `folder_structure`,
    `external` (Checkstyle-XML tool wrapper: detekt/ktlint/swiftlint),
    `mutation` (mutation testing: AST operator table + per-mutant test
@@ -90,7 +90,7 @@ lib/src/config/              # crap4dart.yaml model, loader (strict), template
 lib/src/analysis/            # analyzer wrappers: parser, method extractor, CC
 lib/src/coverage/            # LCOV parser, per-method coverage, test runner
 lib/src/crap/                # CRAP formula, analyzer, console report
-lib/src/gates/               # Gate framework + 27 gates
+lib/src/gates/               # Gate framework + 28 gates
 lib/src/similarity/          # shingles/Jaccard engine (similarity gate)
 lib/src/files/               # source finder, git changed files, diff parser
 lib/src/report/              # JSON reporter

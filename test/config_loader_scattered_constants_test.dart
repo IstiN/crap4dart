@@ -17,8 +17,14 @@ void main() {
     expect(gate.minFiles, 3);
     expect(gate.minLength, 4);
     expect(gate.minValue, 100);
-    expect(gate.deepSearch, isFalse);
     expect(gate.exclude, contains('test/**'));
+    // deep_search moved to the scattered_fragments gate.
+    expect(
+      () => loader.loadString('gates:\n'
+          '  scattered_constants:\n'
+          '    deep_search: true\n'),
+      throwsA(isA<ConfigException>()),
+    );
   });
 
   test('scattered_constants accepts overrides', () {
@@ -30,7 +36,6 @@ void main() {
         '    min_files: 2\n'
         '    min_length: 6\n'
         '    min_value: 50\n'
-        '    deep_search: true\n'
         '    exclude: [vendor/**]\n');
     final gate = config.gates.scatteredConstants;
     expect(gate.severity, GateSeverity.error);
@@ -38,7 +43,6 @@ void main() {
     expect(gate.minFiles, 2);
     expect(gate.minLength, 6);
     expect(gate.minValue, 50);
-    expect(gate.deepSearch, isTrue);
     expect(gate.exclude, ['vendor/**']);
   });
 
@@ -60,7 +64,7 @@ void main() {
     }
   });
 
-  test('generated template round-trips the gate', () {
+  test('generated template round-trips the gates', () {
     final config = loader.loadString(defaultConfigTemplate);
     final gate = config.gates.scatteredConstants;
     expect(gate.enabled, isTrue);
@@ -68,5 +72,11 @@ void main() {
     expect(gate.minFiles, 3);
     expect(gate.minLength, 4);
     expect(gate.minValue, 100);
+    final fragments = config.gates.scatteredFragments;
+    expect(fragments.enabled, isTrue);
+    expect(fragments.severity, GateSeverity.warning);
+    expect(fragments.minFiles, 2);
+    expect(fragments.minLength, 5);
+    expect(fragments.separators, '.');
   });
 }

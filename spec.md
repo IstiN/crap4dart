@@ -505,14 +505,14 @@ Known gate ids: `loc`, `test_coverage`, `golden`, `hardcoded_strings`,
 `public_docs`, `duplication`, `file_naming`, `magic_constants`,
 `broken_goldens`, `test_assertions`, `folder_structure`, `external`,
 `mutation`, `similarity`, `record_named_fields`, `inline_record_types`,
-`record_size`, `scattered_constants`.
+`record_size`, `scattered_constants`, `scattered_fragments`.
 
 ## 11. Quality Gates
 
 Gates shall run in the fixed order: `loc`, `test_coverage`,
 `complexity`, `method_size`, `nesting`, `record_named_fields`,
 `inline_record_types`, `record_size`, `class_size`, `duplication`,
-`scattered_constants`,
+`scattered_constants`, `scattered_fragments`,
 `file_naming`, `magic_constants`, `broken_goldens`, `test_assertions`,
 `folder_structure`, `external`, `unused_code`, `unused_files`,
 `banned_imports`,
@@ -759,18 +759,11 @@ literals inside constant declarations (already extracted). Files
 matching `exclude` (default: `**.g.dart`, `**.freezed.dart`,
 `**.mocks.dart`, `test/**`) are left out of the count entirely.
 
-With `deep_search` (default false) the gate additionally counts
-dot-segment prefixes of dotted string literals as candidates:
-`'gates.loc.entries'` yields the prefix candidates `'gates'` and
-`'gates.loc'` (the full value is already counted as a whole literal).
-A prefix repeating across `min_files` files flags per occurrence;
-the message names the scope (files and occurrences) and the fix
-shape: declare one shared prefix constant and compose every
-occurrence from it (`'<prefixConstant>.<rest>'`). Whole-literal
-findings word the fix as extracting a shared constant and referencing
-it from every site; both end with the verification clause — all
-occurrences must mean the same thing. Off by default: prefix matching
-has a wider false-positive surface, opt in deliberately.
+Both gates' messages name the scope (files and occurrences) and the
+per-kind fix shape: extract a shared constant and reference it from
+every site (whole literal); declare one shared prefix constant and
+compose every occurrence from it (segment). Both end with the
+verification clause — all occurrences must mean the same thing.
 
 Values listed in `ignore` are never flagged: whole-literal hits by
 value, prefix hits by head, numbers by their decimal form —
@@ -787,6 +780,29 @@ human (the same value is sometimes coincidence). Config keys:
 `min_files` (int), `min_length` (int), `min_value` (int),
 `deep_search` (bool), `ignore` (list of strings and integers),
 `exclude` (globs). Unknown keys are config errors, as for every gate.
+
+### 11.13.2 scattered_fragments
+
+Deep-search companion to `scattered_constants` (split so each gate
+owns one concern). Two kinds of findings, both `warning` by default:
+
+- **Repeated segments**: literals are split on `separators`
+  (characters, default `.`); a segment of `min_length`+ (default 5)
+  characters appearing in `min_files`+ distinct files flags per
+  occurrence — the fix is one shared prefix constant composed into
+  every occurrence.
+- **Existing-constant candidates**: every named string constant in
+  the corpus contributes its value and segments as known fragments; a
+  hardcoded literal containing such a fragment flags naming the
+  constant to reuse or compose from. The `min_length` floor guards
+  against trivial matches (`const a = 'a'` inside `'loc.a'` never
+  fires).
+
+Findings are candidates, not verdicts — the verification clause is
+the human's call. Config keys: `enabled` (default true), `severity`
+(default `warning`), `ignorable`, `min_files`, `min_length`,
+`separators` (string), `ignore` (values and file-path globs),
+`exclude` (globs).
 
 ### 11.14 broken_goldens
 

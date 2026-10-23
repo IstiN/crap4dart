@@ -309,41 +309,77 @@ class _ExtendedGateConfigReaders {
     throw ConfigException(path, '$ctx.$key', 'expected a non-empty string');
   }
 
-  static ScatteredConstantsGateConfig readScatteredConstants(
+  /// YAML keys shared by the two scattered-literal readers.
+  static const _minFilesKey = 'min_files';
+  static const _minLengthKey = 'min_length';
+  static const _minValueKey = 'min_value';
+  static const _separatorsKey = 'separators';
+
+  static ScatteredGateConfig readScatteredConstants(
     Object? node,
-    ScatteredConstantsGateConfig base,
+    ScatteredGateConfig base,
     String path,
+  ) {
+    return _readScatteredGate(
+        node, base, path, GateIds.scatteredConstants, const {
+      _enabledKey,
+      _severityKey,
+      _ignorableKey,
+      _minFilesKey,
+      _minLengthKey,
+      _minValueKey,
+      'ignore',
+      _excludeKey
+    });
+  }
+
+  static ScatteredGateConfig readScatteredFragments(
+    Object? node,
+    ScatteredGateConfig base,
+    String path,
+  ) {
+    return _readScatteredGate(
+        node, base, path, GateIds.scatteredFragments, const {
+      _enabledKey,
+      _severityKey,
+      _ignorableKey,
+      _minFilesKey,
+      _minLengthKey,
+      _separatorsKey,
+      'ignore',
+      _excludeKey
+    });
+  }
+
+  /// The shared body of the two scattered-literal readers: one config
+  /// class, two yaml key surfaces.
+  static ScatteredGateConfig _readScatteredGate(
+    Object? node,
+    ScatteredGateConfig base,
+    String path,
+    String ctx,
+    Set<String> keys,
   ) {
     return _ConfigScalars.readGateConfig(
       node,
       base,
       path,
-      '$kGatePrefix.${GateIds.scatteredConstants}',
-      const {
-        _enabledKey,
-        _severityKey,
-        _ignorableKey,
-        'min_files',
-        'min_length',
-        'min_value',
-        'deep_search',
-        'ignore',
-        _excludeKey
-      },
+      ctx,
+      keys,
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
-        return ScatteredConstantsGateConfig(
+        return ScatteredGateConfig(
           enabled: flags.enabled,
           severity: flags.severity,
           ignorable: flags.ignorable,
           minFiles: _ConfigScalars.readInt(
-              map, 'min_files', base.minFiles, path, ctx),
+              map, _minFilesKey, base.minFiles, path, ctx),
           minLength: _ConfigScalars.readInt(
-              map, 'min_length', base.minLength, path, ctx),
+              map, _minLengthKey, base.minLength, path, ctx),
           minValue: _ConfigScalars.readInt(
-              map, 'min_value', base.minValue, path, ctx),
-          deepSearch: _ConfigScalars.readBool(
-              map, 'deep_search', base.deepSearch, path, ctx),
+              map, _minValueKey, base.minValue, path, ctx),
+          separators: _ConfigScalars.str(
+              map, _separatorsKey, base.separators, path, ctx),
           ignore: _readIgnoreValues(map['ignore'], base.ignore, path),
           exclude:
               _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
@@ -352,8 +388,6 @@ class _ExtendedGateConfigReaders {
     );
   }
 
-  /// The `ignore` list accepts strings and integers (numbers are
-  /// matched by their decimal form, so `ignore: [86400]` works).
   static List<String> _readIgnoreValues(
     Object? node,
     List<String> base,

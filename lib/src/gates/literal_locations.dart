@@ -88,3 +88,56 @@ abstract class ExemptingLiteralVisitor extends RecursiveAstVisitor<void> {
     node.initializer?.accept(this);
   }
 }
+
+/// The `ignore` config partitioned by entry kind: plain entries match
+/// literal values and prefix heads; entries containing a `/` are
+/// file-path globs and exempt the files themselves.
+class IgnoreConfig {
+  /// Creates a partition for the given [ignore] entries.
+  const IgnoreConfig(this.values, this.pathGlobs);
+
+  /// Value entries (no separator).
+  final Set<String> values;
+
+  /// File-path glob entries (containing a `/`).
+  final List<String> pathGlobs;
+
+  /// Partitions [ignore] by whether the entry contains a `/`.
+  factory IgnoreConfig.partition(Iterable<String> ignore) {
+    final values = <String>{};
+    final paths = <String>[];
+    for (final entry in ignore) {
+      if (entry.contains('/')) {
+        paths.add(entry);
+      } else {
+        values.add(entry);
+      }
+    }
+    return IgnoreConfig(values, paths);
+  }
+}
+
+/// One occurrence of a literal: file and 1-based line.
+typedef LiteralSite = ({String file, int line});
+
+/// Occurrence sites of one literal value across the corpus.
+class LiteralSites {
+  /// Records one occurrence.
+  void add(String file, int line) => _sites.add((file: file, line: line));
+
+  /// Every occurrence, in scan order.
+  List<LiteralSite> get sites => _sites;
+
+  /// Distinct files containing the value.
+  Set<String> get files => _sites.map((s) => s.file).toSet();
+
+  final List<LiteralSite> _sites = [];
+}
+
+/// The value of a plain (non-interpolated) string expression, `null`
+/// for interpolations and other expression kinds.
+String? stringValueOf(Expression initializer) {
+  if (initializer is SimpleStringLiteral) return initializer.value;
+  if (initializer is AdjacentStrings) return initializer.stringValue;
+  return null;
+}

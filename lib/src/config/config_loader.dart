@@ -255,6 +255,8 @@ class ConfigLoader {
           map[GateIds.magicConstants], base.magicConstants, path),
       scatteredConstants: _ExtendedGateConfigReaders.readScatteredConstants(
           map[GateIds.scatteredConstants], base.scatteredConstants, path),
+      scatteredFragments: _ExtendedGateConfigReaders.readScatteredFragments(
+          map[GateIds.scatteredFragments], base.scatteredFragments, path),
       brokenGoldens: _ExtendedGateConfigReaders.readBrokenGoldens(
           map[GateIds.brokenGoldens], base.brokenGoldens, path),
       testAssertions: _ExtendedGateConfigReaders.readTestAssertions(

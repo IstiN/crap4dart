@@ -636,61 +636,9 @@ class MagicConstantsGateConfig implements GateConfigFlags {
   final List<String> exclude;
 }
 
-/// Scattered constants gate settings (`scattered_constants`).
-class ScatteredConstantsGateConfig implements GateConfigFlags {
-  /// Creates a [ScatteredConstantsGateConfig].
-  const ScatteredConstantsGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.warning,
-    this.ignorable = false,
-    this.minFiles = 3,
-    this.minLength = 4,
-    this.minValue = 100,
-    this.deepSearch = false,
-    this.ignore = const [],
-    this.exclude = const [
-      _generatedGlob,
-      _freezedGlob,
-      _mocksGlob,
-      _testGlob,
-    ],
-  });
-
-  /// Whether the gate is enabled.
-  final bool enabled;
-
-  /// Whether violations fail the run or are reported as warnings.
-  final GateSeverity severity;
-
-  /// Whether `// crap:ignore` comments may suppress violations of this
-  /// gate. Disabled by default — suppression must be opted into.
-  final bool ignorable;
-
-  /// Minimum number of distinct files a literal must appear in before
-  /// every occurrence is flagged.
-  final int minFiles;
-
-  /// Minimum length of a string literal to be considered.
-  final int minLength;
-
-  /// Numbers with magnitude at or below this value are treated as
-  /// coincidence and never flagged.
-  final int minValue;
-
-  /// Whether dot-segment prefixes of dotted string literals count as
-  /// candidates (partial-reuse detection, e.g. `'gates'` inside
-  /// `'gates.loc'`, `'gates.nesting'`, ...).
-  final bool deepSearch;
-
-  /// Literal values never flagged — whole-literal hits by value,
-  /// prefix hits by head (numbers match their decimal form). Generic
-  /// vocabulary whose extraction adds churn without benefit (`test`,
-  /// `dart`, `flutter`, ...) lives here.
-  final List<String> ignore;
-
-  /// Glob patterns excluded from the gate.
-  final List<String> exclude;
-}
+/// Common shape of the two scattered-literal gate configs
+/// (`scattered_constants`, `scattered_fragments`); `_readCommon`
+/// builds it and the subclass `withBase` constructors consume it.
 
 /// One external-tool rule of the `external` gate.
 class ExternalToolRule {
