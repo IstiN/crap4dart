@@ -121,7 +121,9 @@ class GatesConfig {
     this.complexity = const ComplexityGateConfig(),
     this.methodSize = const MethodSizeGateConfig(),
     this.nesting = const NestingGateConfig(),
-    this.namedRecordShapes = const NamedRecordShapesGateConfig(),
+    this.recordNamedFields = const RecordNamedFieldsGateConfig(),
+    this.inlineRecordTypes = const InlineRecordTypesGateConfig(),
+    this.recordSize = const RecordSizeGateConfig(),
     this.classSize = const ClassSizeGateConfig(),
     this.weightOfClass = const WeightOfClassGateConfig(),
     this.unusedCode = const UnusedCodeGateConfig(),
@@ -155,8 +157,14 @@ class GatesConfig {
   /// Maximum nesting level gate (`nesting`).
   final NestingGateConfig nesting;
 
-  /// Named record shapes gate (`named_record_shapes`).
-  final NamedRecordShapesGateConfig namedRecordShapes;
+  /// Record named fields gate (`record_named_fields`).
+  final RecordNamedFieldsGateConfig recordNamedFields;
+
+  /// Inline record types gate (`inline_record_types`).
+  final InlineRecordTypesGateConfig inlineRecordTypes;
+
+  /// Record size gate (`record_size`).
+  final RecordSizeGateConfig recordSize;
 
   /// Class size gate (`class_size`).
   final ClassSizeGateConfig classSize;

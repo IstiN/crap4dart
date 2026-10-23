@@ -268,25 +268,11 @@ mixin CommandHelpers on Command<int> {
   }) async {
     final resolvedConfig = config ?? loadConfig(projectRoot);
     if (resolvedConfig == null) {
-      return (
-        config: null,
-        files: null,
-        diffMap: null,
-        diffBase: null,
-        partialSelection: false,
-        exitCode: ExitCodes.usageError
-      );
+      return const PreparedRun(exitCode: ExitCodes.usageError);
     }
     final diff = await resolveDiff(projectRoot);
     if (!diff.ok) {
-      return (
-        config: null,
-        files: null,
-        diffMap: null,
-        diffBase: null,
-        partialSelection: false,
-        exitCode: ExitCodes.usageError
-      );
+      return const PreparedRun(exitCode: ExitCodes.usageError);
     }
     final partial = _isPartialSelection(diff.map);
     final files = const SourceFinder().filterByGlobs(
@@ -298,22 +284,14 @@ mixin CommandHelpers on Command<int> {
     );
     if (files.isEmpty) {
       stdout.writeln(emptyMessage);
-      return (
-        config: null,
-        files: null,
-        diffMap: null,
-        diffBase: null,
-        partialSelection: false,
-        exitCode: ExitCodes.success
-      );
+      return const PreparedRun(exitCode: ExitCodes.success);
     }
-    return (
+    return PreparedRun(
       config: resolvedConfig,
       files: files,
       diffMap: diff.map,
       diffBase: diff.base,
       partialSelection: partial,
-      exitCode: null,
     );
   }
 

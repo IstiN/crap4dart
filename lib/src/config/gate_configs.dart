@@ -267,10 +267,10 @@ class NestingGateConfig implements GateConfigFlags {
   final int maxNesting;
 }
 
-/// Named record shapes gate settings (`named_record_shapes`).
-class NamedRecordShapesGateConfig implements GateConfigFlags {
-  /// Creates a [NamedRecordShapesGateConfig].
-  const NamedRecordShapesGateConfig({
+/// Record named fields gate settings (`record_named_fields`).
+class RecordNamedFieldsGateConfig implements GateConfigFlags {
+  /// Creates a [RecordNamedFieldsGateConfig].
+  const RecordNamedFieldsGateConfig({
     this.enabled = true,
     this.severity = GateSeverity.warning,
     this.ignorable = false,
@@ -280,13 +280,56 @@ class NamedRecordShapesGateConfig implements GateConfigFlags {
   final bool enabled;
 
   /// Whether violations fail the run or are reported as warnings.
-  /// Defaults to `warning`: a positional record shape is a readability
-  /// debt, not a bug.
   final GateSeverity severity;
 
   /// Whether `// crap:ignore` comments may suppress violations of this
   /// gate. Disabled by default — suppression must be opted into.
   final bool ignorable;
+}
+
+/// Inline record types gate settings (`inline_record_types`).
+class InlineRecordTypesGateConfig implements GateConfigFlags {
+  /// Creates an [InlineRecordTypesGateConfig].
+  const InlineRecordTypesGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.warning,
+    this.ignorable = false,
+  });
+
+  /// Whether the gate is enabled.
+  final bool enabled;
+
+  /// Whether violations fail the run or are reported as warnings.
+  final GateSeverity severity;
+
+  /// Whether `// crap:ignore` comments may suppress violations of this
+  /// gate. Disabled by default — suppression must be opted into.
+  final bool ignorable;
+}
+
+/// Record size gate settings (`record_size`).
+class RecordSizeGateConfig implements GateConfigFlags {
+  /// Creates a [RecordSizeGateConfig].
+  const RecordSizeGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.warning,
+    this.ignorable = false,
+    this.maxFields = 5,
+  });
+
+  /// Whether the gate is enabled.
+  final bool enabled;
+
+  /// Whether violations fail the run or are reported as warnings.
+  final GateSeverity severity;
+
+  /// Whether `// crap:ignore` comments may suppress violations of this
+  /// gate. Disabled by default — suppression must be opted into.
+  final bool ignorable;
+
+  /// Maximum number of fields (positional plus named) a record type
+  /// may have before it should be transformed into a class.
+  final int maxFields;
 }
 
 /// Class size gate settings (`class_size`).

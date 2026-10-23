@@ -19,7 +19,9 @@ import 'loc_gate.dart';
 import 'magic_constants_gate.dart';
 import 'method_size_gate.dart';
 import 'mutation_gate.dart';
-import 'named_record_shapes_gate.dart';
+import 'inline_record_types_gate.dart';
+import 'record_named_fields_gate.dart';
+import 'record_size_gate.dart';
 import 'nesting_gate.dart';
 import 'public_docs_gate.dart';
 import 'similarity_gate.dart';
@@ -34,7 +36,9 @@ const String _testCoverageId = 'test_coverage';
 const String _complexityId = 'complexity';
 const String _methodSizeId = 'method_size';
 const String _nestingId = 'nesting';
-const String _namedRecordShapesId = 'named_record_shapes';
+const String _recordNamedFieldsId = 'record_named_fields';
+const String _inlineRecordTypesId = 'inline_record_types';
+const String _recordSizeId = 'record_size';
 const String _classSizeId = 'class_size';
 const String _weightOfClassId = 'weight_of_class';
 const String _unusedCodeId = 'unused_code';
@@ -91,7 +95,9 @@ class GateRunner {
         const ComplexityGate(),
         const MethodSizeGate(),
         const NestingGate(),
-        const NamedRecordShapesGate(),
+        const RecordNamedFieldsGate(),
+        const InlineRecordTypesGate(),
+        const RecordSizeGate(),
         const ClassSizeGate(),
         const DuplicationGate(),
         const FileNamingGate(),
@@ -214,7 +220,9 @@ class GateRunner {
         _complexityId: gates.complexity,
         _methodSizeId: gates.methodSize,
         _nestingId: gates.nesting,
-        _namedRecordShapesId: gates.namedRecordShapes,
+        _recordNamedFieldsId: gates.recordNamedFields,
+        _inlineRecordTypesId: gates.inlineRecordTypes,
+        _recordSizeId: gates.recordSize,
         _classSizeId: gates.classSize,
         _weightOfClassId: gates.weightOfClass,
         _unusedCodeId: gates.unusedCode,
