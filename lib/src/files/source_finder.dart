@@ -11,9 +11,9 @@ class SourceFinder {
 
   /// Glob patterns excluded from default source discovery.
   static const List<String> defaultExcludes = [
-    '**.g.dart',
-    '**.freezed.dart',
-    '**.mocks.dart',
+    kGeneratedGlob,
+    kFreezedGlob,
+    kMocksGlob,
     '.dart_tool/**',
   ];
 

@@ -56,6 +56,16 @@ const String kPubspec = 'pubspec.yaml';
 /// The file extension of Dart sources, with the leading dot.
 const String kDartExtension = '.dart';
 
+/// The generated-code glob family, shared by every gate's default
+/// `exclude` list and the `init` config template.
+const String kGeneratedGlob = '**.g.dart';
+
+/// The freezed-codegen glob.
+const String kFreezedGlob = '**.freezed.dart';
+
+/// The mock-codegen glob.
+const String kMocksGlob = '**.mocks.dart';
+
 /// The skip reason reported when a Flutter-only gate runs in a
 /// non-Flutter project.
 const String kNotFlutterProject = 'not a Flutter project';

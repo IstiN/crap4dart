@@ -11,6 +11,10 @@ import 'literal_locations.dart';
 /// The `scattered_constants` gate: flags hardcoded literals that appear
 /// in at least `min_files` distinct files.
 ///
+/// `ignore` accepts two entry kinds: plain values (never flagged as
+/// whole literals or prefix heads) and file-path globs (any entry
+/// containing a `/`; literals inside matching files are exempt).
+///
 /// The per-file counterpart `magic_constants` counts in-file repeats
 /// only, so a literal used once per file in K files is invisible to
 /// every existing gate — the classic "change `86400` in every service"
@@ -63,10 +67,26 @@ class ScatteredConstantsGate implements Gate {
   @override
   Future<GateResult> run(GateContext context) async {
     final config = context.config.gates.scatteredConstants;
+    // Plain entries match literal values and prefix heads; entries
+    // with a `/` are file-path globs and exempt the files themselves
+    // (a crypto package full of magic numbers, a fast-moving test
+    // tree, ...).
+    final ignoreValues = <String>{};
+    final ignorePaths = <String>[];
+    for (final entry in config.ignore) {
+      if (entry.contains('/')) {
+        ignorePaths.add(entry);
+      } else {
+        ignoreValues.add(entry);
+      }
+    }
     var checked = 0;
     final literals = <String, _ScatteredLiteral>{};
     for (final file in context.files) {
-      if (context.matchesAnyGlob(file, config.exclude)) continue;
+      if (context.matchesAnyGlob(file, config.exclude) ||
+          context.matchesAnyGlob(file, ignorePaths)) {
+        continue;
+      }
       checked++;
       final parsed = context.parsed(file);
       final collector = _LiteralCollector(
@@ -74,7 +94,7 @@ class ScatteredConstantsGate implements Gate {
         minLength: config.minLength,
         minValue: config.minValue,
         deepSearch: config.deepSearch,
-        ignoreValues: config.ignore.toSet(),
+        ignoreValues: ignoreValues,
       );
       parsed.unit.accept(collector);
       final relative = context.relativePath(file);

@@ -778,7 +778,9 @@ Values listed in `ignore` are never flagged: whole-literal hits by
 value, prefix hits by head, numbers by their decimal form —
 repositories in fast development can exempt generic vocabulary
 (`test`, `dart`, `flutter`) whose extraction adds churn without
-benefit.
+benefit. Entries containing a `/` are file-path globs instead: files
+matching them are exempt entirely (`'src/crypto/**'` for a crypto
+package, `'test/**'` for a fast-moving test tree).
 
 The message asks to extract a shared constant and verify all
 occurrences mean the same thing — the gate highlights, intent stays

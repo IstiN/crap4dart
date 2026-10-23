@@ -6,9 +6,9 @@ part of 'config.dart';
 // ignore_for_file: annotate_overrides
 
 /// Default exclude globs for generated files, shared by gate defaults.
-const String _generatedGlob = '**.g.dart';
-const String _freezedGlob = '**.freezed.dart';
-const String _mocksGlob = '**.mocks.dart';
+const String _generatedGlob = kGeneratedGlob;
+const String _freezedGlob = kFreezedGlob;
+const String _mocksGlob = kMocksGlob;
 
 /// Default glob excluding test sources from generated-code gates.
 const String _testGlob = 'test/**';

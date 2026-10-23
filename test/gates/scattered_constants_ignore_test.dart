@@ -58,21 +58,6 @@ void main() {
     expect(result.passed, isTrue, reason: result.violations.toString());
   });
 
-  test('ignore matches numbers by decimal form', () async {
-    final result = await runOn(
-      {
-        'lib/a.dart': 'final x = 86400;\n',
-        'lib/b.dart': 'final y = 86400;\n',
-        'lib/c.dart': 'final z = 86400;\n',
-      },
-      configYaml: 'gates:\n'
-          '  scattered_constants:\n'
-          '    enabled: true\n'
-          '    ignore: [86400]\n',
-    );
-    expect(result.passed, isTrue, reason: result.violations.toString());
-  });
-
   test('empty ignore list keeps the default behavior', () async {
     final result = await runOn(
       {

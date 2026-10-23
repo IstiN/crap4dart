@@ -74,29 +74,16 @@ gates:
   # the in-file magic_constants gate. Flags one violation per
   # occurrence; the fix is a shared constant — verify the occurrences
   # really mean the same thing first.
+  # Cross-file literal scatter (word + prefix heads). ignore: plain
+  # words silence the value, entries with a slash exempt files
+  # (fast-moving or special domains where extraction is not wanted).
   scattered_constants:
     enabled: true
     severity: warning
     min_files: 3
-    # Partial reuse: 'gates.loc' / 'gates.nesting' / ... share the
-    # structured head 'gates' — compose such paths from kGatePrefix.
     deep_search: true
     prefix_min_files: 2
-    # Generic tool vocabulary: extracting adds churn without benefit
-    # (recently developed code renames/moves these freely). threshold/
-    # profile/error name several unrelated protocols each — no shared
-    # fact exists to extract; the glob heads are documentation copies.
-    ignore:
-      - test
-      - dart
-      - flutter
-      - threshold
-      - profile
-      - error
-      - '**.g'
-      - '**.freezed'
-      - '**.mocks'
-      - 'Output format'
+    ignore: [test, dart, flutter, threshold, profile, error, 'Output format']
   # File-level near-duplicate detection (crap4dart >=0.15.0): docs
   # corpora rot through copy-paste; this catches new near-copies.
   # Measured on this repo: md corpus clean even at jaccard 0.5 (the
