@@ -29,9 +29,10 @@ crap4dart is a Dart port of the Java tool
 ## Features
 
 - **CRAP analysis** per method, combining complexity and LCOV coverage
-- **23 quality gates**: `loc`, `test_coverage`, `golden`,
+- **24 quality gates**: `loc`, `test_coverage`, `golden`,
   `hardcoded_strings`, `accessibility`, `complexity`, `method_size`,
-  `nesting`, `class_size`, `weight_of_class`, `unused_code`,
+  `nesting`, `identical_branches`, `class_size`, `weight_of_class`,
+  `unused_code`,
   `unused_files`, `banned_imports`, `public_docs`, `duplication`,
   `file_naming`, `magic_constants`, `broken_goldens`, `test_assertions`,
   `folder_structure`, `external`, `mutation`, `similarity`
@@ -554,6 +555,16 @@ gates:
   flat (a chained `if` keeps its originating `if`'s level), while an
   `if` inside an `else` block keeps adding levels. Catches complexity
   dodging via deeply nested early-return chains.
+- **identical_branches** — fails `if`/`else if` chains that test the
+  same condition twice: every later branch is unreachable, the classic
+  copy-paste-edit bug. Comparison is whitespace-, parenthesis- and
+  reorder-insensitive for commutative operators (`a == b` matches
+  `b == a`, `a && b` matches `b && a`), so formatting cannot hide a
+  duplicate. Only conditions of one chain are compared — the same
+  condition in separate `if` statements or nested branches is legal
+  (state may change between them); `switch` is excluded (the analyzer
+  already flags duplicate cases). Warning severity by default:
+  reordered operands are only equivalent when side-effect free.
 - **class_size** — fails classes with more than `max_methods` (default
   25) concrete methods or a weighted-methods sum (WMC, total cyclomatic
   complexity of all methods) above `max_wmc` (default 80). Catches

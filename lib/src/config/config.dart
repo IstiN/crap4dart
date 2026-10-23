@@ -121,6 +121,7 @@ class GatesConfig {
     this.complexity = const ComplexityGateConfig(),
     this.methodSize = const MethodSizeGateConfig(),
     this.nesting = const NestingGateConfig(),
+    this.identicalBranches = const IdenticalBranchesGateConfig(),
     this.classSize = const ClassSizeGateConfig(),
     this.weightOfClass = const WeightOfClassGateConfig(),
     this.unusedCode = const UnusedCodeGateConfig(),
@@ -153,6 +154,9 @@ class GatesConfig {
 
   /// Maximum nesting level gate (`nesting`).
   final NestingGateConfig nesting;
+
+  /// Identical branch conditions gate (`identical_branches`).
+  final IdenticalBranchesGateConfig identicalBranches;
 
   /// Class size gate (`class_size`).
   final ClassSizeGateConfig classSize;

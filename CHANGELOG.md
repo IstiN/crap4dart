@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Added
+
+- `identical_branches` gate (24th): fails `if`/`else if` chains that
+  test the same condition twice — every later branch is unreachable,
+  the copy-paste-edit bug family. Conditions compare by canonical form:
+  whitespace-, parenthesis- and comment-independent, with operands of
+  commutative operators sorted (`a == b` matches `b == a`) and
+  `&&`/`||` nests flattened. Only conditions of one chain are compared
+  (state may change between separate statements); `if case` links and
+  `switch` are excluded. Enabled by default with `severity: warning`
+  (reordering is only equivalent for side-effect-free operands).
+
+### Fixed
+
+- `gate_runner` ran `broken_goldens`, `test_assertions`,
+  `folder_structure` and `external` twice per `check` (leftover from
+  the external-gate commit); duplicate results are gone.
+
 ## 0.17.0 — 2026-10-23
 
 ### Added

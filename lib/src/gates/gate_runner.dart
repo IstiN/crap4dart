@@ -14,6 +14,7 @@ import 'gate.dart';
 import 'gate_context.dart';
 import 'golden_gate.dart';
 import 'hardcoded_strings_gate.dart';
+import 'identical_branches_gate.dart';
 import 'ignore_filter.dart';
 import 'loc_gate.dart';
 import 'magic_constants_gate.dart';
@@ -33,6 +34,7 @@ const String _testCoverageId = 'test_coverage';
 const String _complexityId = 'complexity';
 const String _methodSizeId = 'method_size';
 const String _nestingId = 'nesting';
+const String _identicalBranchesId = 'identical_branches';
 const String _classSizeId = 'class_size';
 const String _weightOfClassId = 'weight_of_class';
 const String _unusedCodeId = 'unused_code';
@@ -89,14 +91,11 @@ class GateRunner {
         const ComplexityGate(),
         const MethodSizeGate(),
         const NestingGate(),
+        const IdenticalBranchesGate(),
         const ClassSizeGate(),
         const DuplicationGate(),
         const FileNamingGate(),
         const MagicConstantsGate(),
-        const BrokenGoldensGate(),
-        const TestAssertionsGate(),
-        const FolderStructureGate(),
-        const ExternalGate(),
         const BrokenGoldensGate(),
         const TestAssertionsGate(),
         const FolderStructureGate(),
@@ -211,6 +210,7 @@ class GateRunner {
         _complexityId: gates.complexity,
         _methodSizeId: gates.methodSize,
         _nestingId: gates.nesting,
+        _identicalBranchesId: gates.identicalBranches,
         _classSizeId: gates.classSize,
         _weightOfClassId: gates.weightOfClass,
         _unusedCodeId: gates.unusedCode,

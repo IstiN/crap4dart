@@ -130,6 +130,15 @@ gates:
     enabled: true
     # Maximum number of nested blocks in a method body.
     max_nesting: 5
+  # Flag if/else-if chains that test the same condition twice
+  # (formatting-, parenthesis- and reorder-insensitive: `a == b`
+  # matches `b == a`, `a && b` matches `b && a`). A repeated condition
+  # makes every later branch unreachable — the copy-paste-edit bug.
+  # Warning severity by default: reordered operands are only
+  # equivalent when they are side-effect free.
+  identical_branches:
+    enabled: true
+    severity: warning
   # Limit class size: method count and weighted methods per class
   # (WMC = sum of cyclomatic complexities). Catches god-classes that
   # pass the per-method complexity gate.

@@ -267,6 +267,28 @@ class NestingGateConfig implements GateConfigFlags {
   final int maxNesting;
 }
 
+/// Identical branch conditions gate settings (`identical_branches`).
+class IdenticalBranchesGateConfig implements GateConfigFlags {
+  /// Creates an [IdenticalBranchesGateConfig].
+  const IdenticalBranchesGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.warning,
+    this.ignorable = false,
+  });
+
+  /// Whether the gate is enabled.
+  final bool enabled;
+
+  /// Whether violations fail the run or are reported as warnings.
+  /// Defaults to `warning`: reordered operands compare equal only when
+  /// they are side-effect free, which pure syntax cannot prove.
+  final GateSeverity severity;
+
+  /// Whether `// crap:ignore` comments may suppress violations of this
+  /// gate. Disabled by default — suppression must be opted into.
+  final bool ignorable;
+}
+
 /// Class size gate settings (`class_size`).
 class ClassSizeGateConfig implements GateConfigFlags {
   /// Creates a [ClassSizeGateConfig].

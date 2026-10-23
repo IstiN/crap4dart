@@ -500,7 +500,8 @@ threshold check) and `top` (int, default 20).
 ### 10.3 Gate Identifiers
 
 Known gate ids: `loc`, `test_coverage`, `golden`, `hardcoded_strings`,
-`accessibility`, `complexity`, `method_size`, `nesting`, `class_size`,
+`accessibility`, `complexity`, `method_size`, `nesting`,
+`identical_branches`, `class_size`,
 `weight_of_class`, `unused_code`, `unused_files`, `banned_imports`,
 `public_docs`, `duplication`, `file_naming`, `magic_constants`,
 `broken_goldens`, `test_assertions`, `folder_structure`, `external`,
@@ -509,7 +510,8 @@ Known gate ids: `loc`, `test_coverage`, `golden`, `hardcoded_strings`,
 ## 11. Quality Gates
 
 Gates shall run in the fixed order: `loc`, `test_coverage`,
-`complexity`, `method_size`, `nesting`, `class_size`, `duplication`,
+`complexity`, `method_size`, `nesting`, `identical_branches`,
+`class_size`, `duplication`,
 `file_naming`, `magic_constants`, `broken_goldens`, `test_assertions`,
 `folder_structure`, `external`, `unused_code`, `unused_files`,
 `banned_imports`,
@@ -917,6 +919,39 @@ The `similarity` command runs the same analysis ad hoc over explicit
 directories or the config's `dirs`, with `--jaccard`, `--containment`,
 `--min-shingles`, `--include`, `--exclude` overrides and
 `--format console|json`; it is informational and always exits 0.
+
+### 11.24 identical_branches
+
+Fails `if`/`else if` chains that test the same condition twice: the
+repeated condition makes every later branch unreachable (the
+copy-paste-edit bug family).
+
+Chains are walked per `if` head; an `if` that is the `else` branch of
+another `if` is a chain link, not a new chain. Only conditions within
+one chain are compared — the same condition in separate `if`
+statements or nested branches is legal, because state may change
+between them. Links with a `case` clause (`if (x case ...)`) are
+excluded: their decision is a pattern match, not a boolean expression.
+`switch` is excluded; the analyzer already flags duplicate switch
+cases.
+
+Conditions compare by canonical form, computed from the unresolved
+AST: token streams are whitespace- and comment-independent;
+parenthesized sub-expressions are unwrapped; operands of commutative
+operators (`==`, `!=`, `&&`, `||`, `+`, `*`, `&`, `|`, `^`) are
+sorted; same-operator nests of the associative-commutative operators
+(`&&`, `||`, `+`, `*`, `&`, `|`, `^`) are flattened. Other operators
+keep their tree shape (`a - (b - c)` never equals `a - b - c`).
+Consequently `a == b`, `b == a` and `(a == b)` all compare equal.
+The canonicalization is intentionally blind to side effects — hence
+the default `severity: warning` (default `enabled: true`). Config
+keys: `enabled`, `severity`, `ignorable` only.
+
+Violations: one per repeated condition, reported at the line of the
+later occurrence; the message quotes the condition and names the line
+of the first occurrence (so diff mode and baseline filtering work on
+the repeat site). Summary: `N if/else-if chains checked, no duplicate
+conditions` / `M duplicate conditions in if/else-if chains`.
 
 ## 12. Baseline
 

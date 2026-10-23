@@ -34,6 +34,13 @@ gates:
   complexity:
     enabled: true
     max_complexity: 12
+  # Wave-1 bug-class gate: flags if/else-if chains testing the same
+  # condition twice (reorder-insensitive: `a == b` matches `b == a`).
+  # Warning severity: reordered operands are only equivalent when
+  # side-effect free.
+  identical_branches:
+    enabled: true
+    severity: warning
   method_size:
     enabled: true
     max_lines: 80
