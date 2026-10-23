@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.19.0 — 2026-10-23
+
+- New `scattered_constants` gate: flags literals appearing in
+  `min_files` (default 3) distinct files — cross-file aggregation of
+  magic constants (the "change 86400 in every service" hazard).
+  Dogfooding extracted `lib/src/common/constants.dart` (tool argv
+  names, `pubspec.yaml`, `.dart` suffix, output format names) and
+  shared literal-scanning helpers for the two literal gates.
+
 ## 0.18.0 — 2026-10-23
 
 - New `record_named_fields` gate: record type annotations with unnamed

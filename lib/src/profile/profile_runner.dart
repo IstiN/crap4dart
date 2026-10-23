@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -189,7 +190,7 @@ class ProfileRunner {
     File outputFile,
   ) {
     return _runner(
-      isFlutterProject(projectRoot) ? 'flutter' : 'dart',
+      isFlutterProject(projectRoot) ? flutterExecutable : dartExecutable,
       testArgs,
       workingDirectory: tempDir.path,
       environment: {
@@ -220,7 +221,7 @@ class ProfileRunner {
     // selector as requested, or it profiles the WHOLE suite in addition to
     // the given files.
     final args = <String>[
-      'test',
+      testSubcommand,
       if (!isFlutter) ...<String>['--compiler', 'source'],
     ];
 
@@ -429,7 +430,7 @@ class ProfileRunner {
       if (entity is Directory) {
         Directory(destPath).createSync(recursive: true);
         _instrumentDir(entity, Directory(destPath), instrumenter, projectRoot);
-      } else if (entity is File && entity.path.endsWith('.dart')) {
+      } else if (entity is File && entity.path.endsWith(dartFileExtension)) {
         final source = entity.readAsStringSync();
         final instrumented =
             instrumenter.instrument(source, filePath: relative);
@@ -524,7 +525,7 @@ class ProfileRunner {
   /// temp dir needs its own resolution before the tests can run.
   Future<bool> _runPubGet(String projectRoot, Directory tempDir) async {
     final result = await _runner(
-      isFlutterProject(projectRoot) ? 'flutter' : 'dart',
+      isFlutterProject(projectRoot) ? flutterExecutable : dartExecutable,
       ['pub', 'get'],
       workingDirectory: tempDir.path,
     );

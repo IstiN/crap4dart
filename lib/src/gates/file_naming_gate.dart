@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'package:path/path.dart' as p;
 
 import '../config/config.dart';
@@ -46,7 +47,7 @@ class FileNamingGate implements Gate {
     final violations = <GateViolation>[];
     var checked = 0;
     for (final file in context.files) {
-      if (p.extension(file) != '.dart') continue;
+      if (p.extension(file) != dartFileExtension) continue;
       if (context.matchesAnyGlob(file, config.exclude)) continue;
       checked++;
       final message = _violationFor(file, allowed);

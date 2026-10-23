@@ -1,9 +1,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/source/line_info.dart';
 
 import '../config/config.dart';
 import 'gate.dart';
+import 'literal_locations.dart';
 import 'gate_context.dart';
 
 /// The `magic_constants` gate: flags magic literals — hex color values
@@ -92,31 +91,15 @@ class _Occurrence {
 
 /// Collects hex color literals, literal occurrence counts and the
 /// lines that belong to constant declarations.
-class _MagicLiteralsVisitor extends RecursiveAstVisitor<void> {
-  _MagicLiteralsVisitor(this._lineInfo, this.minLength);
+class _MagicLiteralsVisitor extends ExemptingLiteralVisitor {
+  _MagicLiteralsVisitor(super.lineInfo, this.minLength);
 
-  final LineInfo _lineInfo;
   final int minLength;
   final List<_Occurrence> hexColors = [];
   final Map<String, List<_Occurrence>> counts = {};
-  final Set<int> constantLines = {};
 
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    final parent = node.parent;
-    final isConst = parent is VariableDeclarationList && parent.isConst;
-    if (isConst && node.initializer != null) {
-      _markConstantLines(node.initializer!);
-    }
-    node.initializer?.accept(this);
-  }
-
-  /// Records the lines of a constant initializer as exempt: everything
-  /// inside a const declaration (set/list/map elements, nested literals) is
-  /// by definition a named constant already.
-  void _markConstantLines(Expression initializer) {
-    _LineMarker(constantLines, _line).mark(initializer);
-  }
+  /// Exempt literal lines (inside constant declarations).
+  Set<int> get constantLines => exemptLines;
 
   @override
   void visitIntegerLiteral(IntegerLiteral node) {
@@ -135,29 +118,7 @@ class _MagicLiteralsVisitor extends RecursiveAstVisitor<void> {
     _count(node.value, node);
   }
 
-  bool _isMapKey(AstNode node) {
-    var child = node;
-    var parent = node.parent;
-    while (parent != null) {
-      if (_parentMarksAsIdentifier(parent, child)) return true;
-      if (parent is InterpolationElement || parent is ArgumentList) break;
-      child = parent;
-      parent = parent.parent;
-    }
-    return false;
-  }
-
-  /// Whether [parent] using [child] in that position makes the
-  /// literal a protocol identifier rather than a magic constant.
-  bool _parentMarksAsIdentifier(AstNode parent, AstNode child) {
-    if (parent is MapLiteralEntry && parent.key == child) return true;
-    // `expr['name']` — a protocol field access, not a constant.
-    if (parent is IndexExpression && parent.index == child) return true;
-    // Switch-case labels (incl. switch expressions) match protocol
-    // values, not constants.
-    if (parent is CaseClause) return true;
-    return parent is SwitchPatternCase || parent is SwitchCase;
-  }
+  bool _isMapKey(AstNode node) => isProtocolIdentifier(node);
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
@@ -175,35 +136,5 @@ class _MagicLiteralsVisitor extends RecursiveAstVisitor<void> {
     counts.putIfAbsent(value, () => []).add(_Occurrence(_line(node)));
   }
 
-  int _line(AstNode node) => _lineInfo.getLocation(node.offset).lineNumber;
-}
-
-/// Marks every line reachable from a const initializer.
-class _LineMarker extends RecursiveAstVisitor<void> {
-  _LineMarker(this.lines, this.lineTo);
-  final Set<int> lines;
-  final int Function(AstNode) lineTo;
-  void mark(AstNode node) {
-    node.accept(this);
-  }
-
-  @override
-  void visitSimpleStringLiteral(SimpleStringLiteral node) {
-    lines.add(lineTo(node));
-  }
-
-  @override
-  void visitIntegerLiteral(IntegerLiteral node) {
-    lines.add(lineTo(node));
-  }
-
-  @override
-  void visitDoubleLiteral(DoubleLiteral node) {
-    lines.add(lineTo(node));
-  }
-
-  @override
-  void visitAdjacentStrings(AdjacentStrings node) {
-    lines.add(lineTo(node));
-  }
+  int _line(AstNode node) => lineInfo.getLocation(node.offset).lineNumber;
 }

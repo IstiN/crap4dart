@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -60,8 +61,8 @@ class ProfileCommand extends Command<int> with CommandHelpers {
       )
       ..addOption(
         'format',
-        allowed: ['console', 'json'],
-        defaultsTo: 'console',
+        allowed: [outputFormatConsole, outputFormatJson],
+        defaultsTo: outputFormatConsole,
         help: 'Output format (json writes only JSON to stdout).',
       )
       ..addFlag(
@@ -234,7 +235,7 @@ class ProfileCommand extends Command<int> with CommandHelpers {
     int? top,
     String? diffBase,
   ) {
-    if (argResults!['format'] == 'json') {
+    if (argResults!['format'] == outputFormatJson) {
       stdout.writeln(
         const JsonReporter().renderProfile(
           report,

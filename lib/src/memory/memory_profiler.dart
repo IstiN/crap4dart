@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -157,13 +158,14 @@ class MemoryProfiler {
   }) async {
     final args = [
       '--verbose_gc',
-      'test',
+      testSubcommand,
       '--concurrency=1',
       '-r',
-      'json',
+      testReporterJson,
       ...paths,
     ];
-    final run = await _runner('dart', args, workingDirectory: projectRoot);
+    final run =
+        await _runner(dartExecutable, args, workingDirectory: projectRoot);
     return _report(run);
   }
 
@@ -298,7 +300,7 @@ class MemoryProfiler {
   ) {
     final lastEndMs = spans.last.endOrStartMs - suiteTimeMs;
     for (final gc in suiteGcs) {
-      final gcMs = (gc.startSeconds * 1000).round();
+      final gcMs = (gc.startSeconds * millisPerSecond).round();
       // Outside every test window: isolate LOADING (kernel compile)
       // before the first start, TEARDOWN after the last end. Their
       // isolate identity is unreliable — keep them unattributed.

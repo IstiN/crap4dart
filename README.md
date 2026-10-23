@@ -29,13 +29,14 @@ crap4dart is a Dart port of the Java tool
 ## Features
 
 - **CRAP analysis** per method, combining complexity and LCOV coverage
-- **26 quality gates**: `loc`, `test_coverage`, `golden`,
+- **27 quality gates**: `loc`, `test_coverage`, `golden`,
   `hardcoded_strings`, `accessibility`, `complexity`, `method_size`,
   `nesting`, `record_named_fields`, `inline_record_types`,
   `record_size`, `class_size`, `weight_of_class`, `unused_code`,
   `unused_files`, `banned_imports`, `public_docs`, `duplication`,
-  `file_naming`, `magic_constants`, `broken_goldens`, `test_assertions`,
-  `folder_structure`, `external`, `mutation`, `similarity`
+  `file_naming`, `magic_constants`, `scattered_constants`,
+  `broken_goldens`, `test_assertions`, `folder_structure`, `external`,
+  `mutation`, `similarity`
 - **Gate framework**: per-path thresholds (`entries`), warning
   severity, baseline mode, opt-in ignore markers
 - **Configuration** via `crap4dart.yaml` with strict validation
@@ -580,6 +581,17 @@ gates:
   fields to public instance members exceeds `max_weight` (default 0.33):
   classes revealing more data than behavior. Disabled by default —
   data/model classes are legitimate.
+- **scattered_constants** — cross-file sibling of `magic_constants`:
+  flags string and numeric literals appearing in `min_files` (default
+  3) distinct files — one business fact hardcoded in many places (the
+  "change `86400` in every service" hazard), invisible to in-file
+  repeat counting. One violation per occurrence; the fix is a shared
+  constant — verify all occurrences mean the same thing first.
+  Coincidence controls: strings shorter than `min_length` (4), numbers
+  of magnitude at or below `min_value` (100), map keys, index
+  expressions, case labels, directive URIs and literals inside
+  constant declarations are never flagged. Warning severity by
+  default.
 - **duplication** — detects exact copy-paste token blocks across Dart
   source files. A block counts when it is at least `min_tokens` tokens
   (default 50) and `min_lines` lines (default 5) long. `report` chooses

@@ -240,6 +240,21 @@ gates:
     # sources:
     #   - 'flutter_app/lib'
     #   - 'packages/fa_ui/lib'
+  # Flag literals (strings of min_length+ chars, numbers of
+  # min_value+ magnitude) appearing in min_files+ distinct files —
+  # one business fact hardcoded in many places. Extract a shared
+  # constant and verify all occurrences mean the same thing.
+  scattered_constants:
+    enabled: true
+    severity: warning
+    min_files: 3
+    min_length: 4
+    min_value: 100
+    exclude:
+      - '**.g.dart'
+      - '**.freezed.dart'
+      - '**.mocks.dart'
+      - 'test/**'
   # Forbid mechanical file names (numeric suffixes, generic names).
   file_naming:
     enabled: true

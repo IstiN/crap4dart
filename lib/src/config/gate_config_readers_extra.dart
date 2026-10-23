@@ -287,7 +287,7 @@ class _ExtendedGateConfigReaders {
         _ConfigScalars.strList(n, 'arguments', const [], path, ctx);
     final report = n['report'];
     if (report != null && report is! String) {
-      throw ConfigException(path, '$ctx.report', 'expected a string');
+      throw ConfigException(path, '$ctx.report', _expectedStringMsg);
     }
     return ExternalToolRule(
       id: id,
@@ -307,6 +307,44 @@ class _ExtendedGateConfigReaders {
     final value = map[key];
     if (value is String && value.isNotEmpty) return value;
     throw ConfigException(path, '$ctx.$key', 'expected a non-empty string');
+  }
+
+  static ScatteredConstantsGateConfig readScatteredConstants(
+    Object? node,
+    ScatteredConstantsGateConfig base,
+    String path,
+  ) {
+    return _ConfigScalars.readGateConfig(
+      node,
+      base,
+      path,
+      'gates.scattered_constants',
+      const {
+        _enabledKey,
+        _severityKey,
+        _ignorableKey,
+        'min_files',
+        'min_length',
+        'min_value',
+        _excludeKey
+      },
+      (map, base, path, ctx) {
+        final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
+        return ScatteredConstantsGateConfig(
+          enabled: flags.enabled,
+          severity: flags.severity,
+          ignorable: flags.ignorable,
+          minFiles: _ConfigScalars.readInt(
+              map, 'min_files', base.minFiles, path, ctx),
+          minLength: _ConfigScalars.readInt(
+              map, 'min_length', base.minLength, path, ctx),
+          minValue: _ConfigScalars.readInt(
+              map, 'min_value', base.minValue, path, ctx),
+          exclude:
+              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+        );
+      },
+    );
   }
 
   static RecordNamedFieldsGateConfig readRecordNamedFields(

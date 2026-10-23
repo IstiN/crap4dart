@@ -66,6 +66,7 @@ class ConfigLoader {
     'duplication',
     'file_naming',
     'magic_constants',
+    'scattered_constants',
     'broken_goldens',
     'test_assertions',
     'folder_structure',
@@ -278,6 +279,8 @@ class ConfigLoader {
           map['file_naming'], base.fileNaming, path),
       magicConstants: _GateConfigReaders.readMagicConstants(
           map['magic_constants'], base.magicConstants, path),
+      scatteredConstants: _ExtendedGateConfigReaders.readScatteredConstants(
+          map['scattered_constants'], base.scatteredConstants, path),
       brokenGoldens: _ExtendedGateConfigReaders.readBrokenGoldens(
           map['broken_goldens'], base.brokenGoldens, path),
       testAssertions: _ExtendedGateConfigReaders.readTestAssertions(

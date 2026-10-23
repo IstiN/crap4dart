@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -34,7 +35,7 @@ class GoldenGate implements Gate {
   @override
   Future<GateResult> run(GateContext context) async {
     if (!context.isFlutterProject) {
-      return GateResult.skip(id, 'not a Flutter project');
+      return GateResult.skip(id, notFlutterProjectReason);
     }
     final config = context.config.gates.golden;
     final widgets =
@@ -125,7 +126,7 @@ class GoldenGate implements Gate {
             ...Directory(p.join(projectRoot, dir))
                 .listSync(recursive: true)
                 .whereType<File>()
-                .where((f) => f.path.endsWith('.dart'))
+                .where((f) => f.path.endsWith(dartFileExtension))
                 .map((f) => f.path),
       ];
 }

@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import 'package:glob/glob.dart';
@@ -52,7 +53,7 @@ class GateContext {
 
   /// The `name:` of the project's pubspec.yaml, or `null` when absent.
   String? get packageName => _packageName ??= _readPackageName(
-        p.join(projectRoot, 'pubspec.yaml'),
+        p.join(projectRoot, pubspecFileName),
       );
 
   String? _readPackageName(String pubspecPath) {

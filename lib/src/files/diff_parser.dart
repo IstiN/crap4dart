@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -60,13 +61,13 @@ class GitDiffParser {
   Future<DiffLineMap> diff(String projectRoot, {String base = 'HEAD'}) async {
     final result = await Process.run(
       'git',
-      ['diff', '--unified=0', base, '--', '*.dart'],
+      [gitDiffSubcommand, '--unified=0', base, '--', '*.dart'],
       workingDirectory: projectRoot,
     );
     if (result.exitCode != 0) {
       throw ProcessException(
         'git',
-        ['diff', base],
+        [gitDiffSubcommand, base],
         '${result.stderr}'.trim(),
         result.exitCode,
       );

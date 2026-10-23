@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -30,7 +31,7 @@ class HardcodedStringsGate implements Gate {
   @override
   Future<GateResult> run(GateContext context) async {
     if (!context.isFlutterProject) {
-      return GateResult.skip(id, 'not a Flutter project');
+      return GateResult.skip(id, notFlutterProjectReason);
     }
     final config = context.config.gates.hardcodedStrings;
     final arbKeys = _loadArbKeys(context.projectRoot);

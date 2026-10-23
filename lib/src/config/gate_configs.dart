@@ -88,7 +88,7 @@ class GoldenGateConfig implements GateConfigFlags {
     this.ignorable = false,
     this.minWidgetCoverage = 80.0,
     this.widgetDirs = const ['lib'],
-    this.testDirs = const ['test'],
+    this.testDirs = const [testDirName],
     this.excludeWidgets = const [],
   });
 
@@ -504,7 +504,7 @@ class BrokenGoldensGateConfig implements GateConfigFlags {
     this.enabled = true,
     this.severity = GateSeverity.error,
     this.ignorable = false,
-    this.dirs = const ['test'],
+    this.dirs = const [testDirName],
     this.minStripeRun = 8,
     this.exclude = const [],
   });
@@ -631,6 +631,49 @@ class MagicConstantsGateConfig implements GateConfigFlags {
   /// Minimum length of a string literal to be considered for the
   /// duplicate check.
   final int minLength;
+
+  /// Glob patterns excluded from the gate.
+  final List<String> exclude;
+}
+
+/// Scattered constants gate settings (`scattered_constants`).
+class ScatteredConstantsGateConfig implements GateConfigFlags {
+  /// Creates a [ScatteredConstantsGateConfig].
+  const ScatteredConstantsGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.warning,
+    this.ignorable = false,
+    this.minFiles = 3,
+    this.minLength = 4,
+    this.minValue = 100,
+    this.exclude = const [
+      _generatedGlob,
+      _freezedGlob,
+      _mocksGlob,
+      _testGlob,
+    ],
+  });
+
+  /// Whether the gate is enabled.
+  final bool enabled;
+
+  /// Whether violations fail the run or are reported as warnings.
+  final GateSeverity severity;
+
+  /// Whether `// crap:ignore` comments may suppress violations of this
+  /// gate. Disabled by default — suppression must be opted into.
+  final bool ignorable;
+
+  /// Minimum number of distinct files a literal must appear in before
+  /// every occurrence is flagged.
+  final int minFiles;
+
+  /// Minimum length of a string literal to be considered.
+  final int minLength;
+
+  /// Numbers with magnitude at or below this value are treated as
+  /// coincidence and never flagged.
+  final int minValue;
 
   /// Glob patterns excluded from the gate.
   final List<String> exclude;

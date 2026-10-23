@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
@@ -32,7 +33,7 @@ class AccessibilityGate implements Gate {
   @override
   Future<GateResult> run(GateContext context) async {
     if (!context.isFlutterProject) {
-      return GateResult.skip(id, 'not a Flutter project');
+      return GateResult.skip(id, notFlutterProjectReason);
     }
     final widgets = context.config.gates.accessibility.requireLabelFor;
     final violations = <GateViolation>[];

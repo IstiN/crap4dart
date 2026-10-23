@@ -53,11 +53,11 @@ gates:
     max_lines: 80
     max_params: 8
     # Dogfooding `entries`: config aggregate/flag classes legitimately
-    # need more params than a method — GatesConfig aggregates 23 gate
+    # need more params than a method — GatesConfig aggregates 27 gate
     # configs (one param each) and SimilarityGateConfig carries the
     # flag triplet + 6 similarity-specific keys.
     entries:
-      - max_params: 24
+      - max_params: 27
         paths:
           - 'lib/src/config/config.dart'
           - 'lib/src/config/similarity_gate_config.dart'
@@ -65,6 +65,15 @@ gates:
     enabled: true
     exclude:
       - 'test/**'
+  # Wave-7 cross-file aggregation: one business fact hardcoded in N
+  # files (the "change 86400 in every service" hazard) is invisible to
+  # the in-file magic_constants gate. Flags one violation per
+  # occurrence; the fix is a shared constant — verify the occurrences
+  # really mean the same thing first.
+  scattered_constants:
+    enabled: true
+    severity: warning
+    min_files: 3
   # File-level near-duplicate detection (crap4dart >=0.15.0): docs
   # corpora rot through copy-paste; this catches new near-copies.
   # Measured on this repo: md corpus clean even at jaccard 0.5 (the

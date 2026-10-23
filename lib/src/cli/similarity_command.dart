@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -25,8 +26,8 @@ class SimilarityCommand extends Command<int> {
     argParser
       ..addOption(
         _formatOption,
-        allowed: ['console', 'json'],
-        defaultsTo: 'console',
+        allowed: [outputFormatConsole, outputFormatJson],
+        defaultsTo: outputFormatConsole,
         help: 'Output format.',
       )
       ..addOption(
@@ -94,7 +95,7 @@ class SimilarityCommand extends Command<int> {
       containmentThreshold: containment,
       minShingles: minShingles,
     );
-    if (args[_formatOption] == 'json') {
+    if (args[_formatOption] == outputFormatJson) {
       _printJson(report, jaccard, containment, minShingles);
     } else {
       _printConsole(report, jaccard, containment, minShingles);

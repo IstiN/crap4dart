@@ -511,7 +511,7 @@ class _GateConfigReaders {
   /// An optional string value at [key], when not `null`.
   static String? _optionalString(Object? value, String key, String path) {
     if (value != null && value is! String) {
-      throw ConfigException(path, key, 'expected a string');
+      throw ConfigException(path, key, _expectedStringMsg);
     }
     return value as String?;
   }

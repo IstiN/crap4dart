@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import 'package:glob/glob.dart';
@@ -47,7 +48,8 @@ class SourceFinder {
     for (final path in paths) {
       final type = FileSystemEntity.typeSync(path);
       if (type == FileSystemEntityType.file) {
-        if (path.endsWith('.dart') && !isExcluded(p.normalize(path))) {
+        if (path.endsWith(dartFileExtension) &&
+            !isExcluded(p.normalize(path))) {
           result.add(path);
         }
       } else if (type == FileSystemEntityType.directory) {
@@ -92,7 +94,7 @@ class SourceFinder {
   List<String> _findUnder(String dir) => [
         for (final entity in Directory(dir).listSync(recursive: true))
           if (entity is File &&
-              entity.path.endsWith('.dart') &&
+              entity.path.endsWith(dartFileExtension) &&
               !isExcluded(p.normalize(entity.path)))
             entity.path,
       ];

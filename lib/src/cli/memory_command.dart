@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -28,8 +29,8 @@ class MemoryCommand extends Command<int> {
       )
       ..addOption(
         _formatOption,
-        allowed: ['console', 'json'],
-        defaultsTo: 'console',
+        allowed: [outputFormatConsole, outputFormatJson],
+        defaultsTo: outputFormatConsole,
         help: 'Output format.',
       )
       ..addOption(
@@ -40,7 +41,7 @@ class MemoryCommand extends Command<int> {
       )
       ..addOption(
         _engineOption,
-        allowed: ['auto', 'dart', 'flutter'],
+        allowed: ['auto', dartExecutable, flutterExecutable],
         defaultsTo: 'auto',
         help: 'Test engine: auto-detects Flutter from pubspec.yaml. '
             'Flutter mode rides `flutter test --verbose` and re-runs each '
@@ -73,7 +74,7 @@ class MemoryCommand extends Command<int> {
       stderr.writeln(_noSuiteMessage(root));
       return ExitCodes.usageError;
     }
-    final report = engine == 'flutter'
+    final report = engine == flutterExecutable
         ? await _profileFlutter(root)
         : await _profileDart(root);
     if (report.testCount == 0) {
@@ -117,7 +118,7 @@ class MemoryCommand extends Command<int> {
 
   /// Whether [root] declares the Flutter SDK dependency.
   bool _isFlutterProject(String root) {
-    final pubspec = File(p.join(root, 'pubspec.yaml'));
+    final pubspec = File(p.join(root, pubspecFileName));
     if (!pubspec.existsSync()) return false;
     return pubspec.readAsStringSync().contains(
           RegExp('^  flutter:\\s*\$', multiLine: true),
@@ -155,7 +156,7 @@ class MemoryCommand extends Command<int> {
   /// Prints the report in the selected format.
   void _printReport(MemoryReport report) {
     final top = int.tryParse(argResults![_topOption] as String) ?? 20;
-    if (argResults![_formatOption] == 'json') {
+    if (argResults![_formatOption] == outputFormatJson) {
       _printJson(report);
     } else {
       _printConsole(report, top);
@@ -167,7 +168,8 @@ class MemoryCommand extends Command<int> {
   /// light).
   bool _isDartProject(String root) {
     final pubspec = File(p.join(root, 'pubspec.yaml'));
-    return pubspec.existsSync() && Directory(p.join(root, 'test')).existsSync();
+    return pubspec.existsSync() &&
+        Directory(p.join(root, testDirName)).existsSync();
   }
 
   /// The console report.

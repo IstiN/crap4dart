@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:io';
 import 'dart:math';
 
@@ -149,10 +150,12 @@ class DuplicationGate implements Gate {
       final absolute = p.join(context.projectRoot, source);
       final type = FileSystemEntity.typeSync(absolute);
       if (type == FileSystemEntityType.file) {
-        if (absolute.endsWith('.dart')) result.add(absolute);
+        if (absolute.endsWith(dartFileExtension)) {
+          result.add(absolute);
+        }
       } else if (type == FileSystemEntityType.directory) {
         for (final entity in Directory(absolute).listSync(recursive: true)) {
-          if (entity is File && entity.path.endsWith('.dart')) {
+          if (entity is File && entity.path.endsWith(dartFileExtension)) {
             result.add(entity.path);
           }
         }

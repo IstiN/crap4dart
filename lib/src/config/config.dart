@@ -1,6 +1,8 @@
 /// Typed model of the `crap4dart.yaml` configuration file.
 library;
 
+import '../common/constants.dart';
+
 part 'gate_configs.dart';
 part 'gate_configs_naming.dart';
 part 'gate_flags.dart';
@@ -133,6 +135,7 @@ class GatesConfig {
     this.duplication = const DuplicationGateConfig(),
     this.fileNaming = const FileNamingGateConfig(),
     this.magicConstants = const MagicConstantsGateConfig(),
+    this.scatteredConstants = const ScatteredConstantsGateConfig(),
     this.brokenGoldens = const BrokenGoldensGateConfig(),
     this.testAssertions = const TestAssertionsGateConfig(),
     this.folderStructure = const FolderStructureGateConfig(),
@@ -192,6 +195,9 @@ class GatesConfig {
 
   /// Magic constants gate (`magic_constants`).
   final MagicConstantsGateConfig magicConstants;
+
+  /// Scattered constants gate (`scattered_constants`).
+  final ScatteredConstantsGateConfig scatteredConstants;
 
   /// Similarity gate (`similarity`).
   final SimilarityGateConfig similarity;

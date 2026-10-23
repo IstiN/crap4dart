@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 /// Discovers changed Dart files from the git working tree.
@@ -14,7 +15,12 @@ class ChangedFilesFinder {
     final result = await Process.run(
       'git',
       staged
-          ? const ['diff', '--cached', '--name-only', '--diff-filter=ACM']
+          ? const [
+              gitDiffSubcommand,
+              '--cached',
+              '--name-only',
+              '--diff-filter=ACM'
+            ]
           : const ['status', '--porcelain'],
       workingDirectory: rootDir,
     );
@@ -29,7 +35,10 @@ class ChangedFilesFinder {
     final paths = staged
         ? _parseNameOnly('${result.stdout}')
         : _parsePorcelain('${result.stdout}');
-    final dartFiles = paths.where((p) => p.endsWith('.dart')).toSet().toList()
+    final dartFiles = paths
+        .where((p) => p.endsWith(dartFileExtension))
+        .toSet()
+        .toList()
       ..sort();
     return dartFiles;
   }
