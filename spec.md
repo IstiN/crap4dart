@@ -504,12 +504,14 @@ Known gate ids: `loc`, `test_coverage`, `golden`, `hardcoded_strings`,
 `weight_of_class`, `unused_code`, `unused_files`, `banned_imports`,
 `public_docs`, `duplication`, `file_naming`, `magic_constants`,
 `broken_goldens`, `test_assertions`, `folder_structure`, `external`,
-`mutation`, `similarity`.
+`mutation`, `similarity`, `record_named_fields`, `inline_record_types`,
+`record_size`.
 
 ## 11. Quality Gates
 
 Gates shall run in the fixed order: `loc`, `test_coverage`,
-`complexity`, `method_size`, `nesting`, `class_size`, `duplication`,
+`complexity`, `method_size`, `nesting`, `record_named_fields`,
+`inline_record_types`, `record_size`, `class_size`, `duplication`,
 `file_naming`, `magic_constants`, `broken_goldens`, `test_assertions`,
 `folder_structure`, `external`, `unused_code`, `unused_files`,
 `banned_imports`,
@@ -581,6 +583,39 @@ block or control-flow statement (`if`, `for`, `while`, `do`, `switch`,
 `try`/`catch`) adds one. An `else if` chain shall stay flat: every
 chained `if` lives at the nesting level of its originating `if`, while
 an `if` inside an `else` block keeps adding a level.
+
+### 11.5.1 record_named_fields
+
+Flags record type annotations that carry unnamed fields — fields
+readable only via `.$N` — in any scanned signature, and any positional
+field access (`.$1`, `.$2`, ...) anywhere in scanned code. A positional
+field with a name (`(int x, int y)`) is named and not flagged; the
+`{...}` group is named by construction. Record values (literals,
+locals, destructuring patterns) are not type annotations and stay
+legal. Record type aliases are the blessed declaration form: their
+internals are not scanned. Config keys: `enabled` (default true),
+`severity` (default `warning`), `ignorable`.
+
+### 11.5.2 inline_record_types
+
+Flags an inline record type annotation in a signature (return type or
+parameter type, including nested in type arguments such as
+`Future<...>`). The fix is one named declaration: declare the shape as
+a `typedef` (or a class when nominal identity is needed) and reference
+it by name. Record type aliases are not scanned; a function-type alias
+(`typedef F = int Function((int, int));`) blesses nothing — the inline
+record inside it is flagged. Config keys: `enabled` (default true),
+`severity` (default `warning`), `ignorable`.
+
+### 11.5.3 record_size
+
+Caps record arity at `max_fields` (default 5): a record type with more
+positional plus named fields than the cap is flagged with the advice
+to transform the record into a class. Both inline signature
+annotations and record type alias declarations are counted; records
+nested inside other types are counted at their own arity. Config
+keys: `enabled` (default true), `severity` (default `warning`),
+`ignorable`, `max_fields` (int, default 5).
 
 ### 11.6 class_size
 

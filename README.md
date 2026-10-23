@@ -29,9 +29,10 @@ crap4dart is a Dart port of the Java tool
 ## Features
 
 - **CRAP analysis** per method, combining complexity and LCOV coverage
-- **23 quality gates**: `loc`, `test_coverage`, `golden`,
+- **26 quality gates**: `loc`, `test_coverage`, `golden`,
   `hardcoded_strings`, `accessibility`, `complexity`, `method_size`,
-  `nesting`, `class_size`, `weight_of_class`, `unused_code`,
+  `nesting`, `record_named_fields`, `inline_record_types`,
+  `record_size`, `class_size`, `weight_of_class`, `unused_code`,
   `unused_files`, `banned_imports`, `public_docs`, `duplication`,
   `file_naming`, `magic_constants`, `broken_goldens`, `test_assertions`,
   `folder_structure`, `external`, `mutation`, `similarity`
@@ -554,6 +555,22 @@ gates:
   flat (a chained `if` keeps its originating `if`'s level), while an
   `if` inside an `else` block keeps adding levels. Catches complexity
   dodging via deeply nested early-return chains.
+- **record_named_fields** — flags record type annotations with unnamed
+  fields (`(int, int)`) and `.$N` positional field accesses anywhere;
+  both are the fingerprint of undocumented shapes. Name the fields
+  (`({int x, int y})`), destructure, or use a class. Record values
+  (literals, destructuring patterns) stay legal; record type aliases
+  are not scanned. Warning severity by default.
+- **inline_record_types** — flags inline record type annotations in
+  signatures (return types, parameters, nested in type arguments):
+  consumers should reference one named declaration, not diff shapes
+  field-by-field. Declare a `typedef` (or a class when nominal
+  identity is needed). A function-type typedef blesses nothing.
+  Warning severity by default.
+- **record_size** — caps record arity: a record type (inline or
+  typedef) with more than `max_fields` (default 5, positional plus
+  named) fields should be transformed into a class. Warning severity
+  by default.
 - **class_size** — fails classes with more than `max_methods` (default
   25) concrete methods or a weighted-methods sum (WMC, total cyclomatic
   complexity of all methods) above `max_wmc` (default 80). Catches
