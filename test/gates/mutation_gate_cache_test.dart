@@ -22,9 +22,12 @@ void main() {
   configSwitchTests();
 }
 
+/// Aggregated result of one gated mutation run.
+typedef RunResult = ({bool passed, String summary, int calls, int cached});
+
 String cacheFile() => p.join(project.path, mutationCacheFileName);
 
-Future<({bool passed, String summary, int calls, int cached})> runGate(
+Future<RunResult> runGate(
   MutantTestRunner runner, {
   String? configYaml,
 }) async {

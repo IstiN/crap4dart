@@ -34,6 +34,20 @@ gates:
   complexity:
     enabled: true
     max_complexity: 12
+  # Wave-6 type-surface gates, split by concern: inline record types
+  # must move to named typedefs, record fields must be named (no .$N),
+  # and record arity is capped (bigger records become classes).
+  # Warning severity; dogfooding cleanup accompanies the enablement.
+  inline_record_types:
+    enabled: true
+    severity: warning
+  record_named_fields:
+    enabled: true
+    severity: warning
+  record_size:
+    enabled: true
+    severity: warning
+    max_fields: 5
   method_size:
     enabled: true
     max_lines: 80

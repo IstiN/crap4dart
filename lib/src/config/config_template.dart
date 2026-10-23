@@ -130,6 +130,26 @@ gates:
     enabled: true
     # Maximum number of nested blocks in a method body.
     max_nesting: 5
+  # Flag record types that must be named: an inline record type in a
+  # signature is declared as a typedef (or class) and referenced by
+  # name. Record values (literals, destructuring) stay legal; record
+  # type aliases are the blessed form and are not scanned.
+  inline_record_types:
+    enabled: true
+    severity: warning
+  # Require named record fields: positional (unnamed) fields in record
+  # types and `.\$N` positional accesses are flagged — name the fields
+  # (`({int x, int y})`) or destructure.
+  record_named_fields:
+    enabled: true
+    severity: warning
+  # Cap record arity: a record with more than max_fields positional +
+  # named fields has outgrown the tuple idea and should be transformed
+  # into a class.
+  record_size:
+    enabled: true
+    severity: warning
+    max_fields: 5
   # Limit class size: method count and weighted methods per class
   # (WMC = sum of cyclomatic complexities). Catches god-classes that
   # pass the per-method complexity gate.

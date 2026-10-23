@@ -11,6 +11,7 @@ import '../coverage/lcov_parser.dart';
 import '../crap/crap_analyzer.dart';
 import '../crap/crap_report.dart';
 import '../files/changed_files.dart';
+import 'prepared_run.dart';
 import '../files/diff_parser.dart';
 import '../files/source_finder.dart';
 import '../gates/baseline.dart';
@@ -53,7 +54,7 @@ Future<String> gitTopLevel(String dir) async {
 }
 
 /// Current crap4dart version.
-const String crap4dartVersion = '0.17.0';
+const String crap4dartVersion = '0.18.0';
 
 /// Shared CLI flag names used by multiple commands.
 const String _configFlag = 'config';
@@ -161,7 +162,7 @@ mixin CommandHelpers on Command<int> {
 
   /// Resolves `--diff` / `--diff-base` and returns the diff map together with
   /// the base ref.
-  Future<({DiffLineMap? map, String? base, bool ok})> resolveDiff(
+  Future<ResolvedDiff> resolveDiff(
     String projectRoot,
   ) async {
     final diffBase = argResults![_diffBaseFlag] as String?;
@@ -260,40 +261,18 @@ mixin CommandHelpers on Command<int> {
   ///
   /// Pass an already loaded [config] to avoid parsing it twice when the caller
   /// needs to validate command-specific arguments before file selection.
-  Future<
-      ({
-        Crap4DartConfig? config,
-        List<String>? files,
-        DiffLineMap? diffMap,
-        String? diffBase,
-        bool partialSelection,
-        int? exitCode,
-      })> prepareRun(
+  Future<PreparedRun> prepareRun(
     String projectRoot,
     String emptyMessage, {
     Crap4DartConfig? config,
   }) async {
     final resolvedConfig = config ?? loadConfig(projectRoot);
     if (resolvedConfig == null) {
-      return (
-        config: null,
-        files: null,
-        diffMap: null,
-        diffBase: null,
-        partialSelection: false,
-        exitCode: ExitCodes.usageError
-      );
+      return const PreparedRun(exitCode: ExitCodes.usageError);
     }
     final diff = await resolveDiff(projectRoot);
     if (!diff.ok) {
-      return (
-        config: null,
-        files: null,
-        diffMap: null,
-        diffBase: null,
-        partialSelection: false,
-        exitCode: ExitCodes.usageError
-      );
+      return const PreparedRun(exitCode: ExitCodes.usageError);
     }
     final partial = _isPartialSelection(diff.map);
     final files = const SourceFinder().filterByGlobs(
@@ -305,22 +284,14 @@ mixin CommandHelpers on Command<int> {
     );
     if (files.isEmpty) {
       stdout.writeln(emptyMessage);
-      return (
-        config: null,
-        files: null,
-        diffMap: null,
-        diffBase: null,
-        partialSelection: false,
-        exitCode: ExitCodes.success
-      );
+      return const PreparedRun(exitCode: ExitCodes.success);
     }
-    return (
+    return PreparedRun(
       config: resolvedConfig,
       files: files,
       diffMap: diff.map,
       diffBase: diff.base,
       partialSelection: partial,
-      exitCode: null,
     );
   }
 

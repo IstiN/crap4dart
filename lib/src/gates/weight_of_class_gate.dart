@@ -20,15 +20,15 @@ class WeightOfClassGate implements Gate {
   @override
   Future<GateResult> run(GateContext context) async {
     final config = context.config.gates.weightOfClass;
-    final (checked, violations) = visitGateFiles(
+    final (:checked, :violations) = visitGateFiles(
       context,
       config.exclude,
       (relative, parsed) {
         final visitor = _WeightVisitor(relative, parsed);
         parsed.unit.accept(visitor);
         return (
-          visitor.checked,
-          visitor.weighted
+          checked: visitor.checked,
+          violations: visitor.weighted
               .where((c) => c.weight > config.maxWeight)
               .map((c) => c.violation)
               .toList(),
@@ -55,6 +55,9 @@ class _Weighted {
   final double weight;
   final GateViolation violation;
 }
+
+/// Public instance fields and members of one class.
+typedef _MemberCount = ({int fields, int members});
 
 class _WeightVisitor extends RecursiveAstVisitor<void> {
   _WeightVisitor(this._file, this._parsed);
@@ -90,7 +93,7 @@ class _WeightVisitor extends RecursiveAstVisitor<void> {
   }
 
   /// Counts public instance fields and public instance members of [node].
-  ({int fields, int members}) _countMembers(ClassDeclaration node) {
+  _MemberCount _countMembers(ClassDeclaration node) {
     var fields = 0;
     var members = 0;
     for (final member in node.body.members) {

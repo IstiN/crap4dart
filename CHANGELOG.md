@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.18.0 — 2026-10-23
+
+- New `record_named_fields` gate: record type annotations with unnamed
+  fields and `.$N` positional accesses are flagged.
+- New `inline_record_types` gate: inline record types in signatures
+  must move behind one named `typedef` declaration.
+- New `record_size` gate: records over `max_fields` (default 5,
+  positional plus named) should be transformed into classes.
+- `PreparedRun` (CLI run preparation) converted from a six-field
+  record typedef to a class — the first `record_size` dogfooding fix.
+
 All notable changes to this project will be documented in this file.
 
 ## 0.17.0 — 2026-10-23

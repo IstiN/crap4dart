@@ -308,4 +308,72 @@ class _ExtendedGateConfigReaders {
     if (value is String && value.isNotEmpty) return value;
     throw ConfigException(path, '$ctx.$key', 'expected a non-empty string');
   }
+
+  static RecordNamedFieldsGateConfig readRecordNamedFields(
+    Object? node,
+    RecordNamedFieldsGateConfig base,
+    String path,
+  ) {
+    return _ConfigScalars.readGateConfig(
+      node,
+      base,
+      path,
+      'gates.record_named_fields',
+      const {_enabledKey, _severityKey, _ignorableKey},
+      (map, base, path, ctx) {
+        final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
+        return RecordNamedFieldsGateConfig(
+          enabled: flags.enabled,
+          severity: flags.severity,
+          ignorable: flags.ignorable,
+        );
+      },
+    );
+  }
+
+  static InlineRecordTypesGateConfig readInlineRecordTypes(
+    Object? node,
+    InlineRecordTypesGateConfig base,
+    String path,
+  ) {
+    return _ConfigScalars.readGateConfig(
+      node,
+      base,
+      path,
+      'gates.inline_record_types',
+      const {_enabledKey, _severityKey, _ignorableKey},
+      (map, base, path, ctx) {
+        final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
+        return InlineRecordTypesGateConfig(
+          enabled: flags.enabled,
+          severity: flags.severity,
+          ignorable: flags.ignorable,
+        );
+      },
+    );
+  }
+
+  static RecordSizeGateConfig readRecordSize(
+    Object? node,
+    RecordSizeGateConfig base,
+    String path,
+  ) {
+    return _ConfigScalars.readGateConfig(
+      node,
+      base,
+      path,
+      'gates.record_size',
+      const {_enabledKey, _severityKey, _ignorableKey, 'max_fields'},
+      (map, base, path, ctx) {
+        final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
+        return RecordSizeGateConfig(
+          enabled: flags.enabled,
+          severity: flags.severity,
+          ignorable: flags.ignorable,
+          maxFields: _ConfigScalars.readInt(
+              map, 'max_fields', base.maxFields, path, ctx),
+        );
+      },
+    );
+  }
 }

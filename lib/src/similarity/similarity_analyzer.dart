@@ -6,6 +6,10 @@ import 'package:path/path.dart' as p;
 import 'shingles.dart';
 import 'similarity_profile.dart';
 
+/// The strongest pair metrics of one file: best Jaccard and
+/// containment across all pairs it participates in.
+typedef SimilarityMetrics = ({double jaccard, double containment});
+
 /// One analyzed file: its (project-relative) path and shingle set.
 class SimilarityFile {
   /// Creates a [SimilarityFile].
@@ -92,12 +96,17 @@ class SimilarityReport {
   bool get clean => pairs.isEmpty;
 
   /// The strongest pair metrics [path] participates in, or `null`.
-  (double, double)? metricsFor(String path) {
-    (double, double)? best;
+  SimilarityMetrics? metricsFor(String path) {
+    SimilarityMetrics? best;
     for (final pair in pairs) {
       if (pair.a != path && pair.b != path) continue;
-      final candidate = (pair.jaccard, pair.containment);
-      if (best == null || candidate.$1 > best.$1) best = candidate;
+      final candidate = (
+        jaccard: pair.jaccard,
+        containment: pair.containment,
+      );
+      if (best == null || candidate.jaccard > best.jaccard) {
+        best = candidate;
+      }
     }
     return best;
   }

@@ -54,6 +54,9 @@ class ConfigLoader {
     'complexity',
     'method_size',
     'nesting',
+    'record_named_fields',
+    'inline_record_types',
+    'record_size',
     'class_size',
     'weight_of_class',
     'unused_code',
@@ -245,6 +248,12 @@ class ConfigLoader {
           map['method_size'], base.methodSize, path),
       nesting:
           _GateConfigReaders.readNesting(map['nesting'], base.nesting, path),
+      recordNamedFields: _ExtendedGateConfigReaders.readRecordNamedFields(
+          map['record_named_fields'], base.recordNamedFields, path),
+      inlineRecordTypes: _ExtendedGateConfigReaders.readInlineRecordTypes(
+          map['inline_record_types'], base.inlineRecordTypes, path),
+      recordSize: _ExtendedGateConfigReaders.readRecordSize(
+          map['record_size'], base.recordSize, path),
       classSize: _GateConfigReaders.readClassSize(
           map['class_size'], base.classSize, path),
       weightOfClass: _GateConfigReaders.readWeightOfClass(

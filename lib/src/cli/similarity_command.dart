@@ -10,6 +10,9 @@ import '../config/config_loader.dart';
 import '../similarity/similarity_analyzer.dart';
 import 'exit_codes.dart';
 
+/// Root and directory list of one `similarity` invocation.
+typedef _ScanTargets = ({String root, List<String> dirs});
+
 /// The `similarity` command: ad-hoc near-duplicate scanning over any
 /// text corpus — the exploration tool for tuning the `similarity`
 /// gate's thresholds before enabling it.
@@ -68,7 +71,7 @@ class SimilarityCommand extends Command<int> {
     if (config == null) return ExitCodes.usageError;
     final similarity = config.gates.similarity;
     final args = argResults!;
-    final (scanRoot, dirs) = _scanTargets(root, similarity.dirs);
+    final (root: scanRoot, dirs: dirs) = _scanTargets(root, similarity.dirs);
     final jaccard = _doubleArg(args, _jaccardOption) ?? similarity.jaccard;
     final containment =
         _doubleArg(args, _containmentOption) ?? similarity.containment;
@@ -103,14 +106,20 @@ class SimilarityCommand extends Command<int> {
   /// directory argument becomes the scan root itself, several
   /// arguments are subdirectories of the project root, none uses the
   /// config's `dirs`.
-  (String, List<String>) _scanTargets(String root, List<String> configDirs) {
+  _ScanTargets _scanTargets(
+    String root,
+    List<String> configDirs,
+  ) {
     final rest = argResults!.rest;
     if (rest.length == 1 && Directory(rest.single).existsSync()) {
       final target = rest.single;
-      return (p.isAbsolute(target) ? target : p.join(root, target), ['.']);
+      return (
+        root: p.isAbsolute(target) ? target : p.join(root, target),
+        dirs: ['.'],
+      );
     }
-    if (rest.isNotEmpty) return (root, rest);
-    return (root, configDirs);
+    if (rest.isNotEmpty) return (root: root, dirs: rest);
+    return (root: root, dirs: configDirs);
   }
 
   /// Loads the config, reporting errors to stderr, `null` on failure.
@@ -174,8 +183,8 @@ class SimilarityCommand extends Command<int> {
         final metrics = report.metricsFor(file);
         stdout.writeln(
           '  $file '
-          '(jaccard ${metrics?.$1.toStringAsFixed(2)}, '
-          'containment ${metrics?.$2.toStringAsFixed(2)})',
+          '(jaccard ${metrics?.jaccard.toStringAsFixed(2)}, '
+          'containment ${metrics?.containment.toStringAsFixed(2)})',
         );
       }
     }
