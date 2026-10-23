@@ -61,8 +61,8 @@ class ProfileCommand extends Command<int> with CommandHelpers {
       )
       ..addOption(
         'format',
-        allowed: [outputFormatConsole, outputFormatJson],
-        defaultsTo: outputFormatConsole,
+        allowed: [kConsole, kJson],
+        defaultsTo: kConsole,
         help: 'Output format (json writes only JSON to stdout).',
       )
       ..addFlag(
@@ -235,7 +235,7 @@ class ProfileCommand extends Command<int> with CommandHelpers {
     int? top,
     String? diffBase,
   ) {
-    if (argResults!['format'] == outputFormatJson) {
+    if (argResults!['format'] == kJson) {
       stdout.writeln(
         const JsonReporter().renderProfile(
           report,

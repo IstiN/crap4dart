@@ -1,6 +1,6 @@
 part of 'config_loader.dart';
 
-const String _externalCtx = 'gates.external';
+const String _externalCtx = '$kGatePrefix.external';
 
 /// Readers for the newer gates (broken_goldens, test_assertions,
 /// folder_structure) — split out of [_GateConfigReaders] to keep both
@@ -15,7 +15,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      'gates.broken_goldens',
+      '$kGatePrefix.broken_goldens',
       const {
         _enabledKey,
         _severityKey,
@@ -49,7 +49,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      'gates.similarity',
+      '$kGatePrefix.similarity',
       const {
         _enabledKey,
         _severityKey,
@@ -92,7 +92,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      'gates.test_assertions',
+      '$kGatePrefix.test_assertions',
       const {
         _enabledKey,
         _severityKey,
@@ -124,7 +124,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      'gates.folder_structure',
+      '$kGatePrefix.folder_structure',
       const {
         _enabledKey,
         _severityKey,
@@ -158,7 +158,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      'gates.mutation',
+      '$kGatePrefix.mutation',
       const {
         _enabledKey,
         _severityKey,
@@ -264,7 +264,7 @@ class _ExtendedGateConfigReaders {
     if (node is! YamlList) {
       throw ConfigException(
         path,
-        'gates.external.rules',
+        '$kGatePrefix.external.rules',
         'expected a list of rules',
       );
     }
@@ -275,7 +275,7 @@ class _ExtendedGateConfigReaders {
 
   /// Parses one `gates.external.rules` entry.
   static ExternalToolRule _readExternalRule(Object? n, String path) {
-    const ctx = 'gates.external.rules';
+    const ctx = '$kGatePrefix.external.rules';
     if (n is! YamlMap) {
       throw ConfigException(path, ctx, 'expected rule maps');
     }
@@ -318,7 +318,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      'gates.scattered_constants',
+      '$kGatePrefix.scattered_constants',
       const {
         _enabledKey,
         _severityKey,
@@ -326,6 +326,7 @@ class _ExtendedGateConfigReaders {
         'min_files',
         'min_length',
         'min_value',
+        'deep_search',
         _excludeKey
       },
       (map, base, path, ctx) {
@@ -340,6 +341,8 @@ class _ExtendedGateConfigReaders {
               map, 'min_length', base.minLength, path, ctx),
           minValue: _ConfigScalars.readInt(
               map, 'min_value', base.minValue, path, ctx),
+          deepSearch: _ConfigScalars.readBool(
+              map, 'deep_search', base.deepSearch, path, ctx),
           exclude:
               _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
         );
@@ -356,7 +359,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      'gates.record_named_fields',
+      '$kGatePrefix.record_named_fields',
       const {_enabledKey, _severityKey, _ignorableKey},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -378,7 +381,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      'gates.inline_record_types',
+      '$kGatePrefix.inline_record_types',
       const {_enabledKey, _severityKey, _ignorableKey},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -400,7 +403,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      'gates.record_size',
+      '$kGatePrefix.record_size',
       const {_enabledKey, _severityKey, _ignorableKey, 'max_fields'},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);

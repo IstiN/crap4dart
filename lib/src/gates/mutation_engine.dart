@@ -196,7 +196,7 @@ class MutationEngine {
     required String projectRoot,
     required List<MutationSite> sites,
     required Duration timeout,
-    List<String> testArgs = const [testSubcommand],
+    List<String> testArgs = const [kTest],
     List<String>? Function(MutationSite site)? testArgsFor,
     MutationCacheSession? caching,
   }) async {
@@ -373,14 +373,14 @@ class MutationEngine {
 Future<MutantOutcome> runMutantTests(
   String projectRoot,
   Duration timeout, {
-  List<String> testArgs = const [testSubcommand],
+  List<String> testArgs = const [kTest],
   MutantProcessSpawner spawn = Process.start,
 }) async {
   final isFlutter = isFlutterProject(projectRoot);
   final Process process;
   try {
     process = await spawn(
-      isFlutter ? flutterExecutable : dartExecutable,
+      isFlutter ? kFlutter : kDart,
       testArgs,
       workingDirectory: projectRoot,
     );

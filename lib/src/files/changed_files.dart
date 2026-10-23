@@ -15,12 +15,7 @@ class ChangedFilesFinder {
     final result = await Process.run(
       'git',
       staged
-          ? const [
-              gitDiffSubcommand,
-              '--cached',
-              '--name-only',
-              '--diff-filter=ACM'
-            ]
+          ? const [kDiff, '--cached', '--name-only', '--diff-filter=ACM']
           : const ['status', '--porcelain'],
       workingDirectory: rootDir,
     );
@@ -35,11 +30,8 @@ class ChangedFilesFinder {
     final paths = staged
         ? _parseNameOnly('${result.stdout}')
         : _parsePorcelain('${result.stdout}');
-    final dartFiles = paths
-        .where((p) => p.endsWith(dartFileExtension))
-        .toSet()
-        .toList()
-      ..sort();
+    final dartFiles =
+        paths.where((p) => p.endsWith(kDartExtension)).toSet().toList()..sort();
     return dartFiles;
   }
 

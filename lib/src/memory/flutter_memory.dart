@@ -522,8 +522,7 @@ class VmServiceClient {
           (event['isolate'] as Map<String, Object?>?)?['name'] as String? ??
               'main',
       seq: seq,
-      startSeconds: ((event['timestamp'] as num?)?.toDouble() ?? 0) /
-          microsPerMillisecond,
+      startSeconds: ((event['timestamp'] as num?)?.toDouble() ?? 0) / 1000,
       newBeforeMb: 0, // not reported by the service stream
       newAfterMb: mb(newSpace['used']) / 1048576,
       oldBeforeMb: _lastOldAfterMb ?? oldAfter,
@@ -627,12 +626,12 @@ Future<MemoryReport> runFlutterMemory(
 
   /// Overrides the tool argv (tests inject a fake `flutter` tool).
   List<String> toolArgs = const [
-    testSubcommand,
+    kTest,
     '--verbose',
     '--no-pub',
     '-j1',
     '-r',
-    testReporterJson
+    kJson
   ],
 }) async {
   final flutter = flutterBinary ?? _defaultFlutterBinary();
@@ -728,7 +727,7 @@ File _snapshotDill(
 /// `$FLUTTER_ROOT/bin/flutter` when set, else `flutter` on PATH.
 String _defaultFlutterBinary() {
   final root = Platform.environment['FLUTTER_ROOT'];
-  return root == null ? flutterExecutable : '$root/bin/flutter';
+  return root == null ? kFlutter : '$root/bin/flutter';
 }
 
 /// The `path` of a package:test json `suite` event line, or `null`.

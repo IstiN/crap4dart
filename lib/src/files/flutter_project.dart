@@ -10,7 +10,7 @@ const String _flutterDepName = 'flutter';
 /// Whether the project at [root] is a Flutter project (its pubspec
 /// declares a `flutter` dependency).
 bool isFlutterProject(String root) {
-  final pubspec = File(p.join(root, pubspecFileName));
+  final pubspec = File(p.join(root, kPubspec));
   if (!pubspec.existsSync()) return false;
   final doc = loadYaml(pubspec.readAsStringSync());
   if (doc is! YamlMap) return false;

@@ -33,7 +33,7 @@ class AccessibilityGate implements Gate {
   @override
   Future<GateResult> run(GateContext context) async {
     if (!context.isFlutterProject) {
-      return GateResult.skip(id, notFlutterProjectReason);
+      return GateResult.skip(id, kNotFlutterProject);
     }
     final widgets = context.config.gates.accessibility.requireLabelFor;
     final violations = <GateViolation>[];

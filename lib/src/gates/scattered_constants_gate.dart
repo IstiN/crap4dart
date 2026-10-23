@@ -1,10 +1,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/source/line_info.dart';
 
 import 'gate.dart';
-import 'literal_locations.dart';
 import 'gate_context.dart';
+import 'literal_locations.dart';
 
 /// The `scattered_constants` gate: flags hardcoded literals that appear
 /// in at least `min_files` distinct files.
@@ -29,6 +27,16 @@ import 'gate_context.dart';
 /// protocol identifiers, not constants; literals inside constant
 /// declarations are already extracted.
 ///
+/// Whole-literal matching alone misses *partial* reuse: `'gates.loc'`,
+/// `'gates.nesting'`, ... share the structured head `'gates'` without
+/// any two literals being equal. With `deep_search` enabled the gate
+/// also counts dot-segment prefixes of dotted string literals
+/// (`'gates.loc.entries'` yields the candidates `'gates'` and
+/// `'gates.loc'`) and flags prefixes repeating across `min_files`
+/// files — the fix is a shared prefix constant composed with the
+/// variable remainder. Off by default: prefix matching has a wider FP
+/// surface, opt in deliberately.
+///
 /// Default severity is `warning`: scattering is a design signal, not a
 /// bug.
 class ScatteredConstantsGate implements Gate {
@@ -51,6 +59,7 @@ class ScatteredConstantsGate implements Gate {
         parsed.lineInfo,
         minLength: config.minLength,
         minValue: config.minValue,
+        deepSearch: config.deepSearch,
       );
       parsed.unit.accept(collector);
       final relative = context.relativePath(file);
@@ -131,34 +140,22 @@ class _Hit {
 /// strings of at least [minLength] characters and numbers of magnitude
 /// at least [minValue]. Literals inside constant declarations are
 /// collected but land in [exemptLines] — they are already extracted.
-class _LiteralCollector extends RecursiveAstVisitor<void> {
+class _LiteralCollector extends ExemptingLiteralVisitor {
   _LiteralCollector(
-    this._lineInfo, {
+    super.lineInfo, {
     required this.minLength,
     required this.minValue,
+    required this.deepSearch,
   });
 
-  final LineInfo _lineInfo;
   final int minLength;
   final int minValue;
 
+  /// Whether dot-segment prefixes of dotted string literals count as
+  /// candidates (partial-reuse detection).
+  final bool deepSearch;
+
   final List<_Hit> hits = [];
-  final Set<int> exemptLines = {};
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    final parent = node.parent;
-    final isConst = parent is VariableDeclarationList && parent.isConst;
-    if (isConst && node.initializer != null) {
-      _markConstantLines(node.initializer!);
-    }
-    node.initializer?.accept(this);
-  }
-
-  /// Marks every literal line inside a const initializer as exempt.
-  void _markConstantLines(Expression initializer) {
-    markExemptLines(exemptLines, _lineInfo, initializer);
-  }
 
   @override
   void visitIntegerLiteral(IntegerLiteral node) {
@@ -179,21 +176,40 @@ class _LiteralCollector extends RecursiveAstVisitor<void> {
     // Map keys, index expressions and case labels are protocol
     // identifiers, not magic constants — same rule as magic_constants.
     if (isProtocolIdentifier(node)) return;
-    final value = node.value;
-    if (value.length < minLength) return;
-    hits.add(_Hit('s:$value', _display(value), _line(node)));
+    _collectString(node.value, node);
   }
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
     final value = node.stringValue;
-    if (value == null || value.length < minLength) return;
+    if (value == null) return;
+    _collectString(value, node);
+  }
+
+  void _collectString(String value, AstNode node) {
+    if (value.length < minLength) return;
     hits.add(_Hit('s:$value', _display(value), _line(node)));
+    if (deepSearch) _collectPrefixes(value, node);
+  }
+
+  /// Emits the dot-segment prefixes of [value] as prefix candidates:
+  /// the reusable head of a structured literal.
+  void _collectPrefixes(String value, AstNode node) {
+    var index = value.indexOf('.');
+    while (index > 0) {
+      final prefix = value.substring(0, index);
+      if (prefix.length >= minLength) {
+        hits.add(
+          _Hit('p:$prefix', "prefix '$prefix'", _line(node)),
+        );
+      }
+      index = value.indexOf('.', index + 1);
+    }
   }
 
   /// String literals render quoted and truncated in messages.
   static String _display(String value) =>
       value.length > 40 ? "'${value.substring(0, 40)}…'" : "'$value'";
 
-  int _line(AstNode node) => _lineInfo.getLocation(node.offset).lineNumber;
+  int _line(AstNode node) => lineInfo.getLocation(node.offset).lineNumber;
 }

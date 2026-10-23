@@ -26,8 +26,8 @@ class SimilarityCommand extends Command<int> {
     argParser
       ..addOption(
         _formatOption,
-        allowed: [outputFormatConsole, outputFormatJson],
-        defaultsTo: outputFormatConsole,
+        allowed: [kConsole, kJson],
+        defaultsTo: kConsole,
         help: 'Output format.',
       )
       ..addOption(
@@ -95,7 +95,7 @@ class SimilarityCommand extends Command<int> {
       containmentThreshold: containment,
       minShingles: minShingles,
     );
-    if (args[_formatOption] == outputFormatJson) {
+    if (args[_formatOption] == kJson) {
       _printJson(report, jaccard, containment, minShingles);
     } else {
       _printConsole(report, jaccard, containment, minShingles);

@@ -109,7 +109,7 @@ class TestRunEvents {
     final name = test['name'] as String?;
     final suiteId = test['suiteID'] as int?;
     if (id == null || name == null || suiteId == null) return;
-    if (name.startsWith('loading ') && name.endsWith(dartFileExtension)) {
+    if (name.startsWith('loading ') && name.endsWith(kDartExtension)) {
       return;
     }
     spansById.putIfAbsent(

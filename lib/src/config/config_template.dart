@@ -250,6 +250,9 @@ gates:
     min_files: 3
     min_length: 4
     min_value: 100
+    # Count dot-segment prefixes of dotted literals too ('gates' in
+    # 'gates.loc', 'gates.nesting', ...) — partial-reuse detection.
+    deep_search: false
     exclude:
       - '**.g.dart'
       - '**.freezed.dart'

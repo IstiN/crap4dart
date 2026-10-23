@@ -66,7 +66,7 @@ class MutationGate implements Gate {
     if (context.lcov == null) {
       return GateResult.skip(id, 'no coverage data');
     }
-    if (!Directory(p.join(context.projectRoot, testDirName)).existsSync()) {
+    if (!Directory(p.join(context.projectRoot, kTest)).existsSync()) {
       return GateResult.skip(id, 'no test directory');
     }
     final scoped = _coveredSites(context, config);
@@ -172,7 +172,7 @@ class MutationGate implements Gate {
         if (File(p.join(context.projectRoot, candidate)).existsSync())
           candidate,
     ];
-    return existing.isEmpty ? null : [testSubcommand, ...existing];
+    return existing.isEmpty ? null : [kTest, ...existing];
   }
 
   /// Whether [site]'s containing method intersects the diff. Falls back

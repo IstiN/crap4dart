@@ -158,14 +158,13 @@ class MemoryProfiler {
   }) async {
     final args = [
       '--verbose_gc',
-      testSubcommand,
+      kTest,
       '--concurrency=1',
       '-r',
-      testReporterJson,
+      kJson,
       ...paths,
     ];
-    final run =
-        await _runner(dartExecutable, args, workingDirectory: projectRoot);
+    final run = await _runner(kDart, args, workingDirectory: projectRoot);
     return _report(run);
   }
 

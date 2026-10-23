@@ -74,6 +74,9 @@ gates:
     enabled: true
     severity: warning
     min_files: 3
+    # Partial reuse: 'gates.loc' / 'gates.nesting' / ... share the
+    # structured head 'gates' — compose such paths from kGatePrefix.
+    deep_search: true
   # File-level near-duplicate detection (crap4dart >=0.15.0): docs
   # corpora rot through copy-paste; this catches new near-copies.
   # Measured on this repo: md corpus clean even at jaccard 0.5 (the

@@ -17,6 +17,7 @@ void main() {
     expect(gate.minFiles, 3);
     expect(gate.minLength, 4);
     expect(gate.minValue, 100);
+    expect(gate.deepSearch, isFalse);
     expect(gate.exclude, contains('test/**'));
   });
 
@@ -29,6 +30,7 @@ void main() {
         '    min_files: 2\n'
         '    min_length: 6\n'
         '    min_value: 50\n'
+        '    deep_search: true\n'
         '    exclude: [vendor/**]\n');
     final gate = config.gates.scatteredConstants;
     expect(gate.severity, GateSeverity.error);
@@ -36,6 +38,7 @@ void main() {
     expect(gate.minFiles, 2);
     expect(gate.minLength, 6);
     expect(gate.minValue, 50);
+    expect(gate.deepSearch, isTrue);
     expect(gate.exclude, ['vendor/**']);
   });
 

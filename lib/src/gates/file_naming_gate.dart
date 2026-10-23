@@ -47,7 +47,7 @@ class FileNamingGate implements Gate {
     final violations = <GateViolation>[];
     var checked = 0;
     for (final file in context.files) {
-      if (p.extension(file) != dartFileExtension) continue;
+      if (p.extension(file) != kDartExtension) continue;
       if (context.matchesAnyGlob(file, config.exclude)) continue;
       checked++;
       final message = _violationFor(file, allowed);

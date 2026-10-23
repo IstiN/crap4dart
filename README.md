@@ -590,8 +590,11 @@ gates:
   Coincidence controls: strings shorter than `min_length` (4), numbers
   of magnitude at or below `min_value` (100), map keys, index
   expressions, case labels, directive URIs and literals inside
-  constant declarations are never flagged. Warning severity by
-  default.
+  constant declarations are never flagged. With `deep_search` (default
+  off) the gate also counts dot-segment prefixes of dotted literals —
+  `'gates.loc'` / `'gates.nesting'` / ... share the head `'gates'` —
+  and flags prefixes repeating across files: extract a shared prefix
+  constant and compose. Warning severity by default.
 - **duplication** — detects exact copy-paste token blocks across Dart
   source files. A block counts when it is at least `min_tokens` tokens
   (default 50) and `min_lines` lines (default 5) long. `report` chooses

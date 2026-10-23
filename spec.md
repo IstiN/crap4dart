@@ -759,12 +759,22 @@ literals inside constant declarations (already extracted). Files
 matching `exclude` (default: `**.g.dart`, `**.freezed.dart`,
 `**.mocks.dart`, `test/**`) are left out of the count entirely.
 
+With `deep_search` (default false) the gate additionally counts
+dot-segment prefixes of dotted string literals as candidates:
+`'gates.loc.entries'` yields the prefix candidates `'gates'` and
+`'gates.loc'` (the full value is already counted as a whole literal).
+A prefix repeating across `min_files` files flags per occurrence,
+asking for a shared prefix constant composed with the variable
+remainder. Off by default: prefix matching has a wider
+false-positive surface, opt in deliberately.
+
 The message asks to extract a shared constant and verify all
 occurrences mean the same thing — the gate highlights, intent stays
 human (the same value is sometimes coincidence). Config keys:
 `enabled` (default true), `severity` (default `warning`), `ignorable`,
-`min_files` (int), `min_length` (int), `min_value` (int), `exclude`
-(globs). Unknown keys are config errors, as for every gate.
+`min_files` (int), `min_length` (int), `min_value` (int),
+`deep_search` (bool), `exclude` (globs). Unknown keys are config
+errors, as for every gate.
 
 ### 11.14 broken_goldens
 

@@ -45,7 +45,7 @@ class GoldensCommand extends Command<int> {
     if (argResults!['write'] as bool) {
       final root = projectRoot ?? Directory.current.path;
       final file = File(
-        p.join(root, testDirName, 'goldens_guard.dart'),
+        p.join(root, kTest, 'goldens_guard.dart'),
       );
       if (file.existsSync()) {
         stderr.writeln('${p.relative(file.path, from: root)} already '

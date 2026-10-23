@@ -31,7 +31,7 @@ class HardcodedStringsGate implements Gate {
   @override
   Future<GateResult> run(GateContext context) async {
     if (!context.isFlutterProject) {
-      return GateResult.skip(id, notFlutterProjectReason);
+      return GateResult.skip(id, kNotFlutterProject);
     }
     final config = context.config.gates.hardcodedStrings;
     final arbKeys = _loadArbKeys(context.projectRoot);

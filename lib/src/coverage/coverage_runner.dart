@@ -54,10 +54,10 @@ class CoverageRunner {
           : 'Running "dart test --coverage"...',
     );
     final testResult = await _spawn(
-      isFlutter ? flutterExecutable : dartExecutable,
+      isFlutter ? kFlutter : kDart,
       isFlutter
-          ? const [testSubcommand, '--coverage']
-          : const [testSubcommand, '--coverage=coverage'],
+          ? const [kTest, '--coverage']
+          : const [kTest, '--coverage=coverage'],
       workingDirectory: projectRoot,
     );
     if (testResult.exitCode != 0) {
@@ -77,7 +77,7 @@ class CoverageRunner {
   Future<void> _formatCoverage(String projectRoot) async {
     stderr.writeln('Formatting coverage with "coverage:format_coverage"...');
     final result = await _spawn(
-      dartExecutable,
+      kDart,
       const [
         'pub',
         'global',

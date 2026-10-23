@@ -1,64 +1,45 @@
-/// Shared literal names used across modules.
+/// Shared simple literals used across modules, `k`-prefixed per the
+/// project convention for plain string constants.
 ///
-/// Every constant owns one business fact; the `scattered_constants`
+/// Every constant owns one spelling, not one usage: the same value may
+/// legitimately play several roles (kTest is both the dart/flutter test
+/// subcommand and the test directory name). The `scattered_constants`
 /// gate guards against the literals reappearing inline elsewhere.
-/// Two constants may share a spelling but never a meaning (see
-/// [testSubcommand] vs [testDirName]) — that is the point: renaming a
-/// fact changes exactly one line.
 library;
 
-// ---------------------------------------------------------------------------
-// Tool invocation names (argv elements passed to Process.run/start).
-// ---------------------------------------------------------------------------
-
 /// The Dart SDK executable.
-const String dartExecutable = 'dart';
+const String kDart = 'dart';
 
 /// The Flutter tool executable.
-const String flutterExecutable = 'flutter';
+const String kFlutter = 'flutter';
 
-/// The `test` subcommand of the dart and flutter tools.
-const String testSubcommand = 'test';
+/// The `test` subcommand of the dart/flutter tools and the name of the
+/// directory holding a project's tests.
+const String kTest = 'test';
 
-/// The machine-readable reporter of dart/flutter test (`-r json`).
-const String testReporterJson = 'json';
-
-/// The `diff` subcommand of git.
-const String gitDiffSubcommand = 'diff';
-
-// ---------------------------------------------------------------------------
-// File and directory names.
-// ---------------------------------------------------------------------------
-
-/// The name of the directory holding a project's tests.
-const String testDirName = 'test';
-
-/// The file name of a package's pubspec.
-const String pubspecFileName = 'pubspec.yaml';
-
-/// The file extension of Dart sources, with the leading dot.
-const String dartFileExtension = '.dart';
-
-// ---------------------------------------------------------------------------
-// CLI protocol values.
-// ---------------------------------------------------------------------------
+/// The `json` format/reporter name (CLI output formats, dart/flutter
+/// test `-r json`).
+const String kJson = 'json';
 
 /// The `console` output format shared by the reporting commands.
-const String outputFormatConsole = 'console';
+const String kConsole = 'console';
 
-/// The `json` output format shared by the reporting commands.
-const String outputFormatJson = 'json';
+/// The `diff` subcommand of git.
+const String kDiff = 'diff';
+
+/// The file name of a package's pubspec.
+const String kPubspec = 'pubspec.yaml';
+
+/// The file extension of Dart sources, with the leading dot.
+const String kDartExtension = '.dart';
 
 /// The skip reason reported when a Flutter-only gate runs in a
 /// non-Flutter project.
-const String notFlutterProjectReason = 'not a Flutter project';
+const String kNotFlutterProject = 'not a Flutter project';
 
-// ---------------------------------------------------------------------------
-// Units.
-// ---------------------------------------------------------------------------
+/// The shared prefix of every `gates.*` config path; sites compose
+/// `'$kGatePrefix.loc'`-style paths from it.
+const String kGatePrefix = 'gates';
 
 /// Milliseconds per second (memory and profile reports).
 const int millisPerSecond = 1000;
-
-/// Microseconds per millisecond (VM service timestamps).
-const int microsPerMillisecond = 1000;

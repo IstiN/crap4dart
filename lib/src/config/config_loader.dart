@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -233,7 +234,7 @@ class ConfigLoader {
     final map = _ConfigScalars.asMap(node, path, _gatesKey);
     for (final key in map.keys) {
       if (!knownGates.contains(key)) {
-        throw ConfigException(path, 'gates.$key', 'unknown gate id');
+        throw ConfigException(path, '$kGatePrefix.$key', 'unknown gate id');
       }
     }
     return GatesConfig(

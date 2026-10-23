@@ -150,12 +150,12 @@ class DuplicationGate implements Gate {
       final absolute = p.join(context.projectRoot, source);
       final type = FileSystemEntity.typeSync(absolute);
       if (type == FileSystemEntityType.file) {
-        if (absolute.endsWith(dartFileExtension)) {
+        if (absolute.endsWith(kDartExtension)) {
           result.add(absolute);
         }
       } else if (type == FileSystemEntityType.directory) {
         for (final entity in Directory(absolute).listSync(recursive: true)) {
-          if (entity is File && entity.path.endsWith(dartFileExtension)) {
+          if (entity is File && entity.path.endsWith(kDartExtension)) {
             result.add(entity.path);
           }
         }

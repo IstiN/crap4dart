@@ -53,7 +53,7 @@ class GateContext {
 
   /// The `name:` of the project's pubspec.yaml, or `null` when absent.
   String? get packageName => _packageName ??= _readPackageName(
-        p.join(projectRoot, pubspecFileName),
+        p.join(projectRoot, kPubspec),
       );
 
   String? _readPackageName(String pubspecPath) {

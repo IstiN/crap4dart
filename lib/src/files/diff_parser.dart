@@ -61,13 +61,13 @@ class GitDiffParser {
   Future<DiffLineMap> diff(String projectRoot, {String base = 'HEAD'}) async {
     final result = await Process.run(
       'git',
-      [gitDiffSubcommand, '--unified=0', base, '--', '*.dart'],
+      [kDiff, '--unified=0', base, '--', '*.dart'],
       workingDirectory: projectRoot,
     );
     if (result.exitCode != 0) {
       throw ProcessException(
         'git',
-        [gitDiffSubcommand, base],
+        [kDiff, base],
         '${result.stderr}'.trim(),
         result.exitCode,
       );

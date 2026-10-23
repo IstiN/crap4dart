@@ -35,7 +35,7 @@ class GoldenGate implements Gate {
   @override
   Future<GateResult> run(GateContext context) async {
     if (!context.isFlutterProject) {
-      return GateResult.skip(id, notFlutterProjectReason);
+      return GateResult.skip(id, kNotFlutterProject);
     }
     final config = context.config.gates.golden;
     final widgets =
@@ -126,7 +126,7 @@ class GoldenGate implements Gate {
             ...Directory(p.join(projectRoot, dir))
                 .listSync(recursive: true)
                 .whereType<File>()
-                .where((f) => f.path.endsWith(dartFileExtension))
+                .where((f) => f.path.endsWith(kDartExtension))
                 .map((f) => f.path),
       ];
 }

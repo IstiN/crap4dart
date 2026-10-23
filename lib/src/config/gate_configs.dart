@@ -88,7 +88,7 @@ class GoldenGateConfig implements GateConfigFlags {
     this.ignorable = false,
     this.minWidgetCoverage = 80.0,
     this.widgetDirs = const ['lib'],
-    this.testDirs = const [testDirName],
+    this.testDirs = const [kTest],
     this.excludeWidgets = const [],
   });
 
@@ -504,7 +504,7 @@ class BrokenGoldensGateConfig implements GateConfigFlags {
     this.enabled = true,
     this.severity = GateSeverity.error,
     this.ignorable = false,
-    this.dirs = const [testDirName],
+    this.dirs = const [kTest],
     this.minStripeRun = 8,
     this.exclude = const [],
   });
@@ -646,6 +646,7 @@ class ScatteredConstantsGateConfig implements GateConfigFlags {
     this.minFiles = 3,
     this.minLength = 4,
     this.minValue = 100,
+    this.deepSearch = false,
     this.exclude = const [
       _generatedGlob,
       _freezedGlob,
@@ -674,6 +675,11 @@ class ScatteredConstantsGateConfig implements GateConfigFlags {
   /// Numbers with magnitude at or below this value are treated as
   /// coincidence and never flagged.
   final int minValue;
+
+  /// Whether dot-segment prefixes of dotted string literals count as
+  /// candidates (partial-reuse detection, e.g. `'gates'` inside
+  /// `'gates.loc'`, `'gates.nesting'`, ...).
+  final bool deepSearch;
 
   /// Glob patterns excluded from the gate.
   final List<String> exclude;

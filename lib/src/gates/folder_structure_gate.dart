@@ -67,7 +67,7 @@ class FolderStructureGate implements Gate {
   ) {
     var count = 0;
     for (final entity in Directory('${context.projectRoot}/$dir').listSync()) {
-      if (entity is! File || !entity.path.endsWith(dartFileExtension)) {
+      if (entity is! File || !entity.path.endsWith(kDartExtension)) {
         continue;
       }
       if (context.matchesAnyGlob(entity.path, config.exclude)) continue;
