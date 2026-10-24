@@ -80,6 +80,12 @@ void main() {
     expect(report['testCount'], 2);
     expect(report['gcCount'], isA<int>());
     expect(report['tests'], isA<List<dynamic>>());
+    // Dart engine: reclaimed-new-gen churn is real data, not null.
+    expect(report['churnAvailable'], isTrue);
+    expect(report['totalChurnMb'], isA<num>());
+    for (final test in report['tests'] as List<dynamic>) {
+      expect((test as Map<String, dynamic>)['churnNewMb'], isA<num>());
+    }
   }, timeout: const Timeout(Duration(minutes: 2)));
 
   test('memory exits 1 outside a Dart project', () async {

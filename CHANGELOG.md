@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.19.0 — 2026-10-24
+
+- Flutter memory reports no longer show a misleading `0.0` for
+  reclaimed-new-gen churn: the VM Service GC stream has no reclaimed
+  counters, so `churnNewMb` (per test/suite) and `totalChurnMb` are
+  JSON `null` there, a top-level `churnAvailable` flag says so, and
+  the console prints "new-gen churn unavailable". Use `allocatedMb` /
+  `totalAllocatedMb` (exact allocated bytes) as the churn metric on
+  both engines; `--badge` follows the same rule. Dart-engine output
+  is unchanged (numeric churn, `churnAvailable: true`).
+
 ## 0.18.0 — 2026-10-23
 
 - New `record_named_fields` gate: record type annotations with unnamed

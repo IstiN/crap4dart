@@ -24,7 +24,14 @@ class MemoryEntry {
   /// the Dart engine reports reclaimed new-gen volume instead).
   int? allocatedBytes;
 
+  /// Whether [churnNewMb] carries real data. The VM Service GC stream
+  /// (Flutter engine) has no reclaimed-new-gen counters, so the churn
+  /// proxy is unavailable there — serialized as `null`, never as a
+  /// misleading `0.0`; use [allocatedMb] (exact allocated bytes).
+  bool get churnAvailable => allocatedBytes == null;
+
   /// Reclaimed new-gen volume — the honest "allocated MB" proxy.
+  /// Only meaningful when [churnAvailable] is true.
   double get churnNewMb => gcs.fold(0, (sum, gc) => sum + gc.reclaimedNewMb);
 
   /// Signed old-gen growth: positive and never freed = leak suspect.
@@ -40,7 +47,8 @@ class MemoryEntry {
         'label': label,
         if (suitePath != null) 'suite': suitePath,
         'gcs': gcs.length,
-        'churnNewMb': double.parse(churnNewMb.toStringAsFixed(1)),
+        'churnNewMb':
+            churnAvailable ? double.parse(churnNewMb.toStringAsFixed(1)) : null,
         if (allocatedBytes != null)
           'allocatedMb': double.parse(allocatedMb.toStringAsFixed(1)),
         'oldGrowthMb': double.parse(oldGrowthMb.toStringAsFixed(1)),
@@ -61,7 +69,14 @@ class MemoryReport {
     required this.suites,
     required this.tests,
     required this.unattributedGcs,
+    this.churnAvailable = true,
   });
+
+  /// Whether [totalChurnMb] carries real data: false on the Flutter
+  /// engine (VM Service GC stream has no reclaimed-new-gen counters).
+  /// JSON/console surface `null`/unavailable instead of a fake 0.0;
+  /// [totalAllocatedMb] is the allocation-volume metric on both engines.
+  final bool churnAvailable;
 
   /// Tests executed (spans with a result).
   final int testCount;
@@ -95,7 +110,9 @@ class MemoryReport {
           if (test.gcs.isNotEmpty) test,
       ]..sort((a, b) => b.oldGrowthMb.compareTo(a.oldGrowthMb));
 
-  /// Total reclaimed new-gen MB across all GCs.
+  /// Total reclaimed new-gen MB across all GCs. Only meaningful when
+  /// [churnAvailable] is true (0.0 on the Flutter engine by absence
+  /// of counters, not by absence of churn).
   double get totalChurnMb =>
       totalGcs.fold(0, (sum, gc) => sum + gc.reclaimedNewMb);
 
