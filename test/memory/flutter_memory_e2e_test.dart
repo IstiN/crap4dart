@@ -34,5 +34,12 @@ void main() {
     expect(report.tests.single.allocatedMb, closeTo(45, 1));
     expect(report.tests.single.gcs, hasLength(1));
     expect(report.totalAllocatedMb, greaterThan(40));
+    // The VM Service GC stream has no reclaimed-new-gen counters:
+    // churn must surface as unavailable (null), never as a fake 0.0.
+    expect(report.churnAvailable, isFalse);
+    expect(report.tests.single.churnAvailable, isFalse);
+    expect(report.tests.single.toJson()['churnNewMb'], isNull);
+    expect(report.suites.single.toJson()['churnNewMb'], isNull);
+    expect(report.tests.single.toJson()['allocatedMb'], isNotNull);
   }, timeout: const Timeout(Duration(minutes: 2)));
 }

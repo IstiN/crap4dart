@@ -243,6 +243,15 @@ measure every traced `flutter_tester` spawn alongside it:
   the documented cost; spawn trace paths must not contain commas (the
   tool's plain `List.toString()` trace limitation).
 
+Reclaimed-new-gen churn exists only on the Dart engine (`--verbose_gc`
+table); the VM Service GC stream has no reclaimed counters, so on the
+Flutter engine `churnNewMb` (per entry) and `totalChurnMb` are JSON
+`null`, the top-level `churnAvailable` flag is `false`, and the console
+says "new-gen churn unavailable" — never a fake `0.0`. Use
+`allocatedMb` / `totalAllocatedMb` as the allocation-volume metric on
+both engines; the `--badge` value follows the same rule (churn on Dart,
+allocated volume on Flutter).
+
 The command is informational: it exits 0 after a successful run and 1
 on usage errors (no Dart or Flutter test suite found, no tests
 executed).
