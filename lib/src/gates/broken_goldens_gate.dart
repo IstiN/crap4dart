@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
 
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'tofu_detector.dart';
 import 'gate_context.dart';
@@ -33,7 +34,7 @@ class BrokenGoldensGate implements Gate {
   const BrokenGoldensGate();
 
   @override
-  String get id => 'broken_goldens';
+  String get id => GateIds.brokenGoldens;
 
   @override
   Future<GateResult> run(GateContext context) async {

@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -13,8 +14,6 @@ import 'workspace_pubspec.dart';
 const double _microsPerMillisecond = 1000.0;
 
 /// Directories and files the profiler works with.
-const String _testDirName = 'test';
-const String _pubspecFileName = 'pubspec.yaml';
 const String _dartToolDirName = '.dart_tool';
 
 /// Per-method timing data collected from an instrumented test run.
@@ -189,7 +188,7 @@ class ProfileRunner {
     File outputFile,
   ) {
     return _runner(
-      isFlutterProject(projectRoot) ? 'flutter' : 'dart',
+      isFlutterProject(projectRoot) ? kFlutter : kDart,
       testArgs,
       workingDirectory: tempDir.path,
       environment: {
@@ -220,7 +219,7 @@ class ProfileRunner {
     // selector as requested, or it profiles the WHOLE suite in addition to
     // the given files.
     final args = <String>[
-      'test',
+      kTest,
       if (!isFlutter) ...<String>['--compiler', 'source'],
     ];
 
@@ -347,7 +346,7 @@ class ProfileRunner {
     for (final entity in Directory(projectRoot).listSync()) {
       final name = p.basename(entity.path);
       if (_isManagedCopy(name)) continue;
-      if (skipPubspec && name == _pubspecFileName) continue;
+      if (skipPubspec && name == kPubspec) continue;
       final target = p.join(tempDir.path, name);
       try {
         Link(target).createSync(entity.path, recursive: false);
@@ -363,15 +362,15 @@ class ProfileRunner {
       name == 'lib' ||
       name == 'build' ||
       name == _dartToolDirName ||
-      name == _testDirName;
+      name == kTest;
 
   /// Copies `test/` into [tempDir] — it must contain real files, not
   /// symlinks, because `dart test` resolves `package:` imports relative
   /// to the test file's real path, not to the working directory.
   void _copyTestDir(String projectRoot, Directory tempDir) {
-    final testDir = Directory(p.join(projectRoot, _testDirName));
+    final testDir = Directory(p.join(projectRoot, kTest));
     if (testDir.existsSync()) {
-      _copyPath(testDir.path, p.join(tempDir.path, _testDirName));
+      _copyPath(testDir.path, p.join(tempDir.path, kTest));
     }
   }
 
@@ -429,7 +428,7 @@ class ProfileRunner {
       if (entity is Directory) {
         Directory(destPath).createSync(recursive: true);
         _instrumentDir(entity, Directory(destPath), instrumenter, projectRoot);
-      } else if (entity is File && entity.path.endsWith('.dart')) {
+      } else if (entity is File && entity.path.endsWith(kDartExtension)) {
         final source = entity.readAsStringSync();
         final instrumented =
             instrumenter.instrument(source, filePath: relative);
@@ -498,10 +497,10 @@ class ProfileRunner {
 
   /// Reads the package name from `pubspec.yaml`.
   String? _readPackageName(String root) {
-    final pubspec = File(p.join(root, _pubspecFileName));
+    final pubspec = File(p.join(root, kPubspec));
     if (!pubspec.existsSync()) return null;
     final match = RegExp(
-      r'^name:\s*(.+)$',
+      kPubspecNamePattern,
       multiLine: true,
     ).firstMatch(pubspec.readAsStringSync());
     return match?.group(1)?.trim();
@@ -511,7 +510,7 @@ class ProfileRunner {
   /// the package is a workspace member whose resolution lives in a parent
   /// workspace pubspec that does not list the profiling temp dir.
   bool _isWorkspaceMember(String root) {
-    final pubspec = File(p.join(root, _pubspecFileName));
+    final pubspec = File(p.join(root, kPubspec));
     if (!pubspec.existsSync()) return false;
     return RegExp(
       r'^resolution:\s*workspace\s*$',
@@ -524,7 +523,7 @@ class ProfileRunner {
   /// temp dir needs its own resolution before the tests can run.
   Future<bool> _runPubGet(String projectRoot, Directory tempDir) async {
     final result = await _runner(
-      isFlutterProject(projectRoot) ? 'flutter' : 'dart',
+      isFlutterProject(projectRoot) ? kFlutter : kDart,
       ['pub', 'get'],
       workingDirectory: tempDir.path,
     );

@@ -25,7 +25,7 @@ class MutationExecution {
     this.timeoutSeconds = 60,
     this.maxMutants = 500,
     this.cache = true,
-    this.testArgs = const ['test'],
+    this.testArgs = const [kTest],
     this.testScope = false,
   });
 
@@ -71,10 +71,10 @@ class MutationGateConfig implements GateConfigFlags {
     this.execution = const MutationExecution(),
     this.operators = mutationOperatorCategories,
     this.exclude = const [
-      _generatedGlob,
-      _freezedGlob,
-      _mocksGlob,
-      _testGlob,
+      kGeneratedGlob,
+      kFreezedGlob,
+      kMocksGlob,
+      kTestGlob,
     ],
   });
 

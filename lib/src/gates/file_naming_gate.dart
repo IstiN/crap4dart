@@ -1,6 +1,8 @@
+import '../common/constants.dart';
 import 'package:path/path.dart' as p;
 
 import '../config/config.dart';
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
@@ -34,7 +36,7 @@ class FileNamingGate implements Gate {
   };
 
   @override
-  String get id => 'file_naming';
+  String get id => GateIds.fileNaming;
 
   @override
   Future<GateResult> run(GateContext context) async {
@@ -46,7 +48,7 @@ class FileNamingGate implements Gate {
     final violations = <GateViolation>[];
     var checked = 0;
     for (final file in context.files) {
-      if (p.extension(file) != '.dart') continue;
+      if (p.extension(file) != kDartExtension) continue;
       if (context.matchesAnyGlob(file, config.exclude)) continue;
       checked++;
       final message = _violationFor(file, allowed);

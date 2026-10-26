@@ -7,8 +7,9 @@ const String _excludeKey = 'exclude';
 const String _dirsKey = 'dirs';
 const String _maxParamsKey = 'max_params';
 const String _maxComplexityKey = 'max_complexity';
-const String _locEntriesCtx = 'gates.loc.entries';
-const String _complexityEntriesCtx = 'gates.complexity.entries';
+const String _locEntriesCtx = '$kGatePrefix.${GateIds.loc}.entries';
+const String _complexityEntriesCtx =
+    '$kGatePrefix.${GateIds.complexity}.entries';
 
 /// Reads the per-gate sub-configs under the `gates` key; each reader
 /// validates its gate's keys and applies per-key defaults from [base].
@@ -18,7 +19,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.loc',
+      '$kGatePrefix.${GateIds.loc}',
       const {
         _enabledKey,
         _severityKey,
@@ -63,7 +64,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.test_coverage',
+      '$kGatePrefix.${GateIds.testCoverage}',
       const {
         _enabledKey,
         _severityKey,
@@ -97,7 +98,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.golden',
+      '$kGatePrefix.${GateIds.golden}',
       const {
         _enabledKey,
         _severityKey,
@@ -135,7 +136,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.hardcoded_strings',
+      '$kGatePrefix.${GateIds.hardcodedStrings}',
       const {
         _enabledKey,
         _severityKey,
@@ -167,7 +168,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.accessibility',
+      '$kGatePrefix.${GateIds.accessibility}',
       const {_enabledKey, _severityKey, _ignorableKey, 'require_label_for'},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -191,7 +192,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.complexity',
+      '$kGatePrefix.${GateIds.complexity}',
       const {
         _enabledKey,
         _severityKey,
@@ -243,7 +244,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.method_size',
+      '$kGatePrefix.${GateIds.methodSize}',
       const {
         _enabledKey,
         _severityKey,
@@ -273,7 +274,7 @@ class _GateConfigReaders {
     String path,
   ) {
     if (node == null) return const [];
-    const ctx = 'gates.method_size.entries';
+    const ctx = '$kGatePrefix.${GateIds.methodSize}.entries';
     return _ConfigScalars.entryMaps(node, ctx, path).map((entry) {
       _ConfigScalars.checkKeys(
           entry, const {_maxLinesKey, _maxParamsKey, 'paths'}, path, ctx);
@@ -305,7 +306,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.nesting',
+      '$kGatePrefix.${GateIds.nesting}',
       const {_enabledKey, _severityKey, _ignorableKey, 'max_nesting'},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -329,7 +330,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.class_size',
+      '$kGatePrefix.${GateIds.classSize}',
       const {
         _enabledKey,
         _severityKey,
@@ -361,7 +362,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.weight_of_class',
+      '$kGatePrefix.${GateIds.weightOfClass}',
       const {
         _enabledKey,
         _severityKey,
@@ -393,7 +394,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.unused_code',
+      '$kGatePrefix.${GateIds.unusedCode}',
       const {_enabledKey, _severityKey, _ignorableKey, _excludeKey},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -417,7 +418,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.unused_files',
+      '$kGatePrefix.${GateIds.unusedFiles}',
       const {_enabledKey, _severityKey, _ignorableKey, _dirsKey, _excludeKey},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -442,7 +443,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.banned_imports',
+      '$kGatePrefix.${GateIds.bannedImports}',
       const {_enabledKey, _severityKey, _ignorableKey, 'rules'},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -464,11 +465,11 @@ class _GateConfigReaders {
     if (node is! YamlList) {
       throw ConfigException(
         path,
-        'gates.banned_imports.rules',
+        '$kGatePrefix.${GateIds.bannedImports}.rules',
         'expected a list of rules',
       );
     }
-    const ctx = 'gates.banned_imports.rules';
+    const ctx = '$kGatePrefix.${GateIds.bannedImports}.rules';
     return [
       for (final n in node.nodes) _readBannedImportRule(n, path, ctx),
     ];
@@ -511,7 +512,7 @@ class _GateConfigReaders {
   /// An optional string value at [key], when not `null`.
   static String? _optionalString(Object? value, String key, String path) {
     if (value != null && value is! String) {
-      throw ConfigException(path, key, 'expected a string');
+      throw ConfigException(path, key, _expectedStringMsg);
     }
     return value as String?;
   }
@@ -525,7 +526,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.public_docs',
+      '$kGatePrefix.${GateIds.publicDocs}',
       const {_enabledKey, _severityKey, _ignorableKey, _excludeKey},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -549,7 +550,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.duplication',
+      '$kGatePrefix.${GateIds.duplication}',
       const {
         _enabledKey,
         _severityKey,
@@ -618,7 +619,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.file_naming',
+      '$kGatePrefix.${GateIds.fileNaming}',
       const {_enabledKey, _severityKey, _ignorableKey, _excludeKey, 'allow'},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -643,7 +644,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.magic_constants',
+      '$kGatePrefix.${GateIds.magicConstants}',
       const {
         _enabledKey,
         _severityKey,

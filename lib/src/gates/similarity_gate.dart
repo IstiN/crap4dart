@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import '../similarity/similarity_analyzer.dart';
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
@@ -19,7 +20,7 @@ class SimilarityGate implements Gate {
   const SimilarityGate();
 
   @override
-  String get id => 'similarity';
+  String get id => GateIds.similarity;
 
   @override
   Future<GateResult> run(GateContext context) async {

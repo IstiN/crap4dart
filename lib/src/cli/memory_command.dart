@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -28,9 +29,9 @@ class MemoryCommand extends Command<int> {
       )
       ..addOption(
         _formatOption,
-        allowed: ['console', 'json'],
-        defaultsTo: 'console',
-        help: 'Output format.',
+        allowed: [kConsole, kJson],
+        defaultsTo: kConsole,
+        help: kOutputFormatHelp,
       )
       ..addOption(
         _badgeOption,
@@ -40,7 +41,7 @@ class MemoryCommand extends Command<int> {
       )
       ..addOption(
         _engineOption,
-        allowed: ['auto', 'dart', 'flutter'],
+        allowed: ['auto', kDart, kFlutter],
         defaultsTo: 'auto',
         help: 'Test engine: auto-detects Flutter from pubspec.yaml. '
             'Flutter mode rides `flutter test --verbose` and re-runs each '
@@ -73,7 +74,7 @@ class MemoryCommand extends Command<int> {
       stderr.writeln(_noSuiteMessage(root));
       return ExitCodes.usageError;
     }
-    final report = engine == 'flutter'
+    final report = engine == kFlutter
         ? await _profileFlutter(root)
         : await _profileDart(root);
     if (report.testCount == 0) {
@@ -85,16 +86,13 @@ class MemoryCommand extends Command<int> {
     return ExitCodes.success;
   }
 
-  static const _engineDart = 'dart';
-  static const _engineFlutter = 'flutter';
-
   /// `dart`, `flutter`, or `none` (no suite at all).
   String _resolveEngine(String root) {
     final chosen = argResults![_engineOption] as String?;
     final isFlutter = _isFlutterProject(root);
-    if (chosen == _engineDart || chosen == _engineFlutter) return chosen!;
+    if (chosen == kDart || chosen == kFlutter) return chosen!;
     if (_isDartProject(root) || isFlutter) {
-      return isFlutter ? _engineFlutter : _engineDart;
+      return isFlutter ? kFlutter : kDart;
     }
     return 'none';
   }
@@ -117,7 +115,7 @@ class MemoryCommand extends Command<int> {
 
   /// Whether [root] declares the Flutter SDK dependency.
   bool _isFlutterProject(String root) {
-    final pubspec = File(p.join(root, 'pubspec.yaml'));
+    final pubspec = File(p.join(root, kPubspec));
     if (!pubspec.existsSync()) return false;
     return pubspec.readAsStringSync().contains(
           RegExp('^  flutter:\\s*\$', multiLine: true),
@@ -156,7 +154,7 @@ class MemoryCommand extends Command<int> {
   /// Prints the report in the selected format.
   void _printReport(MemoryReport report) {
     final top = int.tryParse(argResults![_topOption] as String) ?? 20;
-    if (argResults![_formatOption] == 'json') {
+    if (argResults![_formatOption] == kJson) {
       _printJson(report);
     } else {
       _printConsole(report, top);
@@ -167,8 +165,8 @@ class MemoryCommand extends Command<int> {
   /// dependency requirement — that check needs resolution, keep it
   /// light).
   bool _isDartProject(String root) {
-    final pubspec = File(p.join(root, 'pubspec.yaml'));
-    return pubspec.existsSync() && Directory(p.join(root, 'test')).existsSync();
+    final pubspec = File(p.join(root, kPubspec));
+    return pubspec.existsSync() && Directory(p.join(root, kTest)).existsSync();
   }
 
   /// The console report.
@@ -234,7 +232,7 @@ class MemoryCommand extends Command<int> {
 }
 
 const String _topOption = 'top';
-const String _formatOption = 'format';
+const String _formatOption = kFormat;
 const String _engineOption = 'engine';
 const String _badgeOption = 'badge';
 const String _badgeThresholdOption = 'badge-threshold';

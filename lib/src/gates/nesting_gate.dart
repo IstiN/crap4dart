@@ -2,6 +2,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analysis/method_extractor.dart';
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
@@ -16,7 +17,7 @@ class NestingGate implements Gate {
   const NestingGate();
 
   @override
-  String get id => 'nesting';
+  String get id => GateIds.nesting;
 
   @override
   Future<GateResult> run(GateContext context) async {

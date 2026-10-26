@@ -1,3 +1,5 @@
+import '../common/constants.dart';
+
 /// Template written by `crap4dart init`.
 ///
 /// Every gate supports two common keys (shown here once):
@@ -16,7 +18,7 @@ const String defaultConfigTemplate = '''
 
 # Files excluded from analysis in every mode (glob patterns relative
 # to the project root).
-# exclude: ['example/**', 'tool/**', '**.g.dart']
+# exclude: ['example/**', 'tool/**', '$kGeneratedGlob']
 
 # CRAP metric analysis settings ("analyze" command).
 crap:
@@ -67,9 +69,9 @@ gates:
       #   paths: ['lib/legacy/**']
     # Glob patterns excluded from the gate.
     exclude:
-      - '**.g.dart'
-      - '**.freezed.dart'
-      - '**.mocks.dart'
+      - '$kGeneratedGlob'
+      - '$kFreezedGlob'
+      - '$kMocksGlob'
   # Enforce a minimum test coverage percentage.
   test_coverage:
     enabled: true
@@ -168,9 +170,9 @@ gates:
     max_weight: 0.33
     # Glob patterns excluded from the gate.
     exclude:
-      - '**.g.dart'
-      - '**.freezed.dart'
-      - '**.mocks.dart'
+      - '$kGeneratedGlob'
+      - '$kFreezedGlob'
+      - '$kMocksGlob'
   # Flag private declarations never referenced in the analyzed sources
   # (dead methods, fields, classes AI agents tend to leave behind).
   unused_code:
@@ -178,9 +180,9 @@ gates:
     # Glob patterns whose files are ignored entirely (declarations and
     # references).
     exclude:
-      - '**.g.dart'
-      - '**.freezed.dart'
-      - '**.mocks.dart'
+      - '$kGeneratedGlob'
+      - '$kFreezedGlob'
+      - '$kMocksGlob'
       - 'bin/**'
   # Flag files under `dirs` that are never imported by any analyzed
   # file (orphans of refactoring). Files with main() and part-of
@@ -191,9 +193,9 @@ gates:
     dirs: [lib]
     # Glob patterns excluded from the gate.
     exclude:
-      - '**.g.dart'
-      - '**.freezed.dart'
-      - '**.mocks.dart'
+      - '$kGeneratedGlob'
+      - '$kFreezedGlob'
+      - '$kMocksGlob'
   # Enforce architectural boundaries: forbid imports matching `forbid`
   # globs in files matching `from`. With no rules the gate passes.
   banned_imports:
@@ -231,23 +233,48 @@ gates:
     skip_duplicate_files: false
     # Glob patterns excluded from the gate.
     exclude:
-      - '**.g.dart'
-      - '**.freezed.dart'
-      - '**.mocks.dart'
+      - '$kGeneratedGlob'
+      - '$kFreezedGlob'
+      - '$kMocksGlob'
       - 'test/**'
     # Extra file/directory paths scanned for duplication (cross-module
     # checks), unioned with the analyzed source set.
     # sources:
     #   - 'flutter_app/lib'
     #   - 'packages/fa_ui/lib'
+  # Flag literals (strings of min_length+ chars, numbers of
+  # min_value+ magnitude) appearing in min_files+ distinct files —
+  # one business fact hardcoded in many places. Extract a shared
+  # constant and verify all occurrences mean the same thing.
+  scattered_constants:
+    enabled: true
+    severity: warning
+    min_files: 3
+    min_length: 4
+    min_value: 100
+    # Literal values never flagged (fast-development repos: generic
+    # vocabulary whose extraction adds churn without benefit).
+    # Whole literals match by value, prefixes by head, numbers by
+    # their decimal form.
+    # ignore: [test, dart, flutter]
+    # Glob patterns excluded from the gate.
+    exclude:
+      - '$kGeneratedGlob'
+      - '$kFreezedGlob'
+      - '$kMocksGlob'
+      - 'test/**'
+      - 'test/**'
+  # and substring candidates against existing named constants —
+  # partial reuse the whole-value gate cannot see. Findings are
+  # candidates; verify intent before extracting.
   # Forbid mechanical file names (numeric suffixes, generic names).
   file_naming:
     enabled: true
     # Glob patterns excluded from the gate.
     exclude:
-      - '**.g.dart'
-      - '**.freezed.dart'
-      - '**.mocks.dart'
+      - '$kGeneratedGlob'
+      - '$kFreezedGlob'
+      - '$kMocksGlob'
       - 'test/**'
     # Extra whole-stem names allowed to end in digits (technical terms).
     allow: []
@@ -263,9 +290,9 @@ gates:
     min_length: 4
     # Glob patterns excluded from the gate.
     exclude:
-      - '**.g.dart'
-      - '**.freezed.dart'
-      - '**.mocks.dart'
+      - '$kGeneratedGlob'
+      - '$kFreezedGlob'
+      - '$kMocksGlob'
       - 'test/**'
   # Scan golden PNG files for rendered error artifacts: overflow
   # stripes (yellow/black) and build-error screens (dark red). Golden
@@ -368,9 +395,9 @@ gates:
     scope_tests: false
     # Glob patterns excluded from the gate.
     exclude:
-      - '**.g.dart'
-      - '**.freezed.dart'
-      - '**.mocks.dart'
+      - '$kGeneratedGlob'
+      - '$kFreezedGlob'
+      - '$kMocksGlob'
       - 'test/**'
   # Require dartdoc comments on the public API.
   public_docs:

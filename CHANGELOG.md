@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.21.0 — 2026-10-23
+
+- `scattered_constants` v2: new constant-regression rule — when a
+  named `const` for a value already exists in the corpus, every
+  hardcoded re-introduction flags immediately (any occurrence count),
+  naming the constant and its `file:line`; scattered literals (no
+  constant, `min_files`+ files) keep the extract-and-verify message.
+- `scattered_fragments` gate removed — too noisy in practice; parked
+  on the `feature/scattered-constants-gate` branch (0.20.0) should we
+  return to it.
+
 ## 0.19.0 — 2026-10-24
 
 - Flutter memory reports no longer show a misleading `0.0` for

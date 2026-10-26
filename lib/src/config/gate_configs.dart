@@ -6,12 +6,9 @@ part of 'config.dart';
 // ignore_for_file: annotate_overrides
 
 /// Default exclude globs for generated files, shared by gate defaults.
-const String _generatedGlob = '**.g.dart';
-const String _freezedGlob = '**.freezed.dart';
-const String _mocksGlob = '**.mocks.dart';
 
 /// Default glob excluding test sources from generated-code gates.
-const String _testGlob = 'test/**';
+const String kTestGlob = 'test/**';
 
 /// File size gate settings (`loc`).
 class LocGateConfig implements GateConfigFlags {
@@ -22,7 +19,7 @@ class LocGateConfig implements GateConfigFlags {
     this.ignorable = false,
     this.maxLines = 800,
     this.entries = const [],
-    this.exclude = const [_generatedGlob, _freezedGlob, _mocksGlob],
+    this.exclude = const [kGeneratedGlob, kFreezedGlob, kMocksGlob],
   });
 
   /// Whether the gate is enabled.
@@ -88,7 +85,7 @@ class GoldenGateConfig implements GateConfigFlags {
     this.ignorable = false,
     this.minWidgetCoverage = 80.0,
     this.widgetDirs = const ['lib'],
-    this.testDirs = const ['test'],
+    this.testDirs = const [kTest],
     this.excludeWidgets = const [],
   });
 
@@ -368,7 +365,7 @@ class WeightOfClassGateConfig implements GateConfigFlags {
     this.severity = GateSeverity.error,
     this.ignorable = false,
     this.maxWeight = 0.33,
-    this.exclude = const [_generatedGlob, _freezedGlob, _mocksGlob],
+    this.exclude = const [kGeneratedGlob, kFreezedGlob, kMocksGlob],
   });
 
   /// Whether the gate is enabled (off by default: data/model classes are
@@ -442,9 +439,9 @@ class UnusedCodeGateConfig implements GateConfigFlags {
     this.severity = GateSeverity.error,
     this.ignorable = false,
     this.exclude = const [
-      _generatedGlob,
-      _freezedGlob,
-      _mocksGlob,
+      kGeneratedGlob,
+      kFreezedGlob,
+      kMocksGlob,
       'bin/**',
     ],
   });
@@ -473,9 +470,9 @@ class UnusedFilesGateConfig implements GateConfigFlags {
     this.ignorable = false,
     this.dirs = const ['lib'],
     this.exclude = const [
-      _generatedGlob,
-      _freezedGlob,
-      _mocksGlob,
+      kGeneratedGlob,
+      kFreezedGlob,
+      kMocksGlob,
     ],
   });
 
@@ -504,7 +501,7 @@ class BrokenGoldensGateConfig implements GateConfigFlags {
     this.enabled = true,
     this.severity = GateSeverity.error,
     this.ignorable = false,
-    this.dirs = const ['test'],
+    this.dirs = const [kTest],
     this.minStripeRun = 8,
     this.exclude = const [],
   });
@@ -603,10 +600,10 @@ class MagicConstantsGateConfig implements GateConfigFlags {
     this.minDuplicates = 3,
     this.minLength = 4,
     this.exclude = const [
-      _generatedGlob,
-      _freezedGlob,
-      _mocksGlob,
-      _testGlob,
+      kGeneratedGlob,
+      kFreezedGlob,
+      kMocksGlob,
+      kTestGlob,
     ],
   });
 
@@ -635,6 +632,10 @@ class MagicConstantsGateConfig implements GateConfigFlags {
   /// Glob patterns excluded from the gate.
   final List<String> exclude;
 }
+
+/// Common shape of the two scattered-literal gate configs
+/// (`scattered_constants`, `scattered_fragments`); `_readCommon`
+/// builds it and the subclass `withBase` constructors consume it.
 
 /// One external-tool rule of the `external` gate.
 class ExternalToolRule {

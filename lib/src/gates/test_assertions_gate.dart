@@ -1,9 +1,15 @@
+import '../common/constants.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
 
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
+
+/// Test declaration names of package:test — the protocol this
+/// gate recognizes.
+const _testFunctionNames = {kTest, 'testWidgets'};
 
 /// The `test_assertions` gate: flags `test()`/`testWidgets()` bodies
 /// that contain fewer than `min_assertions` assertion calls
@@ -28,7 +34,7 @@ class TestAssertionsGate implements Gate {
   };
 
   @override
-  String get id => 'test_assertions';
+  String get id => GateIds.testAssertions;
 
   @override
   Future<GateResult> run(GateContext context) async {
@@ -82,7 +88,7 @@ class _TestBodyVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     final name = node.methodName.name;
-    if (name == 'test' || name == 'testWidgets') {
+    if (_testFunctionNames.contains(name)) {
       _registerTest(node, name);
     }
     super.visitMethodInvocation(node);

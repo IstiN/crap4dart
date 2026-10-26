@@ -53,17 +53,39 @@ gates:
     max_lines: 80
     max_params: 8
     # Dogfooding `entries`: config aggregate/flag classes legitimately
-    # need more params than a method — GatesConfig aggregates 23 gate
-    # configs (one param each) and SimilarityGateConfig carries the
-    # flag triplet + 6 similarity-specific keys.
+    # need more params than a method — GatesConfig aggregates 27 gate
+    # configs (one param each), SimilarityGateConfig carries the flag
+    # triplet + 6 similarity keys, ScatteredConstantsGateConfig adds
+    # the deep-search knobs.
     entries:
-      - max_params: 24
+      - max_params: 27
         paths:
           - 'lib/src/config/config.dart'
           - 'lib/src/config/similarity_gate_config.dart'
+      - max_params: 10
+        paths:
+          - 'lib/src/config/gate_configs.dart'
+          - 'lib/src/config/gate_configs_scattered.dart'
   public_docs:
     enabled: true
     exclude:
+      - 'test/**'
+  # Wave-7 cross-file aggregation: one business fact hardcoded in N
+  # files (the "change 86400 in every service" hazard) is invisible to
+  # the in-file magic_constants gate. Flags one violation per
+  # occurrence; the fix is a shared constant — verify the occurrences
+  # really mean the same thing first.
+  # Cross-file literal scatter (word + prefix heads). ignore: plain
+  # words silence the value, entries with a slash exempt files
+  # (fast-moving or special domains where extraction is not wanted).
+  scattered_constants:
+    enabled: true
+    severity: warning
+    min_files: 3
+    exclude:
+      - '**.g.dart'
+      - '**.freezed.dart'
+      - '**.mocks.dart'
       - 'test/**'
   # File-level near-duplicate detection (crap4dart >=0.15.0): docs
   # corpora rot through copy-paste; this catches new near-copies.

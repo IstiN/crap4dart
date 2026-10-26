@@ -13,10 +13,10 @@ class FileNamingGateConfig implements GateConfigFlags {
     this.severity = GateSeverity.error,
     this.ignorable = false,
     this.exclude = const [
-      _generatedGlob,
-      _freezedGlob,
-      _mocksGlob,
-      _testGlob,
+      kGeneratedGlob,
+      kFreezedGlob,
+      kMocksGlob,
+      kTestGlob,
     ],
     this.allow = defaultAllowedStems,
   });
@@ -97,7 +97,7 @@ class PublicDocsGateConfig implements GateConfigFlags {
     this.enabled = true,
     this.severity = GateSeverity.error,
     this.ignorable = false,
-    this.exclude = const [_testGlob],
+    this.exclude = const [kTestGlob],
   });
 
   /// Whether the gate is enabled.
@@ -196,10 +196,10 @@ class DuplicationGateConfig implements GateConfigFlags {
     this.report = DuplicationReport.percentage,
     this.matching = const DuplicationMatching(),
     this.exclude = const [
-      _generatedGlob,
-      _freezedGlob,
-      _mocksGlob,
-      _testGlob,
+      kGeneratedGlob,
+      kFreezedGlob,
+      kMocksGlob,
+      kTestGlob,
     ],
     this.sources = const [],
   });

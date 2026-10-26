@@ -3,6 +3,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analysis/dart_parser.dart';
 import 'file_visitor.dart';
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
@@ -15,7 +16,7 @@ class WeightOfClassGate implements Gate {
   const WeightOfClassGate();
 
   @override
-  String get id => 'weight_of_class';
+  String get id => GateIds.weightOfClass;
 
   @override
   Future<GateResult> run(GateContext context) async {

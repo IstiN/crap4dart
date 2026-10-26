@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import 'package:glob/glob.dart';
@@ -52,14 +53,14 @@ class GateContext {
 
   /// The `name:` of the project's pubspec.yaml, or `null` when absent.
   String? get packageName => _packageName ??= _readPackageName(
-        p.join(projectRoot, 'pubspec.yaml'),
+        p.join(projectRoot, kPubspec),
       );
 
   String? _readPackageName(String pubspecPath) {
     try {
       final content = File(pubspecPath).readAsStringSync();
       final match = RegExp(
-        r'^name:\s*(.+)$',
+        kPubspecNamePattern,
         multiLine: true,
       ).firstMatch(content);
       return match?.group(1)?.trim();
@@ -127,4 +128,43 @@ class GateContext {
   /// Whether the pubspec at [root] declares a `flutter` dependency.
   static bool isFlutterProjectAt(String root) =>
       files_flutter.isFlutterProject(root);
+}
+
+/// One scanned corpus file: the parsed unit and its project-relative
+/// path.
+typedef ParsedCorpusFile = ({dynamic parsed, String relativePath});
+
+/// One scanned corpus file: absolute and project-relative paths.
+typedef ScannedFile = ({String file, String relativePath});
+
+/// Corpus iteration shared by the corpus-wide gates.
+extension GateContextScan on GateContext {
+  /// Yields (absolute file, project-relative path) pairs minus
+  /// [exclude] and [ignorePaths] files — excluded and ignored paths
+  /// contribute nothing.
+  Iterable<ScannedFile> scanCorpus(
+    List<String> exclude,
+    List<String> ignorePaths,
+  ) sync* {
+    for (final file in files) {
+      if (matchesAnyGlob(file, exclude) || matchesAnyGlob(file, ignorePaths)) {
+        continue;
+      }
+      yield (file: file, relativePath: relativePath(file));
+    }
+  }
+
+  /// Parsed units of [scanCorpus], yielding each unit with its
+  /// project-relative path.
+  Iterable<ParsedCorpusFile> parsedCorpus(
+    List<String> exclude,
+    List<String> ignorePaths,
+  ) sync* {
+    for (final scanned in scanCorpus(exclude, ignorePaths)) {
+      yield (
+        parsed: parsed(scanned.file),
+        relativePath: scanned.relativePath,
+      );
+    }
+  }
 }

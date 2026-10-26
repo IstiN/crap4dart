@@ -3,8 +3,12 @@ import 'dart:io';
 import 'package:xml/xml.dart';
 
 import '../config/config.dart';
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
+
+/// The Checkstyle XML element carrying one tool finding.
+const String _errorTag = 'error';
 
 /// The `external` gate: wraps external static-analysis tools (detekt,
 /// ktlint, swiftlint, ...) behind one config. Each rule runs an
@@ -16,7 +20,7 @@ class ExternalGate implements Gate {
   const ExternalGate();
 
   @override
-  String get id => 'external';
+  String get id => GateIds.external;
 
   @override
   Future<GateResult> run(GateContext context) async {
@@ -83,7 +87,7 @@ class ExternalGate implements Gate {
     final document = XmlDocument.parse(report.readAsStringSync());
     for (final file in document.findAllElements('file')) {
       final path = file.getAttribute('name') ?? '';
-      for (final child in file.findElements('error')) {
+      for (final child in file.findElements(_errorTag)) {
         final line = int.tryParse(child.getAttribute('line') ?? '');
         violations.add(
           GateViolation(

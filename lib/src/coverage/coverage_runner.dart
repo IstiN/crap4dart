@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -27,7 +28,6 @@ class CoverageRunner {
   final ProcessSpawner _spawn;
 
   /// Default LCOV output path, relative to the project root.
-  static const String defaultLcovPath = 'coverage/lcov.info';
 
   /// Runs the tests of the project at [projectRoot] and returns the path to
   /// the generated `lcov.info`, or `null` when coverage could not be
@@ -45,7 +45,7 @@ class CoverageRunner {
   }
 
   Future<String?> _run(String projectRoot) async {
-    final lcovPath = p.join(projectRoot, defaultLcovPath);
+    final lcovPath = p.join(projectRoot, kDefaultLcovPath);
     final isFlutter = isFlutterProject(projectRoot);
     stderr.writeln(
       isFlutter
@@ -53,10 +53,10 @@ class CoverageRunner {
           : 'Running "dart test --coverage"...',
     );
     final testResult = await _spawn(
-      isFlutter ? 'flutter' : 'dart',
+      isFlutter ? kFlutter : kDart,
       isFlutter
-          ? const ['test', '--coverage']
-          : const ['test', '--coverage=coverage'],
+          ? const [kTest, '--coverage']
+          : const [kTest, '--coverage=coverage'],
       workingDirectory: projectRoot,
     );
     if (testResult.exitCode != 0) {
@@ -76,7 +76,7 @@ class CoverageRunner {
   Future<void> _formatCoverage(String projectRoot) async {
     stderr.writeln('Formatting coverage with "coverage:format_coverage"...');
     final result = await _spawn(
-      'dart',
+      kDart,
       const [
         'pub',
         'global',
@@ -86,7 +86,7 @@ class CoverageRunner {
         '--in',
         'coverage',
         '--out',
-        'coverage/lcov.info',
+        kDefaultLcovPath,
         '--report-on',
         'lib',
       ],

@@ -1,6 +1,6 @@
 part of 'config_loader.dart';
 
-const String _externalCtx = 'gates.external';
+const String _externalCtx = '$kGatePrefix.${GateIds.external}';
 
 /// Readers for the newer gates (broken_goldens, test_assertions,
 /// folder_structure) — split out of [_GateConfigReaders] to keep both
@@ -15,7 +15,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      'gates.broken_goldens',
+      '$kGatePrefix.${GateIds.brokenGoldens}',
       const {
         _enabledKey,
         _severityKey,
@@ -49,7 +49,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      'gates.similarity',
+      '$kGatePrefix.${GateIds.similarity}',
       const {
         _enabledKey,
         _severityKey,
@@ -92,7 +92,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      'gates.test_assertions',
+      '$kGatePrefix.${GateIds.testAssertions}',
       const {
         _enabledKey,
         _severityKey,
@@ -124,7 +124,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      'gates.folder_structure',
+      '$kGatePrefix.${GateIds.folderStructure}',
       const {
         _enabledKey,
         _severityKey,
@@ -158,7 +158,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      'gates.mutation',
+      '$kGatePrefix.${GateIds.mutation}',
       const {
         _enabledKey,
         _severityKey,
@@ -264,7 +264,7 @@ class _ExtendedGateConfigReaders {
     if (node is! YamlList) {
       throw ConfigException(
         path,
-        'gates.external.rules',
+        '$kGatePrefix.${GateIds.external}.rules',
         'expected a list of rules',
       );
     }
@@ -275,7 +275,7 @@ class _ExtendedGateConfigReaders {
 
   /// Parses one `gates.external.rules` entry.
   static ExternalToolRule _readExternalRule(Object? n, String path) {
-    const ctx = 'gates.external.rules';
+    const ctx = '$kGatePrefix.${GateIds.external}.rules';
     if (n is! YamlMap) {
       throw ConfigException(path, ctx, 'expected rule maps');
     }
@@ -287,7 +287,7 @@ class _ExtendedGateConfigReaders {
         _ConfigScalars.strList(n, 'arguments', const [], path, ctx);
     final report = n['report'];
     if (report != null && report is! String) {
-      throw ConfigException(path, '$ctx.report', 'expected a string');
+      throw ConfigException(path, '$ctx.report', _expectedStringMsg);
     }
     return ExternalToolRule(
       id: id,
@@ -309,6 +309,92 @@ class _ExtendedGateConfigReaders {
     throw ConfigException(path, '$ctx.$key', 'expected a non-empty string');
   }
 
+  /// YAML keys shared by the two scattered-literal readers.
+  static const _minFilesKey = 'min_files';
+  static const _minLengthKey = 'min_length';
+  static const _minValueKey = 'min_value';
+
+  static ScatteredGateConfig readScatteredConstants(
+    Object? node,
+    ScatteredGateConfig base,
+    String path,
+  ) {
+    return _readScatteredGate(
+        node, base, path, GateIds.scatteredConstants, const {
+      _enabledKey,
+      _severityKey,
+      _ignorableKey,
+      _minFilesKey,
+      _minLengthKey,
+      _minValueKey,
+      'ignore',
+      _excludeKey
+    });
+  }
+
+  /// The shared body of the two scattered-literal readers: one config
+  /// class, two yaml key surfaces.
+  static ScatteredGateConfig _readScatteredGate(
+    Object? node,
+    ScatteredGateConfig base,
+    String path,
+    String ctx,
+    Set<String> keys,
+  ) {
+    return _ConfigScalars.readGateConfig(
+      node,
+      base,
+      path,
+      ctx,
+      keys,
+      (map, base, path, ctx) {
+        final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
+        return ScatteredGateConfig(
+          enabled: flags.enabled,
+          severity: flags.severity,
+          ignorable: flags.ignorable,
+          minFiles: _ConfigScalars.readInt(
+              map, _minFilesKey, base.minFiles, path, ctx),
+          minLength: _ConfigScalars.readInt(
+              map, _minLengthKey, base.minLength, path, ctx),
+          minValue: _ConfigScalars.readInt(
+              map, _minValueKey, base.minValue, path, ctx),
+          ignore: _readIgnoreValues(map['ignore'], base.ignore, path),
+          exclude:
+              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+        );
+      },
+    );
+  }
+
+  static List<String> _readIgnoreValues(
+    Object? node,
+    List<String> base,
+    String path,
+  ) {
+    if (node == null) return base;
+    if (node is! YamlList) {
+      throw ConfigException(
+        path,
+        'gates.scattered_constants.ignore',
+        'expected a list of values',
+      );
+    }
+    const ctx = 'gates.scattered_constants.ignore';
+    final values = <String>[];
+    for (final n in node.nodes) {
+      final value = n is YamlScalar ? n.value : null;
+      if (value is String) {
+        values.add(value);
+      } else if (value is int) {
+        values.add('$value');
+      } else {
+        throw ConfigException(path, ctx, 'expected strings or integers');
+      }
+    }
+    return values;
+  }
+
   static RecordNamedFieldsGateConfig readRecordNamedFields(
     Object? node,
     RecordNamedFieldsGateConfig base,
@@ -318,7 +404,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      'gates.record_named_fields',
+      '$kGatePrefix.${GateIds.recordNamedFields}',
       const {_enabledKey, _severityKey, _ignorableKey},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -340,7 +426,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      'gates.inline_record_types',
+      '$kGatePrefix.${GateIds.inlineRecordTypes}',
       const {_enabledKey, _severityKey, _ignorableKey},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -362,7 +448,7 @@ class _ExtendedGateConfigReaders {
       node,
       base,
       path,
-      'gates.record_size',
+      '$kGatePrefix.${GateIds.recordSize}',
       const {_enabledKey, _severityKey, _ignorableKey, 'max_fields'},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);

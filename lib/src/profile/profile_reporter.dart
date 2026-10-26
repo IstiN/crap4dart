@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import '../analysis/method_extractor.dart';
 import '../report/table_formatter.dart';
 import 'profile_runner.dart';
@@ -130,8 +131,12 @@ class ProfileReport {
   /// renders e.g. `50000000.00` — a wall of digits that blows the column
   /// width up. Unit suffixes keep the value compact at any magnitude.
   static String _fmtTotal(double millis) {
-    if (millis < 1000) return '${millis.toStringAsFixed(2)}ms';
-    if (millis < 60000) return '${(millis / 1000).toStringAsFixed(2)}s';
+    if (millis < millisPerSecond) {
+      return '${millis.toStringAsFixed(2)}ms';
+    }
+    if (millis < 60000) {
+      return '${(millis / millisPerSecond).toStringAsFixed(2)}s';
+    }
     if (millis < 3600000) return '${(millis / 60000).toStringAsFixed(2)}m';
     return '${(millis / 3600000).toStringAsFixed(2)}h';
   }

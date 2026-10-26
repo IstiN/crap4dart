@@ -1,3 +1,4 @@
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 import 'record_types_analyzer.dart';
@@ -22,7 +23,7 @@ class InlineRecordTypesGate implements Gate {
   const InlineRecordTypesGate();
 
   @override
-  String get id => 'inline_record_types';
+  String get id => GateIds.inlineRecordTypes;
 
   @override
   Future<GateResult> run(GateContext context) async {

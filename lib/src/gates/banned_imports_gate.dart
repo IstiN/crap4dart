@@ -3,6 +3,7 @@ import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 
 import '../analysis/dart_parser.dart';
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
@@ -25,7 +26,7 @@ class BannedImportsGate implements Gate {
   const BannedImportsGate();
 
   @override
-  String get id => 'banned_imports';
+  String get id => GateIds.bannedImports;
 
   @override
   Future<GateResult> run(GateContext context) async {

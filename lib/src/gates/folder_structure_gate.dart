@@ -1,6 +1,8 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import '../config/config.dart';
+import 'gate_ids.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
@@ -16,7 +18,7 @@ class FolderStructureGate implements Gate {
   const FolderStructureGate();
 
   @override
-  String get id => 'folder_structure';
+  String get id => GateIds.folderStructure;
 
   @override
   Future<GateResult> run(GateContext context) async {
@@ -66,7 +68,9 @@ class FolderStructureGate implements Gate {
   ) {
     var count = 0;
     for (final entity in Directory('${context.projectRoot}/$dir').listSync()) {
-      if (entity is! File || !entity.path.endsWith('.dart')) continue;
+      if (entity is! File || !entity.path.endsWith(kDartExtension)) {
+        continue;
+      }
       if (context.matchesAnyGlob(entity.path, config.exclude)) continue;
       count++;
     }
