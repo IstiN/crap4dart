@@ -82,4 +82,27 @@ void main() {
     });
     expect(result.passed, isFalse);
   });
+  test('flags a double literal present in min_files distinct files', () async {
+    final result = await runOn({
+      'lib/a.dart': 'final x = 86400.5;\n',
+      'lib/b.dart': 'final y = 86400.5;\n',
+      'lib/c.dart': 'final z = 86400.5;\n',
+    });
+    expect(result.passed, isFalse);
+    expect(result.violations, hasLength(3));
+    expect(
+      result.violations.every((v) => v.message.contains('86400.5')),
+      isTrue,
+      reason: result.violations.toString(),
+    );
+  });
+
+  test('double literals at or below min_value are coincidence', () async {
+    final result = await runOn({
+      'lib/a.dart': 'final x = 1.5;\n',
+      'lib/b.dart': 'final y = 1.5;\n',
+      'lib/c.dart': 'final z = 1.5;\n',
+    });
+    expect(result.passed, isTrue, reason: result.violations.toString());
+  });
 }

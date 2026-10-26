@@ -69,4 +69,18 @@ void main() {
     );
     expect(result.passed, isFalse);
   });
+  test('ignored double values never flag', () async {
+    final result = await runOn(
+      {
+        'lib/a.dart': 'final x = 99.5;\n',
+        'lib/b.dart': 'final y = 99.5;\n',
+        'lib/c.dart': 'final z = 99.5;\n',
+      },
+      configYaml: 'gates:\n'
+          '  scattered_constants:\n'
+          '    enabled: true\n'
+          "    ignore: ['99.5']\n",
+    );
+    expect(result.passed, isTrue, reason: result.violations.toString());
+  });
 }

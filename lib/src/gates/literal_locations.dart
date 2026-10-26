@@ -27,23 +27,38 @@ bool isProtocolIdentifier(AstNode node) {
   var child = node;
   var parent = node.parent;
   while (parent != null) {
-    // Directive URIs are structural references, not constants.
-    if (parent is Directive) return true;
-    if (parent is MapLiteralEntry && parent.key == child) return true;
-    // `expr['name']` — a protocol field access, not a constant.
-    if (parent is IndexExpression && parent.index == child) return true;
-    // Case labels match protocol values, not constants.
-    if (parent is CaseClause ||
-        parent is SwitchPatternCase ||
-        parent is SwitchCase) {
-      return true;
-    }
-    if (parent is InterpolationElement || parent is ArgumentList) break;
+    if (_isProtocolPosition(parent, child)) return true;
+    if (_stopsProtocolWalk(parent)) break;
     child = parent;
     parent = parent.parent;
   }
   return false;
 }
+
+/// Directive URIs (structural references) and case labels (protocol
+/// values) are protocol vocabulary wherever they appear on the
+/// ancestor path.
+bool _isDirectiveOrCaseLabel(AstNode parent) =>
+    parent is Directive ||
+    parent is CaseClause ||
+    parent is SwitchPatternCase ||
+    parent is SwitchCase;
+
+/// Map keys and index targets (`expr['name']`) are access vocabulary,
+/// not constants — [child] must sit in the key/index position itself.
+bool _isKeyOrIndex(AstNode parent, AstNode child) =>
+    parent is MapLiteralEntry && parent.key == child ||
+    parent is IndexExpression && parent.index == child;
+
+/// Whether [parent] puts a literal in a protocol-identifier position.
+bool _isProtocolPosition(AstNode parent, AstNode child) =>
+    _isDirectiveOrCaseLabel(parent) || _isKeyOrIndex(parent, child);
+
+/// The ancestor walk stops at interpolation elements and argument
+/// lists: above them the literal belongs to an expression, not to the
+/// enclosing protocol position.
+bool _stopsProtocolWalk(AstNode parent) =>
+    parent is InterpolationElement || parent is ArgumentList;
 
 class _ExemptMarker extends RecursiveAstVisitor<void> {
   _ExemptMarker(this.lines, this.lineTo);

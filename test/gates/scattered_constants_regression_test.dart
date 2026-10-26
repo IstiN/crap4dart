@@ -74,4 +74,15 @@ void main() {
     });
     expect(result.passed, isTrue);
   });
+  test('double constants regress too', () async {
+    final result = await runOn({
+      'lib/consts.dart': 'const secondsPerDay = 86400.5;\n',
+      'lib/other.dart': 'final x = 86400.5;\n',
+    });
+    expect(result.passed, isFalse);
+    expect(result.violations, hasLength(1));
+    expect(result.violations[0].file, 'lib/other.dart');
+    expect(result.violations[0].message, contains('secondsPerDay'));
+    expect(result.violations[0].message, contains('duplicates constant'));
+  });
 }
