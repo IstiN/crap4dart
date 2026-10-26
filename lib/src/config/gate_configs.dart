@@ -6,12 +6,9 @@ part of 'config.dart';
 // ignore_for_file: annotate_overrides
 
 /// Default exclude globs for generated files, shared by gate defaults.
-const String _generatedGlob = kGeneratedGlob;
-const String _freezedGlob = kFreezedGlob;
-const String _mocksGlob = kMocksGlob;
 
 /// Default glob excluding test sources from generated-code gates.
-const String _testGlob = 'test/**';
+const String kTestGlob = 'test/**';
 
 /// File size gate settings (`loc`).
 class LocGateConfig implements GateConfigFlags {
@@ -22,7 +19,7 @@ class LocGateConfig implements GateConfigFlags {
     this.ignorable = false,
     this.maxLines = 800,
     this.entries = const [],
-    this.exclude = const [_generatedGlob, _freezedGlob, _mocksGlob],
+    this.exclude = const [kGeneratedGlob, kFreezedGlob, kMocksGlob],
   });
 
   /// Whether the gate is enabled.
@@ -368,7 +365,7 @@ class WeightOfClassGateConfig implements GateConfigFlags {
     this.severity = GateSeverity.error,
     this.ignorable = false,
     this.maxWeight = 0.33,
-    this.exclude = const [_generatedGlob, _freezedGlob, _mocksGlob],
+    this.exclude = const [kGeneratedGlob, kFreezedGlob, kMocksGlob],
   });
 
   /// Whether the gate is enabled (off by default: data/model classes are
@@ -442,9 +439,9 @@ class UnusedCodeGateConfig implements GateConfigFlags {
     this.severity = GateSeverity.error,
     this.ignorable = false,
     this.exclude = const [
-      _generatedGlob,
-      _freezedGlob,
-      _mocksGlob,
+      kGeneratedGlob,
+      kFreezedGlob,
+      kMocksGlob,
       'bin/**',
     ],
   });
@@ -473,9 +470,9 @@ class UnusedFilesGateConfig implements GateConfigFlags {
     this.ignorable = false,
     this.dirs = const ['lib'],
     this.exclude = const [
-      _generatedGlob,
-      _freezedGlob,
-      _mocksGlob,
+      kGeneratedGlob,
+      kFreezedGlob,
+      kMocksGlob,
     ],
   });
 
@@ -603,10 +600,10 @@ class MagicConstantsGateConfig implements GateConfigFlags {
     this.minDuplicates = 3,
     this.minLength = 4,
     this.exclude = const [
-      _generatedGlob,
-      _freezedGlob,
-      _mocksGlob,
-      _testGlob,
+      kGeneratedGlob,
+      kFreezedGlob,
+      kMocksGlob,
+      kTestGlob,
     ],
   });
 

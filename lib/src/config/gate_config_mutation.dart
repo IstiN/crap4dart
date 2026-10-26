@@ -71,10 +71,10 @@ class MutationGateConfig implements GateConfigFlags {
     this.execution = const MutationExecution(),
     this.operators = mutationOperatorCategories,
     this.exclude = const [
-      _generatedGlob,
-      _freezedGlob,
-      _mocksGlob,
-      _testGlob,
+      kGeneratedGlob,
+      kFreezedGlob,
+      kMocksGlob,
+      kTestGlob,
     ],
   });
 

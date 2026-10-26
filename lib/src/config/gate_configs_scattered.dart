@@ -2,10 +2,10 @@ part of 'config.dart';
 
 /// The default `exclude` list shared by the scattered-literal gates.
 const List<String> _scatteredExcludeDefaults = [
-  _generatedGlob,
-  _freezedGlob,
-  _mocksGlob,
-  _testGlob,
+  kGeneratedGlob,
+  kFreezedGlob,
+  kMocksGlob,
+  kTestGlob,
 ];
 
 /// Config of the `scattered_constants` gate.
