@@ -115,8 +115,8 @@ class _ExtendedGateConfigReaders {
     );
   }
 
-  /// Validates the map form of `dirs`: pattern keys, integer caps.
-  static Map<String, int> _dirCapsOf(YamlMap node, String path) {
+  /// Validates the `config` map: pattern keys, integer caps.
+  static Map<String, int> _capsOf(YamlMap node, String path) {
     final caps = <String, int>{};
     for (final entry in node.entries) {
       final pattern = entry.key;
@@ -150,27 +150,19 @@ class _ExtendedGateConfigReaders {
         _ignorableKey,
         _dirsKey,
         'max_loose_files',
+        _configKey,
         _excludeKey
       },
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
-        final dirsNode = map[_dirsKey];
-        if (dirsNode is YamlMap) {
-          if (map['max_loose_files'] != null) {
-            throw ConfigException(
-              path,
-              'gates.folder_structure',
-              'max_loose_files applies to the list form of dirs — '
-                  'with a dirs map each key carries its own cap',
-            );
-          }
-          final caps = _dirCapsOf(dirsNode, path);
+        if (map[_configKey] != null) {
+          // The per-pattern caps take precedence: dirs and
+          // max_loose_files are not consulted.
           return FolderStructureGateConfig(
             enabled: flags.enabled,
             severity: flags.severity,
             ignorable: flags.ignorable,
-            dirs: caps.keys.toList(),
-            dirCaps: caps,
+            caps: _capsOf(map[_configKey], path),
             exclude: _ConfigScalars.strList(
                 map, _excludeKey, base.exclude, path, ctx),
           );

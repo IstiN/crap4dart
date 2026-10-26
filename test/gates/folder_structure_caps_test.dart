@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 import 'gate_test_utils.dart';
 
 void main() {
-  test('dirs map gives each pattern its own cap', () async {
+  test('config gives each pattern its own cap', () async {
     final project = createTempProject();
     addTearDown(() => project.deleteSync(recursive: true));
     for (var i = 0; i < 2; i++) {
@@ -19,7 +19,7 @@ void main() {
         const [],
         configYaml: 'gates:\n'
             '  folder_structure:\n'
-            '    dirs:\n'
+            '    config:\n'
             '      lib/src: 1\n'
             "      'lib/src/generated/**': 20\n",
       ),
@@ -31,7 +31,30 @@ void main() {
     expect(result.violations.single.message, contains('(max 1)'));
   });
 
-  test('the list form keeps working unchanged', () async {
+  test('config takes precedence over dirs/max_loose_files', () async {
+    final project = createTempProject();
+    addTearDown(() => project.deleteSync(recursive: true));
+    for (var i = 0; i < 3; i++) {
+      writeFile(project, 'lib/src/f$i.dart', 'void f() {}\n');
+    }
+    final result = await FolderStructureGate().run(
+      makeContext(
+        project,
+        const [],
+        configYaml: 'gates:\n'
+            '  folder_structure:\n'
+            '    dirs: [lib/src]\n'
+            '    max_loose_files: 99\n'
+            '    config:\n'
+            '      lib/src: 2\n',
+      ),
+    );
+    // dirs/max_loose_files are not consulted: the config cap 2 wins.
+    expect(result.passed, isFalse, reason: '${result.violations}');
+    expect(result.violations.single.message, contains('(max 2)'));
+  });
+
+  test('without config the list form applies unchanged', () async {
     final project = createTempProject();
     addTearDown(() => project.deleteSync(recursive: true));
     writeFile(project, 'lib/src/a.dart', 'void a() {}\n');
@@ -45,27 +68,6 @@ void main() {
             '    max_loose_files: 5\n',
       ),
     );
-    expect(result.passed, isTrue, reason: '${result.violations}');
-  });
-
-  test('a directory matched by several patterns uses the first cap', () async {
-    final project = createTempProject();
-    addTearDown(() => project.deleteSync(recursive: true));
-    for (var i = 0; i < 3; i++) {
-      writeFile(project, 'lib/src/tools/f$i.dart', 'void f() {}\n');
-    }
-    final result = await FolderStructureGate().run(
-      makeContext(
-        project,
-        const [],
-        configYaml: 'gates:\n'
-            '  folder_structure:\n'
-            '    dirs:\n'
-            "      'lib/src/**': 10\n"
-            "      'lib/src/*': 1\n",
-      ),
-    );
-    // tools matches both patterns; the first (cap 10) wins.
     expect(result.passed, isTrue, reason: '${result.violations}');
   });
 }

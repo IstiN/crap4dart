@@ -7,9 +7,9 @@
   and generated siblings of one source file (`magic.dart` +
   `magic.g.dart` + `magic.freezed.dart`) count as one logical unit;
   only a directory's own files count (nested directories are the
-  organized form). New map form with per-pattern caps:
-  `dirs: {lib/src: 3, 'lib/src/**': 30}` — the list form + shared
-  `max_loose_files` cap stays fully backward compatible.
+  organized form). New optional `config` map with per-pattern caps —
+  `config: {lib/src: 3, 'lib/src/**': 30}` — taking precedence over
+  `dirs`/`max_loose_files`, which stay fully backward compatible.
 
 ## 0.19.0 — 2026-10-24
 

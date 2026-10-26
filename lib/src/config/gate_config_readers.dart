@@ -5,6 +5,9 @@ const String _maxLinesKey = 'max_lines';
 const String _entriesKey = 'entries';
 const String _excludeKey = 'exclude';
 const String _dirsKey = 'dirs';
+
+/// The per-pattern `config` key of folder_structure.
+const String _configKey = 'config';
 const String _maxParamsKey = 'max_params';
 const String _maxComplexityKey = 'max_complexity';
 const String _locEntriesCtx = 'gates.loc.entries';

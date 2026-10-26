@@ -73,8 +73,8 @@ class FolderStructureGate implements Gate {
       out.add((dir: dir, cap: cap));
     }
 
-    if (config.dirCaps.isNotEmpty) {
-      for (final entry in config.dirCaps.entries) {
+    if (config.caps.isNotEmpty) {
+      for (final entry in config.caps.entries) {
         for (final dir in _expand(context, entry.key)) {
           add(dir, entry.value);
         }

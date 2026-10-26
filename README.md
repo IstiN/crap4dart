@@ -640,13 +640,13 @@ gates:
   runs green and verifies nothing — a typical AI placeholder.
 - **folder_structure** — flags directories holding more than their
   cap of logical `.dart` units directly, instead of organizing code
-  into feature packages. `dirs` is either a list sharing one cap
-  (`max_loose_files`) or a map with per-pattern caps
-  (`{lib/src: 3, 'lib/src/**': 30}`); entries are literal paths or
-  globs; only a directory's own files count (nested directories are
-  the organized form); generated siblings of one source file
-  (`magic.dart` + `magic.g.dart`) count as one unit; `exclude` globs
-  exempt files.
+  into feature packages. Classic form: `dirs` (literal paths or
+  globs) + one shared `max_loose_files`. Alternative `config` map
+  with per-pattern caps (`{lib/src: 3, 'lib/src/**': 30}` — takes
+  precedence when present). Only a directory's own files count
+  (nested directories are the organized form); generated siblings of
+  one source file (`magic.dart` + `magic.g.dart`) count as one unit;
+  `exclude` globs exempt files.
 - **external** — wraps external static-analysis tools (detekt for
   Kotlin, ktlint, swiftlint, anything emitting a Checkstyle XML
   report) as rules `{id, executable, arguments}`; `{report}` in the

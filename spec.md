@@ -787,17 +787,18 @@ none) are skipped.
 
 Flags directories containing more than their cap of logical `.dart`
 units directly — a flat-file sprawl that should be organized into
-feature packages. Two `dirs` forms:
+feature packages. Two configuration shapes:
 
-- **List** (default `lib`) + `max_loose_files` (default 0): every
-  listed directory shares one cap. Each entry is a literal path or a
-  glob pattern — `lib/src/*`, `packages/**` — that expands to every
-  matching directory.
-- **Map**: each key is a pattern and each value its own cap —
-  `{lib/src: 3, 'lib/src/**': 30}` — a registry folder may hold more
-  than a hot core directory. `max_loose_files` does not apply in
-  this form (setting both is a configuration error). A directory
-  matched by several patterns uses the first pattern's cap.
+- **Classic** (default `dirs: lib`, `max_loose_files: 0`): every
+  `dirs` entry — a literal path or a glob pattern (`lib/src/*`,
+  `packages/**`) expanding to every matching directory — shares one
+  cap.
+- **`config`** (optional map): each key is a pattern and each value
+  its own cap — `config: {lib/src: 3, 'lib/src/**': 30}` — a
+  registry folder may hold more than a hot core directory. When
+  present, `config` takes precedence and `dirs`/`max_loose_files`
+  are not consulted. A directory matched by several patterns uses
+  the first pattern's cap.
 
 Counting rules: only a directory's OWN contents count — files in
 subdirectories are the organized form and never reach the parent's
