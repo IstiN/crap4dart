@@ -72,11 +72,5 @@ void main() {
     expect(gate.minFiles, 3);
     expect(gate.minLength, 4);
     expect(gate.minValue, 100);
-    final fragments = config.gates.scatteredFragments;
-    expect(fragments.enabled, isTrue);
-    expect(fragments.severity, GateSeverity.warning);
-    expect(fragments.minFiles, 2);
-    expect(fragments.minLength, 5);
-    expect(fragments.separators, '.');
   });
 }

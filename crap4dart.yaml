@@ -81,22 +81,7 @@ gates:
   scattered_constants:
     enabled: true
     severity: warning
-    min_files: 2
-    ignore: [test, dart, flutter, threshold, profile, error]
-    exclude:
-      - '**.g.dart'
-      - '**.freezed.dart'
-      - '**.mocks.dart'
-      - 'test/**'
-  # Deep search: repeated separator segments + substring candidates
-  # against existing constants.
-  scattered_fragments:
-    enabled: true
-    severity: warning
-    min_files: 2
-    min_length: 7
-    separators: .
-    ignore: [test, dart, flutter, json, package, threshold, profile, error]
+    min_files: 3
     exclude:
       - '**.g.dart'
       - '**.freezed.dart'

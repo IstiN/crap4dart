@@ -72,7 +72,6 @@ abstract final class GateIds {
   static const String scatteredConstants = 'scattered_constants';
 
   /// Scattered fragments gate.
-  static const String scatteredFragments = 'scattered_fragments';
 
   /// Broken goldens gate.
   static const String brokenGoldens = 'broken_goldens';
@@ -107,7 +106,6 @@ abstract final class GateIds {
     fileNaming,
     magicConstants,
     scatteredConstants,
-    scatteredFragments,
     brokenGoldens,
     testAssertions,
     folderStructure,

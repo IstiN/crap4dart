@@ -26,7 +26,6 @@ import 'record_size_gate.dart';
 import 'nesting_gate.dart';
 import 'public_docs_gate.dart';
 import 'scattered_constants_gate.dart';
-import 'scattered_fragments_gate.dart';
 import 'similarity_gate.dart';
 import 'test_assertions_gate.dart';
 import 'unused_code_gate.dart';
@@ -81,7 +80,6 @@ class GateRunner {
         const FileNamingGate(),
         const MagicConstantsGate(),
         const ScatteredConstantsGate(),
-        const ScatteredFragmentsGate(),
         const BrokenGoldensGate(),
         const TestAssertionsGate(),
         const FolderStructureGate(),
@@ -212,7 +210,6 @@ class GateRunner {
         GateIds.fileNaming: gates.fileNaming,
         GateIds.magicConstants: gates.magicConstants,
         GateIds.scatteredConstants: gates.scatteredConstants,
-        GateIds.scatteredFragments: gates.scatteredFragments,
         GateIds.brokenGoldens: gates.brokenGoldens,
         GateIds.testAssertions: gates.testAssertions,
         GateIds.folderStructure: gates.folderStructure,

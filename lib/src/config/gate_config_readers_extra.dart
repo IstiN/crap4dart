@@ -313,7 +313,6 @@ class _ExtendedGateConfigReaders {
   static const _minFilesKey = 'min_files';
   static const _minLengthKey = 'min_length';
   static const _minValueKey = 'min_value';
-  static const _separatorsKey = 'separators';
 
   static ScatteredGateConfig readScatteredConstants(
     Object? node,
@@ -328,24 +327,6 @@ class _ExtendedGateConfigReaders {
       _minFilesKey,
       _minLengthKey,
       _minValueKey,
-      'ignore',
-      _excludeKey
-    });
-  }
-
-  static ScatteredGateConfig readScatteredFragments(
-    Object? node,
-    ScatteredGateConfig base,
-    String path,
-  ) {
-    return _readScatteredGate(
-        node, base, path, GateIds.scatteredFragments, const {
-      _enabledKey,
-      _severityKey,
-      _ignorableKey,
-      _minFilesKey,
-      _minLengthKey,
-      _separatorsKey,
       'ignore',
       _excludeKey
     });
@@ -378,8 +359,6 @@ class _ExtendedGateConfigReaders {
               map, _minLengthKey, base.minLength, path, ctx),
           minValue: _ConfigScalars.readInt(
               map, _minValueKey, base.minValue, path, ctx),
-          separators: _ConfigScalars.str(
-              map, _separatorsKey, base.separators, path, ctx),
           ignore: _readIgnoreValues(map['ignore'], base.ignore, path),
           exclude:
               _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),

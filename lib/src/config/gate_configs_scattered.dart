@@ -8,13 +8,7 @@ const List<String> _scatteredExcludeDefaults = [
   _testGlob,
 ];
 
-/// Config for both scattered-literal gates (`scattered_constants`,
-/// `scattered_fragments`): one shape, two independent yaml sections.
-///
-/// `scattered_constants` reads `min_value` and `scattered_fragments`
-/// reads `separators`; a key a section does not list is an
-/// unknown-key error — the readers own the yaml surface, the class
-/// merely carries both scalars.
+/// Config of the `scattered_constants` gate.
 class ScatteredGateConfig implements GateConfigFlags {
   /// Creates a [ScatteredGateConfig].
   const ScatteredGateConfig({
@@ -24,7 +18,6 @@ class ScatteredGateConfig implements GateConfigFlags {
     this.minFiles = 3,
     this.minLength = 4,
     this.minValue = 100,
-    this.separators = '.',
     this.ignore = const [],
     this.exclude = _scatteredExcludeDefaults,
   });
@@ -53,10 +46,6 @@ class ScatteredGateConfig implements GateConfigFlags {
   /// Numbers with magnitude at or below this value are treated as
   /// coincidence and never flagged (whole-value gate).
   final int minValue;
-
-  /// Characters splitting string literals into candidate fragments
-  /// (fragments gate).
-  final String separators;
 
   /// Literal values never flagged — whole-literal hits by value,
   /// segment hits by head (numbers match their decimal form). Generic

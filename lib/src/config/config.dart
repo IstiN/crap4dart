@@ -137,7 +137,6 @@ class GatesConfig {
     this.fileNaming = const FileNamingGateConfig(),
     this.magicConstants = const MagicConstantsGateConfig(),
     this.scatteredConstants = const ScatteredGateConfig(),
-    this.scatteredFragments = const ScatteredGateConfig(minLength: 5),
     this.brokenGoldens = const BrokenGoldensGateConfig(),
     this.testAssertions = const TestAssertionsGateConfig(),
     this.folderStructure = const FolderStructureGateConfig(),
@@ -200,9 +199,6 @@ class GatesConfig {
 
   /// Scattered constants gate (`scattered_constants`).
   final ScatteredGateConfig scatteredConstants;
-
-  /// Scattered fragments gate (`scattered_fragments`).
-  final ScatteredGateConfig scatteredFragments;
 
   /// Similarity gate (`similarity`).
   final SimilarityGateConfig similarity;

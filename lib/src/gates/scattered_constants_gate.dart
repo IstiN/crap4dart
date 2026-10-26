@@ -32,10 +32,6 @@ import 'literal_locations.dart';
 /// constants; the shared values behind them should be referenced by
 /// name, which removes the literal entirely.)
 ///
-/// Partial reuse — shared dot-segment heads, substrings of existing
-/// constants — is the `scattered_fragments` gate's domain; this gate
-/// matches whole values only.
-///
 /// False-positive controls: string literals shorter than `min_length`
 /// and numbers with magnitude at or below `min_value` are treated as
 /// coincidence (0, 1, 10, 100 happen everywhere); directive URIs are

@@ -264,23 +264,9 @@ gates:
       - '$kMocksGlob'
       - 'test/**'
       - 'test/**'
-  # Deep search over literal fragments: repeated separator segments
   # and substring candidates against existing named constants —
   # partial reuse the whole-value gate cannot see. Findings are
   # candidates; verify intent before extracting.
-  scattered_fragments:
-    enabled: true
-    severity: warning
-    min_files: 2
-    min_length: 5
-    # Fragment boundary characters.
-    separators: .
-    ignore: []
-    exclude:
-      - '**.g.dart'
-      - '**.freezed.dart'
-      - '**.mocks.dart'
-      - 'test/**'
   # Forbid mechanical file names (numeric suffixes, generic names).
   file_naming:
     enabled: true
