@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import '../../common/constants.dart';
 import '../../config/config.dart';
 import '../gate.dart';
+import '../gate_ids.dart';
 import '../gate_context.dart';
 
 /// One directory to check with its effective cap.
@@ -28,7 +30,7 @@ class FolderStructureGate implements Gate {
   const FolderStructureGate();
 
   @override
-  String get id => 'folder_structure';
+  String get id => GateIds.folderStructure;
 
   @override
   Future<GateResult> run(GateContext context) async {
@@ -111,7 +113,7 @@ class FolderStructureGate implements Gate {
   /// have no business enumerating `.git` or `.dart_tool`.
   List<String> _globDirs(GateContext context, String pattern) {
     final root = Directory(context.projectRoot);
-    const skip = {'.git', '.dart_tool', 'build', '.idea', '.fah'};
+    const skip = {'.git', kDartToolDir, 'build', '.idea', '.fah'};
     final found = <String>[];
     void walk(Directory dir) {
       for (final entity in dir.listSync(followLinks: false)) {
@@ -142,7 +144,7 @@ class FolderStructureGate implements Gate {
   ) {
     final stems = <String>{};
     for (final entity in Directory('${context.projectRoot}/$dir').listSync()) {
-      if (entity is! File || !entity.path.endsWith('.dart')) continue;
+      if (entity is! File || !entity.path.endsWith(kDartExtension)) continue;
       if (context.matchesAnyGlob(entity.path, config.exclude)) continue;
       stems.add(_stem(entity.path));
     }

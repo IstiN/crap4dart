@@ -118,3 +118,23 @@ const int millisPerSecond = 1000;
 
 /// Microseconds per millisecond (unit conversion for reported times).
 const double microsPerMillisecond = 1000.0;
+
+/// The `coverage` name shared by the config section key and the
+/// coverage directory argument of the coverage tooling.
+const String kCoverage = 'coverage';
+
+/// The shared `error` label — gate severity, Checkstyle severity tag
+/// and VM-service status all spell it identically.
+const String kError = 'error';
+
+/// JSON/attribute names of a violation location, shared by the JSON
+/// reporter and the Checkstyle-XML output of the external gate.
+const String kFileKey = 'file';
+
+/// The `line` attribute name of a violation location — shared by the
+/// JSON reporter and the Checkstyle-XML output of the external gate.
+const String kLineKey = 'line';
+
+/// The `extension` declaration label — the analyzer visitor's kind
+/// tag and the synthetic name for unnamed extensions.
+const String kExtension = 'extension';

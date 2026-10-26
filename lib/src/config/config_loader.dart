@@ -13,7 +13,7 @@ part 'gate_config_readers_extra.dart';
 
 /// Top-level and section keys of `crap4dart.yaml`.
 const String _crapKey = 'crap';
-const String _coverageKey = 'coverage';
+const String _coverageKey = kCoverage;
 const String _profileKey = kProfile;
 const String _sourcesKey = 'sources';
 const String _runTestsKey = 'run_tests';

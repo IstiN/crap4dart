@@ -4,6 +4,7 @@ import 'package:analyzer/source/line_info.dart';
 
 import '../config/config.dart';
 import 'gate.dart';
+import 'gate_ids.dart';
 import 'gate_context.dart';
 import 'literal_locations.dart';
 
@@ -55,7 +56,7 @@ class ScatteredConstantsGate implements Gate {
   const ScatteredConstantsGate();
 
   @override
-  String get id => 'scattered_constants';
+  String get id => GateIds.scatteredConstants;
 
   @override
   Future<GateResult> run(GateContext context) async {
@@ -74,8 +75,13 @@ class ScatteredConstantsGate implements Gate {
       final parsed = scanned.parsed;
       final relative = scanned.relativePath;
       checked++;
-      parsed.unit
-          .accept(_ConstantCollector(relative, parsed.lineInfo, constants));
+      parsed.unit.accept(_ConstantCollector(
+        relative,
+        parsed.lineInfo,
+        constants,
+        minValue: config.minValue,
+        ignoreValues: ignore.values,
+      ));
       final collector = _LiteralCollector(
         parsed.lineInfo,
         minLength: config.minLength,
@@ -193,11 +199,28 @@ class _Hit {
 /// declarations (top-level, static or instance fields) whose
 /// initializer is a plain string, int or double literal.
 class _ConstantCollector extends RecursiveAstVisitor<void> {
-  _ConstantCollector(this._file, this._lineInfo, this._constants);
+  _ConstantCollector(
+    this._file,
+    this._lineInfo,
+    this._constants, {
+    required int minValue,
+    required Set<String> ignoreValues,
+  })  : _minValue = minValue,
+        _ignoreValues = ignoreValues;
 
   final String _file;
   final LineInfo _lineInfo;
   final Map<String, List<NamedConstant>> _constants;
+
+  /// Numbers at or below this magnitude are coincidence — they leave
+  /// the corpus, so small-int constants (exit codes, pixel codes,
+  /// versions) never collide with each other. Mirrors the literal
+  /// side's [ScatteredConstantsConfig.minValue] doctrine.
+  final int _minValue;
+
+  /// Values never flagged are also never corpus entries — an ignored
+  /// value cannot be the canonical twin that flags someone else.
+  final Set<String> _ignoreValues;
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
@@ -206,7 +229,7 @@ class _ConstantCollector extends RecursiveAstVisitor<void> {
     final initializer = node.initializer;
     if (isConst && initializer != null) {
       final key = _literalKey(initializer);
-      if (key != null) {
+      if (key != null && !_coincidence(initializer, key)) {
         _constants.putIfAbsent(key, () => []).add(NamedConstant(
               node.name.lexeme,
               _file,
@@ -215,6 +238,23 @@ class _ConstantCollector extends RecursiveAstVisitor<void> {
       }
     }
     super.visitVariableDeclaration(node);
+  }
+
+  /// Whether the initializer is a coincidental value that must not
+  /// seed the corpus: small numbers (see [_minValue]) and values the
+  /// configuration ignores.
+  bool _coincidence(Expression initializer, String key) {
+    final numeric = switch (initializer) {
+      IntegerLiteral(:final value) => value?.abs(),
+      DoubleLiteral(:final value) => value.abs().toInt(),
+      _ => null,
+    };
+    if (numeric != null && numeric <= _minValue) return true;
+    final bare =
+        key.startsWith('s:') || key.startsWith('i:') || key.startsWith('d:')
+            ? key.substring(2)
+            : key;
+    return _ignoreValues.contains(bare);
   }
 
   /// The canonical literal key of a plain constant initializer, or
@@ -274,19 +314,23 @@ class _LiteralCollector extends RecursiveAstVisitor<void> {
     if (initializer == null) return;
     final string = stringValueOf(initializer);
     if (string != null) {
-      _addString(string, initializer, isConstDecl: true);
+      if (!ignoreValues.contains(string)) {
+        _addString(string, initializer, isConstDecl: true);
+      }
       return;
     }
     if (initializer is IntegerLiteral) {
-      _addNumber(
-          '${initializer.value}', 'i:${initializer.value}', _line(initializer),
-          isConstDecl: true);
+      final value = initializer.value;
+      if (value == null || value.abs() <= minValue) return;
+      if (ignoreValues.contains('$value')) return;
+      _addNumber('$value', 'i:$value', _line(initializer), isConstDecl: true);
       return;
     }
     if (initializer is DoubleLiteral) {
-      _addNumber(
-          '${initializer.value}', 'd:${initializer.value}', _line(initializer),
-          isConstDecl: true);
+      if (initializer.value.abs() <= minValue) return;
+      final display = '${initializer.value}';
+      if (ignoreValues.contains(display)) return;
+      _addNumber(display, 'd:$display', _line(initializer), isConstDecl: true);
       return;
     }
     initializer.accept(this);

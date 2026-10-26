@@ -48,7 +48,7 @@ const Map<String, Object?> _initialMetadata = {
 };
 
 /// The VM service message type reporting a failed measurement.
-const String _errorType = 'error';
+const String _errorType = kError;
 
 /// One traced `flutter_tester` spawn: its argv and environment.
 class FlutterTesterSpawn {

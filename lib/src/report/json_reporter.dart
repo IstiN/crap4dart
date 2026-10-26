@@ -9,8 +9,8 @@ import '../profile/profile_reporter.dart';
 /// JSON keys shared across the report shapes.
 const String _commandKey = 'command';
 const String _passedKey = 'passed';
-const String _fileKey = 'file';
-const String _lineKey = 'line';
+const String _fileKey = kFileKey;
+const String _lineKey = kLineKey;
 
 /// Renders analyze and check results as JSON for machine consumption.
 ///
@@ -104,7 +104,7 @@ class JsonReporter {
     }
     return {
       'id': r.gateId,
-      'status': r.passed ? 'passed' : 'failed',
+      'status': r.passed ? _passedKey : 'failed',
       'summary': r.summary,
       'violations': [
         for (final v in r.violations)

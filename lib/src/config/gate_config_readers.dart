@@ -7,7 +7,7 @@ const String _excludeKey = kExclude;
 const String _dirsKey = 'dirs';
 
 /// The per-pattern `config` key of folder_structure.
-const String _configKey = 'config';
+const String _configKey = kConfig;
 const String _maxParamsKey = 'max_params';
 const String _maxComplexityKey = 'max_complexity';
 const String _minLengthKey = 'min_length';
