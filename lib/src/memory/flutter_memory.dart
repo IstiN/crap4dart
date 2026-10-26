@@ -48,7 +48,6 @@ const Map<String, Object?> _initialMetadata = {
 };
 
 /// The VM service message type reporting a failed measurement.
-const String _errorType = kError;
 
 /// One traced `flutter_tester` spawn: its argv and environment.
 class FlutterTesterSpawn {
@@ -318,7 +317,7 @@ class FlutterSuiteDriver {
       if (msg[0] != 0) continue;
       final body = msg[1] as Map<String, Object?>;
       final type = body['type'] as String?;
-      if (type == _errorType) {
+      if (type == kError) {
         await channel.close();
         return MeasuredFile(
           path: label,

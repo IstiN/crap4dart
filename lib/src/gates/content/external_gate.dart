@@ -9,7 +9,6 @@ import '../gate_context.dart';
 import '../gate_ids.dart';
 
 /// The Checkstyle XML element carrying one tool finding.
-const String _errorTag = kError;
 
 /// The `external` gate: wraps external static-analysis tools (detekt,
 /// ktlint, swiftlint, ...) behind one config. Each rule runs an
@@ -88,7 +87,7 @@ class ExternalGate implements Gate {
     final document = XmlDocument.parse(report.readAsStringSync());
     for (final file in document.findAllElements(kFileKey)) {
       final path = file.getAttribute('name') ?? '';
-      for (final child in file.findElements(_errorTag)) {
+      for (final child in file.findElements(kError)) {
         final line = int.tryParse(child.getAttribute(kLineKey) ?? '');
         violations.add(
           GateViolation(

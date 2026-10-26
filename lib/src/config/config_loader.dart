@@ -13,7 +13,6 @@ part 'gate_config_readers_extra.dart';
 
 /// Top-level and section keys of `crap4dart.yaml`.
 const String _crapKey = 'crap';
-const String _coverageKey = kCoverage;
 const String _profileKey = kProfile;
 const String _sourcesKey = 'sources';
 const String _runTestsKey = 'run_tests';
@@ -83,7 +82,7 @@ class ConfigLoader {
       root,
       const {
         _crapKey,
-        _coverageKey,
+        kCoverage,
         _gatesKey,
         _profileKey,
         _sourcesKey,
@@ -95,7 +94,7 @@ class ConfigLoader {
     final defaults = Crap4DartConfig.defaults();
     return Crap4DartConfig(
       crap: _readCrap(root[_crapKey], defaults.crap, path),
-      coverage: _readCoverage(root[_coverageKey], defaults.coverage, path),
+      coverage: _readCoverage(root[kCoverage], defaults.coverage, path),
       gates: _readGates(root[_gatesKey], defaults.gates, path),
       profile: _readProfile(root[_profileKey], defaults.profile, path),
       sources: _readSources(root[_sourcesKey], defaults.sources, path),
@@ -152,22 +151,22 @@ class ConfigLoader {
 
   CoverageConfig _readCoverage(Object? node, CoverageConfig base, String path) {
     if (node == null) return base;
-    final map = _ConfigScalars.asMap(node, path, _coverageKey);
+    final map = _ConfigScalars.asMap(node, path, kCoverage);
     _ConfigScalars.checkKeys(
       map,
       const {'lcov_path', _runTestsKey, 'required', 'branch_coverage'},
       path,
-      _coverageKey,
+      kCoverage,
     );
     return CoverageConfig(
-      lcovPath: _ConfigScalars.str(
-          map, 'lcov_path', base.lcovPath, path, _coverageKey),
+      lcovPath:
+          _ConfigScalars.str(map, 'lcov_path', base.lcovPath, path, kCoverage),
       runTests: _ConfigScalars.readBool(
-          map, _runTestsKey, base.runTests, path, _coverageKey),
+          map, _runTestsKey, base.runTests, path, kCoverage),
       required: _ConfigScalars.readBool(
-          map, 'required', base.required, path, _coverageKey),
+          map, 'required', base.required, path, kCoverage),
       branchCoverage: _ConfigScalars.readBool(
-          map, 'branch_coverage', base.branchCoverage, path, _coverageKey),
+          map, 'branch_coverage', base.branchCoverage, path, kCoverage),
     );
   }
 

@@ -9,8 +9,6 @@ import '../profile/profile_reporter.dart';
 /// JSON keys shared across the report shapes.
 const String _commandKey = 'command';
 const String _passedKey = 'passed';
-const String _fileKey = kFileKey;
-const String _lineKey = kLineKey;
 
 /// Renders analyze and check results as JSON for machine consumption.
 ///
@@ -41,8 +39,8 @@ class JsonReporter {
       'methods': [
         for (final m in report.sorted)
           {
-            _fileKey: m.method.filePath,
-            _lineKey: m.method.startLine,
+            kFileKey: m.method.filePath,
+            kLineKey: m.method.startLine,
             'class': m.method.className,
             'method': m.method.methodName,
             'complexity': m.complexity,
@@ -83,8 +81,8 @@ class JsonReporter {
       'methods': [
         for (final p in shown)
           {
-            _fileKey: p.method.filePath,
-            _lineKey: p.method.startLine,
+            kFileKey: p.method.filePath,
+            kLineKey: p.method.startLine,
             'class': p.method.className,
             'method': p.method.methodName,
             'calls': p.timing.calls,
@@ -108,7 +106,7 @@ class JsonReporter {
       'summary': r.summary,
       'violations': [
         for (final v in r.violations)
-          {_fileKey: v.file, _lineKey: v.line, 'message': v.message},
+          {kFileKey: v.file, kLineKey: v.line, 'message': v.message},
       ],
     };
   }

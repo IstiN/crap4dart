@@ -150,19 +150,19 @@ class _ExtendedGateConfigReaders {
         _ignorableKey,
         _dirsKey,
         'max_loose_files',
-        _configKey,
+        kConfig,
         _excludeKey
       },
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
-        if (map[_configKey] != null) {
+        if (map[kConfig] != null) {
           // The per-pattern caps take precedence: dirs and
           // max_loose_files are not consulted.
           return FolderStructureGateConfig(
             enabled: flags.enabled,
             severity: flags.severity,
             ignorable: flags.ignorable,
-            caps: _capsOf(map[_configKey], path),
+            caps: _capsOf(map[kConfig], path),
             exclude: _ConfigScalars.strList(
                 map, _excludeKey, base.exclude, path, ctx),
           );
