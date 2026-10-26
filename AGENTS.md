@@ -81,6 +81,15 @@ suite in CI.
 - Do not relax thresholds in `crap4dart.yaml` to make a change pass;
   refactor or add tests instead.
 
+- Before creating a pull request, verify `crap4dart analyze` is green
+  with fresh coverage: run the coverage-dependent verification above,
+  then `dart run bin/crap4dart.dart analyze` — max CRAP must stay
+  <= 8.0. The `quality` workflow runs the same step as its last gate;
+  a PR whose self-CRAP exceeds the threshold fails its pipeline.
+  Note the asymmetry: `check` allows CC up to 12, but `analyze` needs
+  CRAP <= 8.0, so a fully covered method must have CC <= 8 — and an
+  uncovered method only CC <= 2. New/changed gates need test coverage
+  for every branch, or the CRAP score fails the PR.
 ## Architecture
 
 ```
