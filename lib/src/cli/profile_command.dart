@@ -15,9 +15,6 @@ import '../report/json_reporter.dart';
 import 'exit_codes.dart';
 import 'runner.dart';
 
-/// Name of the `--threshold` option (milliseconds).
-const String _thresholdFlag = kThreshold;
-
 /// The `profile` command: runs the test suite against instrumented source
 /// code and reports per-method timing data.
 class ProfileCommand extends Command<int> with CommandHelpers {
@@ -36,7 +33,7 @@ class ProfileCommand extends Command<int> with CommandHelpers {
         help: 'Profile only staged Dart files (git index).',
       )
       ..addOption(
-        _thresholdFlag,
+        kThreshold,
         help: 'Warn on methods above this total time in milliseconds.',
       )
       ..addOption(
@@ -255,8 +252,8 @@ class ProfileCommand extends Command<int> with CommandHelpers {
   }
 
   double? _resolveThreshold(Crap4DartConfig config) {
-    if (argResults!.wasParsed(_thresholdFlag)) {
-      final raw = argResults![_thresholdFlag] as String;
+    if (argResults!.wasParsed(kThreshold)) {
+      final raw = argResults![kThreshold] as String;
       final value = double.tryParse(raw);
       if (value == null) {
         throw UsageException(

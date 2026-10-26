@@ -789,11 +789,20 @@ package, `'test/**'` for a fast-moving test tree).
 
 The message asks to extract a shared constant and verify all
 occurrences mean the same thing — the gate highlights, intent stays
-human (the same value is sometimes coincidence). Config keys:
-`enabled` (default true), `severity` (default `warning`), `ignorable`,
-`min_files` (int), `min_length` (int), `min_value` (int),
-`deep_search` (bool), `ignore` (list of strings and integers),
-`exclude` (globs). Unknown keys are config errors, as for every gate.
+human (the same value is sometimes coincidence).
+
+*Pure alias*: a private `const` whose initializer is another
+constant's identifier — `const _appName = kName;` — is flagged as
+adding a name without information; the message says to reference the
+shared constant directly. Public declarations are exempt (re-export
+shims are a deliberate API shape), and the rule is switchable with
+`aliases` (default true).
+
+Config keys: `enabled` (default true), `severity` (default
+`warning`), `ignorable`, `min_files` (int), `min_length` (int),
+`min_value` (int), `deep_search` (bool), `ignore` (list of strings
+and integers), `exclude` (globs), `aliases` (bool). Unknown keys are
+config errors, as for every gate.
 
 ### 11.14 broken_goldens
 

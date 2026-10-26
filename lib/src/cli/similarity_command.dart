@@ -26,17 +26,17 @@ class SimilarityCommand extends Command<int> {
   SimilarityCommand({this.projectRoot}) {
     argParser
       ..addOption(
-        _formatOption,
+        kFormat,
         allowed: [kConsole, kJson],
         defaultsTo: kConsole,
         help: 'Output format.',
       )
       ..addOption(
-        _jaccardOption,
+        kJaccard,
         help: 'Jaccard threshold override (0.0-1.0).',
       )
       ..addOption(
-        _containmentOption,
+        kContainment,
         help: 'Containment threshold override (0.0-1.0).',
       )
       ..addOption(
@@ -44,16 +44,16 @@ class SimilarityCommand extends Command<int> {
         help: 'Minimum shingles per file (smaller files are skipped).',
       )
       ..addMultiOption(
-        _includeOption,
+        kInclude,
         help: 'Glob of files to analyze (repeatable); default: the '
             'config include list (**/*.md).',
       )
       ..addMultiOption(
-        _excludeOption,
+        kExclude,
         help: 'Glob of files to skip (repeatable); default: the config '
             'exclude list.',
       )
-      ..addOption(_configFlag, help: kConfigHelp);
+      ..addOption(kConfig, help: kConfigHelp);
   }
 
   /// Project root override (default: the current working directory).
@@ -74,19 +74,17 @@ class SimilarityCommand extends Command<int> {
     final similarity = config.gates.similarity;
     final args = argResults!;
     final (root: scanRoot, dirs: dirs) = _scanTargets(root, similarity.dirs);
-    final jaccard = _doubleArg(args, _jaccardOption) ?? similarity.jaccard;
+    final jaccard = _doubleArg(args, kJaccard) ?? similarity.jaccard;
     final containment =
-        _doubleArg(args, _containmentOption) ?? similarity.containment;
+        _doubleArg(args, kContainment) ?? similarity.containment;
     final minShingles =
         _intArg(args, _minShinglesOption) ?? similarity.minShingles;
-    final include =
-        (args[_includeOption] as List<String>).cast<String>().isNotEmpty
-            ? (args[_includeOption] as List<String>).cast<String>()
-            : similarity.include;
-    final exclude =
-        (args[_excludeOption] as List<String>).cast<String>().isNotEmpty
-            ? (args[_excludeOption] as List<String>).cast<String>()
-            : similarity.exclude;
+    final include = (args[kInclude] as List<String>).cast<String>().isNotEmpty
+        ? (args[kInclude] as List<String>).cast<String>()
+        : similarity.include;
+    final exclude = (args[kExclude] as List<String>).cast<String>().isNotEmpty
+        ? (args[kExclude] as List<String>).cast<String>()
+        : similarity.exclude;
     final report = const SimilarityAnalyzer().analyze(
       Directory(scanRoot),
       dirs: dirs,
@@ -96,7 +94,7 @@ class SimilarityCommand extends Command<int> {
       containmentThreshold: containment,
       minShingles: minShingles,
     );
-    if (args[_formatOption] == kJson) {
+    if (args[kFormat] == kJson) {
       _printJson(report, jaccard, containment, minShingles);
     } else {
       _printConsole(report, jaccard, containment, minShingles);
@@ -129,7 +127,7 @@ class SimilarityCommand extends Command<int> {
     try {
       return const ConfigLoader().load(
         root,
-        configPath: argResults![_configFlag] as String?,
+        configPath: argResults![kConfig] as String?,
       );
     } on ConfigException catch (e) {
       stderr.writeln(e);
@@ -230,10 +228,4 @@ class SimilarityCommand extends Command<int> {
   }
 }
 
-const String _formatOption = kFormat;
-const String _jaccardOption = kJaccard;
-const String _containmentOption = kContainment;
 const String _minShinglesOption = 'min-shingles';
-const String _includeOption = kInclude;
-const String _excludeOption = kExclude;
-const String _configFlag = kConfig;

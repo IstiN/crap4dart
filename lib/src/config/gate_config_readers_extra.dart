@@ -22,7 +22,7 @@ class _ExtendedGateConfigReaders {
         _ignorableKey,
         _dirsKey,
         'min_stripe_run',
-        _excludeKey
+        kExclude
       },
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -34,7 +34,7 @@ class _ExtendedGateConfigReaders {
           minStripeRun: _ConfigScalars.readInt(
               map, 'min_stripe_run', base.minStripeRun, path, ctx),
           exclude:
-              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+              _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
         );
       },
     );
@@ -77,7 +77,7 @@ class _ExtendedGateConfigReaders {
           containment: _ConfigScalars.readNum(
               map, kContainment, base.containment, path, ctx),
           exclude:
-              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+              _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
         );
       },
     );
@@ -98,7 +98,7 @@ class _ExtendedGateConfigReaders {
         _severityKey,
         _ignorableKey,
         'min_assertions',
-        _excludeKey
+        kExclude
       },
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -109,7 +109,7 @@ class _ExtendedGateConfigReaders {
           minAssertions: _ConfigScalars.readInt(
               map, 'min_assertions', base.minAssertions, path, ctx),
           exclude:
-              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+              _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
         );
       },
     );
@@ -151,7 +151,7 @@ class _ExtendedGateConfigReaders {
         _dirsKey,
         'max_loose_files',
         kConfig,
-        _excludeKey
+        kExclude
       },
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -163,8 +163,8 @@ class _ExtendedGateConfigReaders {
             severity: flags.severity,
             ignorable: flags.ignorable,
             caps: _capsOf(map[kConfig], path),
-            exclude: _ConfigScalars.strList(
-                map, _excludeKey, base.exclude, path, ctx),
+            exclude:
+                _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
           );
         }
         return FolderStructureGateConfig(
@@ -175,7 +175,7 @@ class _ExtendedGateConfigReaders {
           maxLooseFiles: _ConfigScalars.readInt(
               map, 'max_loose_files', base.maxLooseFiles, path, ctx),
           exclude:
-              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+              _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
         );
       },
     );
@@ -203,7 +203,7 @@ class _ExtendedGateConfigReaders {
         'cache',
         'test_args',
         'scope_tests',
-        _excludeKey,
+        kExclude,
       },
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -239,7 +239,7 @@ class _ExtendedGateConfigReaders {
                 map, 'scope_tests', base.execution.testScope, path, ctx),
           ),
           exclude:
-              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+              _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
         );
       },
     );
@@ -344,6 +344,7 @@ class _ExtendedGateConfigReaders {
   /// YAML keys shared by the two scattered-literal readers.
   static const _minFilesKey = 'min_files';
   static const _minValueKey = 'min_value';
+  static const _aliasesKey = 'aliases';
 
   static ScatteredGateConfig readScatteredConstants(
     Object? node,
@@ -359,7 +360,8 @@ class _ExtendedGateConfigReaders {
       _minLengthKey,
       _minValueKey,
       'ignore',
-      _excludeKey
+      _aliasesKey,
+      kExclude
     });
   }
 
@@ -392,7 +394,9 @@ class _ExtendedGateConfigReaders {
               map, _minValueKey, base.minValue, path, ctx),
           ignore: _readIgnoreValues(map['ignore'], base.ignore, path),
           exclude:
-              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+              _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
+          flagAliases: _ConfigScalars.readBool(
+              map, _aliasesKey, base.flagAliases, path, ctx),
         );
       },
     );

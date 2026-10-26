@@ -68,6 +68,7 @@ class ScatteredConstantsGate implements Gate {
     var checked = 0;
     final literals = <String, _ScatteredLiteral>{};
     final constants = <String, List<NamedConstant>>{};
+    final aliases = <_PureAlias>[];
     for (final scanned in context.parsedCorpus(
       config.exclude,
       ignore.pathGlobs,
@@ -79,6 +80,7 @@ class ScatteredConstantsGate implements Gate {
         relative,
         parsed.lineInfo,
         constants,
+        aliases: aliases,
         minValue: config.minValue,
         ignoreValues: ignore.values,
       ));
@@ -99,17 +101,44 @@ class ScatteredConstantsGate implements Gate {
       for (final literal in literals.values)
         ..._violationsFor(literal, config, constants[literal.key]),
     ];
+    final aliasViolations = !config.flagAliases
+        ? const <GateViolation>[]
+        : [
+            for (final alias in aliases)
+              if (alias.name.startsWith('_'))
+                GateViolation(
+                  file: alias.file,
+                  line: alias.line,
+                  message: 'alias `${alias.name}` adds no information — '
+                      'reference `${alias.target}` directly',
+                ),
+          ];
+    final all = [...violations, ...aliasViolations];
     final regressions =
         violations.where((v) => v.message.contains('duplicates')).length;
     final scattered = violations.length - regressions;
-    final summary = violations.isEmpty
+    final summary = all.isEmpty
         ? '$checked files scanned, no literals repeat across files'
         : '$regressions hardcoded re-uses of existing constants, '
-            '$scattered scattered-literal occurrences';
-    return violations.isEmpty
+            '$scattered scattered-literal occurrences'
+            '${aliasViolations.isEmpty ? '' : ', '
+                '${aliasViolations.length} pure aliases'}';
+    return all.isEmpty
         ? GateResult.pass(id, summary: summary)
-        : GateResult.fail(id, violations, summary: summary);
+        : GateResult.fail(id, all, summary: summary);
   }
+}
+
+/// A pure value alias: a const declaration whose initializer is
+/// another constant's identifier — `const _x = kY;`. Only private
+/// declarations are flagged; public re-export shims are deliberate.
+class _PureAlias {
+  const _PureAlias(this.name, this.target, this.file, this.line);
+
+  final String name;
+  final String target;
+  final String file;
+  final int line;
 }
 
 /// Violations for one literal value: constant regressions first (any
@@ -203,9 +232,11 @@ class _ConstantCollector extends RecursiveAstVisitor<void> {
     this._file,
     this._lineInfo,
     this._constants, {
+    required List<_PureAlias> aliases,
     required int minValue,
     required Set<String> ignoreValues,
-  })  : _minValue = minValue,
+  })  : _aliases = aliases,
+        _minValue = minValue,
         _ignoreValues = ignoreValues;
 
   final String _file;
@@ -222,12 +253,23 @@ class _ConstantCollector extends RecursiveAstVisitor<void> {
   /// value cannot be the canonical twin that flags someone else.
   final Set<String> _ignoreValues;
 
+  /// Pure value aliases discovered in the same pass.
+  final List<_PureAlias> _aliases;
+
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     final parent = node.parent;
     final isConst = parent is VariableDeclarationList && parent.isConst;
     final initializer = node.initializer;
     if (isConst && initializer != null) {
+      if (initializer is SimpleIdentifier) {
+        _aliases.add(_PureAlias(
+          node.name.lexeme,
+          initializer.name,
+          _file,
+          _lineInfo.getLocation(node.offset).lineNumber,
+        ));
+      }
       final key = _literalKey(initializer);
       if (key != null && !_coincidence(initializer, key)) {
         _constants.putIfAbsent(key, () => []).add(NamedConstant(
