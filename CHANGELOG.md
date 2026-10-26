@@ -11,23 +11,16 @@
   on the `feature/scattered-constants-gate` branch (0.20.0) should we
   return to it.
 
-## 0.19.0 — 2026-10-23
+## 0.19.0 — 2026-10-24
 
-- New `scattered_fragments` gate: the deep search split out of
-  `scattered_constants` (one concern per gate). Splits literals on
-  configurable `separators` (default `.`) and flags repeated segments
-  of `min_length`+ chars across `min_files`+ files, plus hardcoded
-  values that contain or duplicate an existing named constant
-  (replacement candidates; `min_length` floors trivial matches).
-  `scattered_constants` is whole-value only again (`deep_search`
-  removed); both gates share the `ignore` values/path-globs option.
-
-- New `scattered_constants` gate: flags literals appearing in
-  `min_files` (default 3) distinct files — cross-file aggregation of
-  magic constants (the "change 86400 in every service" hazard).
-  Dogfooding extracted `lib/src/common/constants.dart` (tool argv
-  names, `pubspec.yaml`, `.dart` suffix, output format names) and
-  shared literal-scanning helpers for the two literal gates.
+- Flutter memory reports no longer show a misleading `0.0` for
+  reclaimed-new-gen churn: the VM Service GC stream has no reclaimed
+  counters, so `churnNewMb` (per test/suite) and `totalChurnMb` are
+  JSON `null` there, a top-level `churnAvailable` flag says so, and
+  the console prints "new-gen churn unavailable". Use `allocatedMb` /
+  `totalAllocatedMb` (exact allocated bytes) as the churn metric on
+  both engines; `--badge` follows the same rule. Dart-engine output
+  is unchanged (numeric churn, `churnAvailable: true`).
 
 ## 0.18.0 — 2026-10-23
 

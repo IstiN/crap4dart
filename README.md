@@ -196,6 +196,10 @@ old generation without freeing it (leak suspects).
   remote protocol, and measured through the VM's allocation profile —
   per-test ALLOCATED bytes exactly, plus GC events and old-gen growth.
   Every file executes twice (the tool's run plus the measured copy).
+  The VM stream has no reclaimed-new-gen counters, so there
+  `churnNewMb`/`totalChurnMb` are JSON `null` (plus
+  `churnAvailable: false`) — use `allocatedMb`/`totalAllocatedMb` as
+  the churn metric on both engines; badges follow the same rule.
 
 ```sh
 crap4dart memory                  # run the suite, print both leaderboards

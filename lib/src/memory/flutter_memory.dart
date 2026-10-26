@@ -769,6 +769,7 @@ MemoryReport _aggregate(String projectRoot, List<MeasuredFile> files) {
     totalGcs: all,
     suites: suites,
     tests: tests,
+    churnAvailable: false,
     unattributedGcs: [
       for (final file in files)
         if (file.error != null) ...file.loadingRows,

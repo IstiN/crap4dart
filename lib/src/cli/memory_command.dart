@@ -128,7 +128,8 @@ class MemoryCommand extends Command<int> {
     if (path == null || path.isEmpty) return;
     final threshold =
         double.tryParse(argResults![_badgeThresholdOption] as String) ?? 500;
-    final churn = report.totalChurnMb;
+    final churn =
+        report.churnAvailable ? report.totalChurnMb : report.totalAllocatedMb;
     final color = churn <= threshold
         ? BadgeColors.green
         : churn <= 2 * threshold
@@ -172,7 +173,7 @@ class MemoryCommand extends Command<int> {
   void _printConsole(MemoryReport report, int top) {
     stdout.writeln(
       'memory: ${report.testCount} tests, ${report.totalGcs.length} GCs, '
-      'churn ${report.totalChurnMb.toStringAsFixed(1)} MB new-gen, '
+      '${report.churnAvailable ? 'churn ${report.totalChurnMb.toStringAsFixed(1)} MB new-gen, ' : 'new-gen churn unavailable (VM stream has no reclaimed counters), '}'
       'old-gen ${report.totalOldGrowthMb >= 0 ? '+' : ''}'
       '${report.totalOldGrowthMb.toStringAsFixed(1)} MB'
       '${report.totalAllocatedMb > 0 ? ', allocated ${report.totalAllocatedMb.toStringAsFixed(1)} MB' : ''}',
@@ -212,7 +213,9 @@ class MemoryCommand extends Command<int> {
       const JsonEncoder.withIndent('  ').convert({
         'testCount': report.testCount,
         'gcCount': report.totalGcs.length,
-        'totalChurnMb': _round1(report.totalChurnMb),
+        'churnAvailable': report.churnAvailable,
+        'totalChurnMb':
+            report.churnAvailable ? _round1(report.totalChurnMb) : null,
         'totalAllocatedMb': _round1(report.totalAllocatedMb),
         'totalOldGrowthMb': _round1(report.totalOldGrowthMb),
         'suites': [
