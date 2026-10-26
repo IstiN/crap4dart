@@ -1,6 +1,7 @@
 import '../../coverage/lcov_parser.dart';
 import '../gate.dart';
 import '../gate_context.dart';
+import '../gate_ids.dart';
 
 /// Line totals over a set of covered files.
 typedef _CoverageTotals = ({int hit, int found});
@@ -13,7 +14,7 @@ class CoverageGate implements Gate {
   const CoverageGate();
 
   @override
-  String get id => 'test_coverage';
+  String get id => GateIds.testCoverage;
 
   @override
   Future<GateResult> run(GateContext context) async {

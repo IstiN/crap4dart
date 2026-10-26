@@ -3,6 +3,7 @@ import 'dart:io';
 import '../../similarity/similarity_analyzer.dart';
 import '../gate.dart';
 import '../gate_context.dart';
+import '../gate_ids.dart';
 
 /// The `similarity` gate: flags files whose content is near-duplicate
 /// of other files — copied docs that drifted apart, twin templates
@@ -19,7 +20,7 @@ class SimilarityGate implements Gate {
   const SimilarityGate();
 
   @override
-  String get id => 'similarity';
+  String get id => GateIds.similarity;
 
   @override
   Future<GateResult> run(GateContext context) async {

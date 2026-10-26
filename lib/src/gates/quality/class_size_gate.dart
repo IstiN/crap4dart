@@ -3,6 +3,7 @@ import '../../config/config.dart';
 import '../../analysis/method_extractor.dart';
 import '../gate.dart';
 import '../gate_context.dart';
+import '../gate_ids.dart';
 
 /// The `class_size` gate: fails classes with more than
 /// `gates.class_size.max_methods` concrete methods (default 25) or a
@@ -14,7 +15,7 @@ class ClassSizeGate implements Gate {
   const ClassSizeGate();
 
   @override
-  String get id => 'class_size';
+  String get id => GateIds.classSize;
 
   @override
   Future<GateResult> run(GateContext context) async {

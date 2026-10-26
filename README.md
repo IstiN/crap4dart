@@ -29,13 +29,14 @@ crap4dart is a Dart port of the Java tool
 ## Features
 
 - **CRAP analysis** per method, combining complexity and LCOV coverage
-- **26 quality gates**: `loc`, `test_coverage`, `golden`,
+- **27 quality gates**: `loc`, `test_coverage`, `golden`,
   `hardcoded_strings`, `accessibility`, `complexity`, `method_size`,
   `nesting`, `record_named_fields`, `inline_record_types`,
   `record_size`, `class_size`, `weight_of_class`, `unused_code`,
   `unused_files`, `banned_imports`, `public_docs`, `duplication`,
-  `file_naming`, `magic_constants`, `broken_goldens`, `test_assertions`,
-  `folder_structure`, `external`, `mutation`, `similarity`
+  `file_naming`, `magic_constants`, `scattered_constants`, `broken_goldens`,
+  `test_assertions`, `folder_structure`, `external`, `mutation`,
+  `similarity`
 - **Gate framework**: per-path thresholds (`entries`), warning
   severity, baseline mode, opt-in ignore markers
 - **Configuration** via `crap4dart.yaml` with strict validation
@@ -584,6 +585,24 @@ gates:
   fields to public instance members exceeds `max_weight` (default 0.33):
   classes revealing more data than behavior. Disabled by default —
   data/model classes are legitimate.
+- **scattered_constants** — two finding kinds on whole literal
+  values. *Constant regression*: a named `const` for the value
+  already exists anywhere in the corpus — every hardcoded
+  re-introduction (a bare literal or a duplicate local const, even a
+  single occurrence in the declaring file) is flagged immediately,
+  naming the constant and its declaration site to reference. The
+  fact has a home; you do not get to re-hardcode it while the gate
+  waits for `min_files` again. *Scattered literal*: no constant
+  exists yet and the value appears in `min_files`+ distinct files —
+  the classic "change `86400` in every service" hazard; the message
+  asks to extract one shared constant and *verify* all occurrences
+  mean the same thing first (the same value is sometimes
+  coincidence). Expressions, case labels, directive URIs and
+  literals inside constant declarations follow the shared
+  literal-site rules; short strings (`min_length`) and small numbers
+  (`min_value`) are coincidence; an `ignore` list exempts values
+  permanently (generic vocabulary) and path-glob entries (`src/**`)
+  exempt whole files. Warning severity by default.
 - **duplication** — detects exact copy-paste token blocks across Dart
   source files. A block counts when it is at least `min_tokens` tokens
   (default 50) and `min_lines` lines (default 5) long. `report` chooses

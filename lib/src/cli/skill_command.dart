@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -16,7 +17,7 @@ class SkillCommand extends Command<int> {
   /// Creates a [SkillCommand].
   SkillCommand({this.projectRoot}) {
     argParser.addOption(
-      'format',
+      kFormat,
       allowed: ['text', 'install'],
       defaultsTo: 'text',
       help: 'text: print skill content; install: show install instructions.',

@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:convert';
 
 /// A suite (test file) seen in the package:test JSON reporter stream.
@@ -108,7 +109,9 @@ class TestRunEvents {
     final name = test['name'] as String?;
     final suiteId = test['suiteID'] as int?;
     if (id == null || name == null || suiteId == null) return;
-    if (name.startsWith('loading ') && name.endsWith('.dart')) return;
+    if (name.startsWith('loading ') && name.endsWith(kDartExtension)) {
+      return;
+    }
     spansById.putIfAbsent(
       id,
       () => TestSpan(id: id, name: name, suiteId: suiteId, startMs: time),

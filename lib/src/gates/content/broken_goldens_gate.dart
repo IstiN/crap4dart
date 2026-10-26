@@ -7,6 +7,7 @@ import 'package:image/image.dart' as img;
 import '../gate.dart';
 import '../similarity/tofu_detector.dart';
 import '../gate_context.dart';
+import '../gate_ids.dart';
 
 /// The stripe classification of a pixel in the overflow pattern.
 
@@ -33,7 +34,7 @@ class BrokenGoldensGate implements Gate {
   const BrokenGoldensGate();
 
   @override
-  String get id => 'broken_goldens';
+  String get id => GateIds.brokenGoldens;
 
   @override
   Future<GateResult> run(GateContext context) async {

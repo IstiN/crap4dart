@@ -4,6 +4,7 @@ import 'package:glob/glob.dart';
 
 import '../gate.dart';
 import '../gate_context.dart';
+import '../gate_ids.dart';
 
 /// One `entries` rule: a path glob and the line limit it sets.
 typedef _LocEntry = ({Glob glob, int maxLines});
@@ -15,7 +16,7 @@ class LocGate implements Gate {
   const LocGate();
 
   @override
-  String get id => 'loc';
+  String get id => GateIds.loc;
 
   @override
   Future<GateResult> run(GateContext context) async {

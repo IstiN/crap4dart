@@ -5,6 +5,7 @@ import 'package:glob/glob.dart';
 import '../../analysis/dart_parser.dart';
 import '../gate.dart';
 import '../gate_context.dart';
+import '../gate_ids.dart';
 
 /// One `entries` rule: a path glob and the per-path limits it sets
 /// (`null` thresholds keep the gate defaults).
@@ -26,7 +27,7 @@ class MethodSizeGate implements Gate {
   const MethodSizeGate();
 
   @override
-  String get id => 'method_size';
+  String get id => GateIds.methodSize;
 
   @override
   Future<GateResult> run(GateContext context) async {

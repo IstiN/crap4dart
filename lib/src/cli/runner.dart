@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -54,13 +55,13 @@ Future<String> gitTopLevel(String dir) async {
 }
 
 /// Current crap4dart version.
-const String crap4dartVersion = '0.19.0';
+const String crap4dartVersion = '0.21.0';
 
 /// Shared CLI flag names used by multiple commands.
-const String _configFlag = 'config';
+const String _configFlag = kConfig;
 const String _changedFlag = 'changed';
 const String _runTestsFlag = 'run-tests';
-const String _formatFlag = 'format';
+const String _formatFlag = kFormat;
 const String _forceFlag = 'force';
 const String _diffBaseFlag = 'diff-base';
 const String _diffFlag = 'diff';
@@ -73,7 +74,7 @@ const String _jsonFormat = 'json';
 /// Option names used by a single command family.
 const String _thresholdFlagName = 'threshold';
 const String _lcovFlag = 'lcov';
-const String _configHelp = 'Path to a crap4dart.yaml config file.';
+const String _configHelp = kConfigHelp;
 
 /// Command-line entry point of crap4dart.
 class Crap4DartRunner {
@@ -335,7 +336,7 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
         _formatFlag,
         allowed: [_consoleFormat, _jsonFormat],
         defaultsTo: _consoleFormat,
-        help: 'Output format (json writes only JSON to stdout).',
+        help: kOutputFormatHelp,
       )
       ..addFlag(
         _diffFlag,
@@ -344,7 +345,7 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
       )
       ..addOption(
         _diffBaseFlag,
-        help: 'Like --diff, but diffs against the given git ref.',
+        help: kDiffBaseHelp,
       )
       ..addOption(
         'badge',
@@ -534,7 +535,7 @@ class CheckCommand extends Command<int> with CommandHelpers {
       )
       ..addOption('only', help: 'Run only these gates (comma-separated ids).')
       ..addOption('skip', help: 'Skip these gates (comma-separated ids).')
-      ..addOption(_configFlag, help: 'Path to a crap4dart.yaml config file.')
+      ..addOption(_configFlag, help: kConfigHelp)
       ..addFlag(
         _runTestsFlag,
         negatable: false,
@@ -544,7 +545,7 @@ class CheckCommand extends Command<int> with CommandHelpers {
         _formatFlag,
         allowed: [_consoleFormat, _jsonFormat],
         defaultsTo: _consoleFormat,
-        help: 'Output format (json writes only JSON to stdout).',
+        help: kOutputFormatHelp,
       )
       ..addFlag(
         _diffFlag,
@@ -553,7 +554,7 @@ class CheckCommand extends Command<int> with CommandHelpers {
       )
       ..addOption(
         _diffBaseFlag,
-        help: 'Like --diff, but diffs against the given git ref.',
+        help: kDiffBaseHelp,
       )
       ..addFlag(
         'save-baseline',

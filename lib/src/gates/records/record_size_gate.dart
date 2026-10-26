@@ -1,5 +1,6 @@
 import '../gate.dart';
 import '../gate_context.dart';
+import '../gate_ids.dart';
 import 'record_types_analyzer.dart';
 
 /// The `record_size` gate: caps how many fields a record type may
@@ -22,7 +23,7 @@ class RecordSizeGate implements Gate {
   const RecordSizeGate();
 
   @override
-  String get id => 'record_size';
+  String get id => GateIds.recordSize;
 
   @override
   Future<GateResult> run(GateContext context) async {

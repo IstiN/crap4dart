@@ -1,5 +1,6 @@
 import '../gate.dart';
 import '../gate_context.dart';
+import '../gate_ids.dart';
 import 'record_types_analyzer.dart';
 
 /// The `inline_record_types` gate: record types must be named.
@@ -22,7 +23,7 @@ class InlineRecordTypesGate implements Gate {
   const InlineRecordTypesGate();
 
   @override
-  String get id => 'inline_record_types';
+  String get id => GateIds.inlineRecordTypes;
 
   @override
   Future<GateResult> run(GateContext context) async {

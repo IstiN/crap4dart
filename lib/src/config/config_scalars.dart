@@ -7,6 +7,7 @@ const String _ignorableKey = 'ignorable';
 
 /// Error message for values that must be integers.
 const String _expectedIntegerMsg = 'expected an integer';
+const String _expectedStringMsg = 'expected a string';
 
 /// The three framework flags every gate config shares.
 typedef GateFlagsRecord = ({
@@ -54,8 +55,12 @@ class _ConfigScalars {
   ) {
     final value = map[key];
     if (value == null) return base;
-    if (value is String && (value == 'error' || value == 'warning')) {
-      return GateSeverity.parse(value);
+    if (value is String) {
+      try {
+        return GateSeverity.parse(value);
+      } on ArgumentError {
+        // fall through to the config error below
+      }
     }
     throw ConfigException(
       path,
@@ -130,7 +135,7 @@ class _ConfigScalars {
     final value = map[key];
     if (value == null) return base;
     if (value is String) return value;
-    throw ConfigException(path, '$ctx.$key', 'expected a string');
+    throw ConfigException(path, '$ctx.$key', _expectedStringMsg);
   }
 
   static List<String> strList(

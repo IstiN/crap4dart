@@ -1,3 +1,4 @@
+import '../../common/constants.dart';
 import 'dart:io';
 import 'dart:math';
 
@@ -11,6 +12,7 @@ import '../../config/config.dart';
 
 import '../gate.dart';
 import '../gate_context.dart';
+import '../gate_ids.dart';
 
 part 'duplication_gate_clones.dart';
 part 'duplication_gate_mask.dart';
@@ -67,7 +69,7 @@ class DuplicationGate implements Gate {
   const DuplicationGate();
 
   @override
-  String get id => 'duplication';
+  String get id => GateIds.duplication;
 
   @override
   Future<GateResult> run(GateContext context) async {
@@ -149,10 +151,12 @@ class DuplicationGate implements Gate {
       final absolute = p.join(context.projectRoot, source);
       final type = FileSystemEntity.typeSync(absolute);
       if (type == FileSystemEntityType.file) {
-        if (absolute.endsWith('.dart')) result.add(absolute);
+        if (absolute.endsWith(kDartExtension)) {
+          result.add(absolute);
+        }
       } else if (type == FileSystemEntityType.directory) {
         for (final entity in Directory(absolute).listSync(recursive: true)) {
-          if (entity is File && entity.path.endsWith('.dart')) {
+          if (entity is File && entity.path.endsWith(kDartExtension)) {
             result.add(entity.path);
           }
         }

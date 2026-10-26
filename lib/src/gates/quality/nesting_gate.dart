@@ -4,6 +4,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import '../../analysis/method_extractor.dart';
 import '../gate.dart';
 import '../gate_context.dart';
+import '../gate_ids.dart';
 
 /// The `nesting` gate: fails methods whose maximum control-flow nesting
 /// level exceeds `gates.nesting.max_nesting` (default 5).
@@ -16,7 +17,7 @@ class NestingGate implements Gate {
   const NestingGate();
 
   @override
-  String get id => 'nesting';
+  String get id => GateIds.nesting;
 
   @override
   Future<GateResult> run(GateContext context) async {

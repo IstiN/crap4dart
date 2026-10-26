@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -55,23 +56,23 @@ class ProfileCommand extends Command<int> with CommandHelpers {
         help: 'Exclude tests with these tags (comma-separated).',
       )
       ..addOption(
-        'config',
-        help: 'Path to a crap4dart.yaml config file.',
+        kConfig,
+        help: kConfigHelp,
       )
       ..addOption(
-        'format',
-        allowed: ['console', 'json'],
-        defaultsTo: 'console',
-        help: 'Output format (json writes only JSON to stdout).',
+        kFormat,
+        allowed: [kConsole, kJson],
+        defaultsTo: kConsole,
+        help: kOutputFormatHelp,
       )
       ..addFlag(
-        'diff',
+        kDiff,
         negatable: false,
         help: 'Profile only methods on lines changed since HEAD.',
       )
       ..addOption(
         'diff-base',
-        help: 'Like --diff, but diffs against the given git ref.',
+        help: kDiffBaseHelp,
       );
   }
 
@@ -234,7 +235,7 @@ class ProfileCommand extends Command<int> with CommandHelpers {
     int? top,
     String? diffBase,
   ) {
-    if (argResults!['format'] == 'json') {
+    if (argResults!['format'] == kJson) {
       stdout.writeln(
         const JsonReporter().renderProfile(
           report,

@@ -5,6 +5,7 @@ import '../../analysis/dart_parser.dart';
 import '../file_visitor.dart';
 import '../gate.dart';
 import '../gate_context.dart';
+import '../gate_ids.dart';
 
 /// The `weight_of_class` gate: fails classes that reveal more data than
 /// behavior — the ratio of public instance fields to public instance
@@ -15,7 +16,7 @@ class WeightOfClassGate implements Gate {
   const WeightOfClassGate();
 
   @override
-  String get id => 'weight_of_class';
+  String get id => GateIds.weightOfClass;
 
   @override
   Future<GateResult> run(GateContext context) async {

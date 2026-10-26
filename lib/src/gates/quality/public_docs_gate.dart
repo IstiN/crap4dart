@@ -5,6 +5,7 @@ import '../../analysis/dart_parser.dart';
 import '../file_visitor.dart';
 import '../gate.dart';
 import '../gate_context.dart';
+import '../gate_ids.dart';
 
 /// The `public_docs` gate: requires dartdoc comments on the public API.
 ///
@@ -18,7 +19,7 @@ class PublicDocsGate implements Gate {
   const PublicDocsGate();
 
   @override
-  String get id => 'public_docs';
+  String get id => GateIds.publicDocs;
 
   @override
   Future<GateResult> run(GateContext context) async {

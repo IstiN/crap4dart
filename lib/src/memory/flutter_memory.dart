@@ -19,6 +19,7 @@
 //    test (counts, durations, old-gen growth).
 //
 // Cost: every test file executes twice (the tool's own run plus ours).
+import '../common/constants.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -45,6 +46,9 @@ const Map<String, Object?> _initialMetadata = {
   'forTag': <String, Object?>{},
   'languageVersionComment': null,
 };
+
+/// The VM service message type reporting a failed measurement.
+const String _errorType = 'error';
 
 /// One traced `flutter_tester` spawn: its argv and environment.
 class FlutterTesterSpawn {
@@ -314,7 +318,7 @@ class FlutterSuiteDriver {
       if (msg[0] != 0) continue;
       final body = msg[1] as Map<String, Object?>;
       final type = body['type'] as String?;
-      if (type == 'error') {
+      if (type == _errorType) {
         await channel.close();
         return MeasuredFile(
           path: label,
@@ -622,12 +626,12 @@ Future<MemoryReport> runFlutterMemory(
 
   /// Overrides the tool argv (tests inject a fake `flutter` tool).
   List<String> toolArgs = const [
-    'test',
+    kTest,
     '--verbose',
     '--no-pub',
     '-j1',
     '-r',
-    'json'
+    kJson
   ],
 }) async {
   final flutter = flutterBinary ?? _defaultFlutterBinary();
@@ -723,7 +727,7 @@ File _snapshotDill(
 /// `$FLUTTER_ROOT/bin/flutter` when set, else `flutter` on PATH.
 String _defaultFlutterBinary() {
   final root = Platform.environment['FLUTTER_ROOT'];
-  return root == null ? 'flutter' : '$root/bin/flutter';
+  return root == null ? kFlutter : '$root/bin/flutter';
 }
 
 /// The `path` of a package:test json `suite` event line, or `null`.

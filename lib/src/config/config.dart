@@ -1,7 +1,10 @@
 /// Typed model of the `crap4dart.yaml` configuration file.
 library;
 
+import '../common/constants.dart';
+
 part 'gate_configs.dart';
+part 'gate_configs_scattered.dart';
 part 'gate_configs_naming.dart';
 part 'gate_flags.dart';
 part 'gate_config_mutation.dart';
@@ -91,7 +94,7 @@ class CrapConfig {
 class CoverageConfig {
   /// Creates a [CoverageConfig].
   const CoverageConfig({
-    this.lcovPath = 'coverage/lcov.info',
+    this.lcovPath = kDefaultLcovPath,
     this.runTests = true,
     this.required = true,
     this.branchCoverage = true,
@@ -133,6 +136,7 @@ class GatesConfig {
     this.duplication = const DuplicationGateConfig(),
     this.fileNaming = const FileNamingGateConfig(),
     this.magicConstants = const MagicConstantsGateConfig(),
+    this.scatteredConstants = const ScatteredGateConfig(),
     this.brokenGoldens = const BrokenGoldensGateConfig(),
     this.testAssertions = const TestAssertionsGateConfig(),
     this.folderStructure = const FolderStructureGateConfig(),
@@ -192,6 +196,9 @@ class GatesConfig {
 
   /// Magic constants gate (`magic_constants`).
   final MagicConstantsGateConfig magicConstants;
+
+  /// Scattered constants gate (`scattered_constants`).
+  final ScatteredGateConfig scatteredConstants;
 
   /// Similarity gate (`similarity`).
   final SimilarityGateConfig similarity;

@@ -1,3 +1,4 @@
+import '../../common/constants.dart';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -7,6 +8,7 @@ import '../../config/config.dart';
 import '../../coverage/lcov_parser.dart';
 import '../gate.dart';
 import '../gate_context.dart';
+import '../gate_ids.dart';
 import 'mutation_cache.dart';
 import 'mutation_engine.dart';
 import 'mutation_operators.dart';
@@ -55,7 +57,7 @@ class MutationGate implements Gate {
       : _engine = MutationEngine(runner: runner);
 
   @override
-  String get id => 'mutation';
+  String get id => GateIds.mutation;
 
   final MutationEngine _engine;
 
@@ -65,7 +67,7 @@ class MutationGate implements Gate {
     if (context.lcov == null) {
       return GateResult.skip(id, 'no coverage data');
     }
-    if (!Directory(p.join(context.projectRoot, 'test')).existsSync()) {
+    if (!Directory(p.join(context.projectRoot, kTest)).existsSync()) {
       return GateResult.skip(id, 'no test directory');
     }
     final scoped = _coveredSites(context, config);
@@ -171,7 +173,7 @@ class MutationGate implements Gate {
         if (File(p.join(context.projectRoot, candidate)).existsSync())
           candidate,
     ];
-    return existing.isEmpty ? null : ['test', ...existing];
+    return existing.isEmpty ? null : [kTest, ...existing];
   }
 
   /// Whether [site]'s containing method intersects the diff. Falls back

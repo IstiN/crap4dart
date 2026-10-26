@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import '../../analysis/dart_parser.dart';
 import '../gate.dart';
 import '../gate_context.dart';
+import '../gate_ids.dart';
 
 /// The `unused_files` gate: flags files under `gates.unused_files.dirs`
 /// (default `lib`) that are never imported by any analyzed file. Files
@@ -15,7 +16,7 @@ class UnusedFilesGate implements Gate {
   const UnusedFilesGate();
 
   @override
-  String get id => 'unused_files';
+  String get id => GateIds.unusedFiles;
 
   @override
   Future<GateResult> run(GateContext context) async {

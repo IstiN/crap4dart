@@ -1,5 +1,6 @@
 import '../gate.dart';
 import '../gate_context.dart';
+import '../gate_ids.dart';
 import 'record_types_analyzer.dart';
 
 /// The `record_named_fields` gate: record fields must be named.
@@ -21,7 +22,7 @@ class RecordNamedFieldsGate implements Gate {
   const RecordNamedFieldsGate();
 
   @override
-  String get id => 'record_named_fields';
+  String get id => GateIds.recordNamedFields;
 
   @override
   Future<GateResult> run(GateContext context) async {

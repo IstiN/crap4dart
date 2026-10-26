@@ -514,13 +514,14 @@ Known gate ids: `loc`, `test_coverage`, `golden`, `hardcoded_strings`,
 `public_docs`, `duplication`, `file_naming`, `magic_constants`,
 `broken_goldens`, `test_assertions`, `folder_structure`, `external`,
 `mutation`, `similarity`, `record_named_fields`, `inline_record_types`,
-`record_size`.
+`record_size`, `scattered_constants`.
 
 ## 11. Quality Gates
 
 Gates shall run in the fixed order: `loc`, `test_coverage`,
 `complexity`, `method_size`, `nesting`, `record_named_fields`,
 `inline_record_types`, `record_size`, `class_size`, `duplication`,
+`scattered_constants`,
 `file_naming`, `magic_constants`, `broken_goldens`, `test_assertions`,
 `folder_structure`, `external`, `unused_code`, `unused_files`,
 `banned_imports`,
@@ -747,6 +748,52 @@ occurrence is reported. String literals shorter than `min_length`
 (default 4) are ignored. `flag_hex_colors: false` disables check (a).
 Files matching the gate's `exclude` list (default generated files and
 `test/**`) are skipped.
+
+### 11.13.1 scattered_constants
+
+Cross-file aggregation over literal values (the wave-7 gap: a literal
+used once per file in K files is invisible to every per-file gate).
+The gate scans the whole corpus, counts distinct files per literal
+value, and — when the count reaches `min_files` (default 3) — flags
+one violation per occurrence (file plus line, so diff mode, baseline
+and ignore markers work unchanged). Values compare semantically:
+string literals by value, numbers by value (digit separators do not
+split a fact).
+
+Literals never counted: strings shorter than `min_length` (default 4),
+numbers with magnitude at or below `min_value` (default 100 — 0, 1,
+10, 100 happen everywhere), map keys, index expressions and case
+labels (protocol identifiers), import/export/part/part-of URIs, and
+literals inside constant declarations (already extracted). Files
+matching `exclude` (default: `**.g.dart`, `**.freezed.dart`,
+`**.mocks.dart`, `test/**`) are left out of the count entirely.
+
+The gate distinguishes two findings. *Constant regression*: the
+corpus already declares a named `const` with the value — every
+hardcoded re-introduction (bare literal or duplicate local const,
+any occurrence count, including the declaring file) is flagged
+immediately, naming the constant and its `file:line` to reference;
+no `min_files` wait. The first declaration wins when several share a
+value. *Scattered literal*: no constant exists and the value reached
+`min_files` distinct files. Both messages name the scope (files and
+occurrences) and the fix shape; the scattered message ends with the
+verification clause — all occurrences must mean the same thing.
+
+Values listed in `ignore` are never flagged: whole-literal hits by
+value, prefix hits by head, numbers by their decimal form —
+repositories in fast development can exempt generic vocabulary
+(`test`, `dart`, `flutter`) whose extraction adds churn without
+benefit. Entries containing a `/` are file-path globs instead: files
+matching them are exempt entirely (`'src/crypto/**'` for a crypto
+package, `'test/**'` for a fast-moving test tree).
+
+The message asks to extract a shared constant and verify all
+occurrences mean the same thing — the gate highlights, intent stays
+human (the same value is sometimes coincidence). Config keys:
+`enabled` (default true), `severity` (default `warning`), `ignorable`,
+`min_files` (int), `min_length` (int), `min_value` (int),
+`deep_search` (bool), `ignore` (list of strings and integers),
+`exclude` (globs). Unknown keys are config errors, as for every gate.
 
 ### 11.14 broken_goldens
 

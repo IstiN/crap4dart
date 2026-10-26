@@ -1,3 +1,4 @@
+import '../../common/constants.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -8,6 +9,7 @@ import 'package:path/path.dart' as p;
 import '../../analysis/dart_parser.dart';
 import '../gate.dart';
 import '../gate_context.dart';
+import '../gate_ids.dart';
 
 /// The `hardcoded_strings` gate: flags user-visible string literals that
 /// bypass localization, and `l10n.<key>` references missing from
@@ -25,12 +27,12 @@ class HardcodedStringsGate implements Gate {
   static final RegExp _letters = RegExp('[A-Za-z\u0400-\u04FF]');
 
   @override
-  String get id => 'hardcoded_strings';
+  String get id => GateIds.hardcodedStrings;
 
   @override
   Future<GateResult> run(GateContext context) async {
     if (!context.isFlutterProject) {
-      return GateResult.skip(id, 'not a Flutter project');
+      return GateResult.skip(id, kNotFlutterProject);
     }
     final config = context.config.gates.hardcodedStrings;
     final arbKeys = _loadArbKeys(context.projectRoot);

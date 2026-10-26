@@ -6,6 +6,7 @@ import '../../analysis/method_extractor.dart';
 import '../../config/config.dart';
 import '../gate.dart';
 import '../gate_context.dart';
+import '../gate_ids.dart';
 
 /// One `entries` rule: a path glob and the complexity limit it sets.
 typedef _ComplexityEntry = ({Glob glob, int maxComplexity});
@@ -20,7 +21,7 @@ class ComplexityGate implements Gate {
   const ComplexityGate();
 
   @override
-  String get id => 'complexity';
+  String get id => GateIds.complexity;
 
   @override
   Future<GateResult> run(GateContext context) async {

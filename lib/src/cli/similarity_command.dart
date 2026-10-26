@@ -1,3 +1,5 @@
+import '../gates/gate_ids.dart';
+import '../common/constants.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -25,8 +27,8 @@ class SimilarityCommand extends Command<int> {
     argParser
       ..addOption(
         _formatOption,
-        allowed: ['console', 'json'],
-        defaultsTo: 'console',
+        allowed: [kConsole, kJson],
+        defaultsTo: kConsole,
         help: 'Output format.',
       )
       ..addOption(
@@ -51,14 +53,14 @@ class SimilarityCommand extends Command<int> {
         help: 'Glob of files to skip (repeatable); default: the config '
             'exclude list.',
       )
-      ..addOption(_configFlag, help: _configHelp);
+      ..addOption(_configFlag, help: kConfigHelp);
   }
 
   /// Project root override (default: the current working directory).
   final String? projectRoot;
 
   @override
-  final String name = 'similarity';
+  final String name = GateIds.similarity;
 
   @override
   final String description = 'Scan for near-duplicate files (docs, code) '
@@ -94,7 +96,7 @@ class SimilarityCommand extends Command<int> {
       containmentThreshold: containment,
       minShingles: minShingles,
     );
-    if (args[_formatOption] == 'json') {
+    if (args[_formatOption] == kJson) {
       _printJson(report, jaccard, containment, minShingles);
     } else {
       _printConsole(report, jaccard, containment, minShingles);
@@ -228,11 +230,10 @@ class SimilarityCommand extends Command<int> {
   }
 }
 
-const String _formatOption = 'format';
+const String _formatOption = kFormat;
 const String _jaccardOption = 'jaccard';
 const String _containmentOption = 'containment';
 const String _minShinglesOption = 'min-shingles';
 const String _includeOption = 'include';
 const String _excludeOption = 'exclude';
 const String _configFlag = 'config';
-const String _configHelp = 'Path to a crap4dart.yaml config file.';

@@ -4,6 +4,7 @@ import 'package:analyzer/source/line_info.dart';
 
 import '../gate.dart';
 import '../gate_context.dart';
+import '../gate_ids.dart';
 
 /// The `unused_code` gate: flags private declarations with no references
 /// anywhere in the analyzed sources — top-level `_functions`, `_classes`
@@ -16,7 +17,7 @@ class UnusedCodeGate implements Gate {
   const UnusedCodeGate();
 
   @override
-  String get id => 'unused_code';
+  String get id => GateIds.unusedCode;
 
   @override
   Future<GateResult> run(GateContext context) async {
