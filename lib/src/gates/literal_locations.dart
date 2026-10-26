@@ -117,13 +117,15 @@ class IgnoreConfig {
   }
 }
 
-/// One occurrence of a literal: file and 1-based line.
-typedef LiteralSite = ({String file, int line});
+/// One occurrence of a literal: file, 1-based line, and whether the
+/// site is itself a constant-declaration initializer.
+typedef LiteralSite = ({String file, int line, bool isConstDecl});
 
 /// Occurrence sites of one literal value across the corpus.
 class LiteralSites {
   /// Records one occurrence.
-  void add(String file, int line) => _sites.add((file: file, line: line));
+  void add(String file, int line, {bool isConstDecl = false}) =>
+      _sites.add((file: file, line: line, isConstDecl: isConstDecl));
 
   /// Every occurrence, in scan order.
   List<LiteralSite> get sites => _sites;

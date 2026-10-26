@@ -7,41 +7,49 @@ import 'gate.dart';
 import 'gate_context.dart';
 import 'literal_locations.dart';
 
-/// The `scattered_constants` gate: flags hardcoded literals that appear
-/// in at least `min_files` distinct files.
+/// The `scattered_constants` gate: flags hardcoded literals that
+/// either duplicate an existing named constant (immediately, at any
+/// occurrence count) or appear in at least `min_files` distinct files
+/// with no constant to reference yet.
+///
+/// The two finding kinds are deliberately different:
+///
+/// - **Constant regression** — a named constant for the value already
+///   exists somewhere in the corpus. The fact has a home; every
+///   hardcoded re-introduction (a literal, or a duplicate local
+///   `const` in another file) is flagged on sight, even a single
+///   occurrence. Waiting for `min_files` would let the scatter regrow
+///   before the gate speaks again.
+/// - **Scattered literal** — no constant exists yet and the value
+///   reached `min_files` distinct files. The classic "change `86400`
+///   in every service" hazard: one business fact hardcoded in N
+///   places.
+///
+/// The fix is extraction to a shared named constant and reuse — but
+/// the scattered message only asks to *verify* that all occurrences
+/// mean the same thing: the gate highlights, intent stays human (the
+/// same value is sometimes coincidence). The regression message names
+/// the constant and its declaration site to reference.
 ///
 /// The per-file counterpart `magic_constants` counts in-file repeats
 /// only, so a literal used once per file in K files is invisible to
-/// every existing gate — the classic "change `86400` in every service"
-/// hazard: one business fact hardcoded in N places. This gate counts
-/// distinct files per literal value across the scanned corpus and
-/// flags one violation per occurrence (file + line, so diff mode,
-/// baseline and ignore markers work unchanged).
-///
-/// The fix is extraction to a shared named constant and reuse — but
-/// the message only asks to *verify* that all occurrences mean the
-/// same thing: the gate highlights, intent stays human (the same value
-/// is sometimes coincidence).
-///
-/// Unlike the in-file `magic_constants` gate, literals inside
-/// constant declarations are NOT exempt: N files each declaring their
-/// own local const with the same value is precisely the scatter this
-/// gate exists to catch — the fact should live in one shared constant
-/// every file imports. (Protocol positions stay exempt: map keys,
+/// every existing gate. Unlike that gate, literals inside constant
+/// declarations are NOT exempt here: N files each declaring their own
+/// local const with the same value is precisely the scatter this gate
+/// exists to catch (and once one shared constant exists, the local
+/// copies are regressions). Protocol positions stay exempt: map keys,
 /// index expressions and case labels are access vocabulary, not
-/// constants; the shared values behind them should be referenced by
-/// name, which removes the literal entirely.)
+/// constants.
 ///
 /// False-positive controls: string literals shorter than `min_length`
 /// and numbers with magnitude at or below `min_value` are treated as
 /// coincidence (0, 1, 10, 100 happen everywhere); directive URIs are
 /// structural references; values listed in `ignore` are never
-/// flagged — repositories in fast development can exempt generic
-/// vocabulary (`'test'`, `'dart'`, `'flutter'`) whose extraction
-/// adds churn without benefit.
+/// flagged — repositories can exempt generic vocabulary whose
+/// extraction adds churn without benefit.
 ///
-/// Default severity is `warning`: scattering is a design signal, not a
-/// bug.
+/// Default severity is `warning`: scattering is a design signal, not
+/// a bug.
 class ScatteredConstantsGate implements Gate {
   /// Creates a [ScatteredConstantsGate].
   const ScatteredConstantsGate();
@@ -52,13 +60,13 @@ class ScatteredConstantsGate implements Gate {
   @override
   Future<GateResult> run(GateContext context) async {
     final config = context.config.gates.scatteredConstants;
-    // Plain entries match literal values and prefix heads; entries
-    // with a `/` are file-path globs and exempt the files themselves
-    // (a crypto package full of magic numbers, a fast-moving test
-    // tree, ...).
+    // Plain entries match literal values; entries with a `/` are
+    // file-path globs and exempt the files themselves (a crypto
+    // package full of magic numbers, a fast-moving test tree, ...).
     final ignore = IgnoreConfig.partition(config.ignore);
     var checked = 0;
     final literals = <String, _ScatteredLiteral>{};
+    final constants = <String, List<NamedConstant>>{};
     for (final scanned in context.parsedCorpus(
       config.exclude,
       ignore.pathGlobs,
@@ -66,6 +74,8 @@ class ScatteredConstantsGate implements Gate {
       final parsed = scanned.parsed;
       final relative = scanned.relativePath;
       checked++;
+      parsed.unit
+          .accept(_ConstantCollector(relative, parsed.lineInfo, constants));
       final collector = _LiteralCollector(
         parsed.lineInfo,
         minLength: config.minLength,
@@ -76,27 +86,52 @@ class ScatteredConstantsGate implements Gate {
       for (final hit in collector.hits) {
         literals
             .putIfAbsent(hit.key, () => _ScatteredLiteral(hit.key, hit.display))
-            .add(relative, hit.line);
+            .add(relative, hit.line, isConstDecl: hit.isConstDecl);
       }
     }
     final violations = [
-      for (final literal in literals.values) ..._violationsFor(literal, config),
+      for (final literal in literals.values)
+        ..._violationsFor(literal, config, constants[literal.key]),
     ];
+    final regressions =
+        violations.where((v) => v.message.contains('duplicates')).length;
+    final scattered = violations.length - regressions;
     final summary = violations.isEmpty
         ? '$checked files scanned, no literals repeat across files'
-        : '${violations.length} scattered-literal occurrences';
+        : '$regressions hardcoded re-uses of existing constants, '
+            '$scattered scattered-literal occurrences';
     return violations.isEmpty
         ? GateResult.pass(id, summary: summary)
         : GateResult.fail(id, violations, summary: summary);
   }
 }
 
-/// Violations for one scattered literal, or nothing when its file
-/// count is under the threshold.
+/// Violations for one literal value: constant regressions first (any
+/// occurrence count), scattered sites when no constant exists and the
+/// file count reached the threshold.
 List<GateViolation> _violationsFor(
   _ScatteredLiteral literal,
   ScatteredGateConfig config,
+  List<NamedConstant>? constants,
 ) {
+  final shared =
+      constants == null || constants.isEmpty ? null : constants.first;
+  if (shared != null) {
+    return [
+      for (final site in literal.sites)
+        if (!(site.isConstDecl &&
+            site.file == shared.file &&
+            site.line == shared.line))
+          GateViolation(
+            file: site.file,
+            line: site.line,
+            message: 'hardcoded ${literal.display} duplicates constant '
+                '`${shared.name}` (${shared.file}:${shared.line}) — '
+                'reference the constant instead of repeating the '
+                'literal',
+          ),
+    ];
+  }
   if (literal.files.length < config.minFiles) return const [];
   final scope = '${literal.files.length} files (${literal.sites.length} '
       'occurrences)';
@@ -112,6 +147,22 @@ List<GateViolation> _violationsFor(
   ];
 }
 
+/// A named constant in the corpus: the declaration every hardcoded
+/// occurrence of the same value should reference.
+class NamedConstant {
+  /// Creates a record of a const declaration.
+  const NamedConstant(this.name, this.file, this.line);
+
+  /// Declared identifier.
+  final String name;
+
+  /// Declaring file (project-relative).
+  final String file;
+
+  /// 1-based declaration line.
+  final int line;
+}
+
 /// One literal value tracked across the corpus.
 class _ScatteredLiteral extends LiteralSites {
   /// Creates a tracker for a literal with canonical [key] rendered as
@@ -125,20 +176,66 @@ class _ScatteredLiteral extends LiteralSites {
   final String display;
 }
 
-/// A collected literal occurrence: canonical key plus display form and
-/// line.
+/// A collected literal occurrence: canonical key plus display form,
+/// line, and whether the site is itself a constant-declaration
+/// initializer (such sites are the good case — a named extraction —
+/// or a duplicate local const, never protocol vocabulary).
 class _Hit {
-  const _Hit(this.key, this.display, this.line);
+  const _Hit(this.key, this.display, this.line, {required this.isConstDecl});
 
   final String key;
   final String display;
   final int line;
+  final bool isConstDecl;
+}
+
+/// Collects the corpus-wide registry of named constants: `const`
+/// declarations (top-level, static or instance fields) whose
+/// initializer is a plain string, int or double literal.
+class _ConstantCollector extends RecursiveAstVisitor<void> {
+  _ConstantCollector(this._file, this._lineInfo, this._constants);
+
+  final String _file;
+  final LineInfo _lineInfo;
+  final Map<String, List<NamedConstant>> _constants;
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    final parent = node.parent;
+    final isConst = parent is VariableDeclarationList && parent.isConst;
+    final initializer = node.initializer;
+    if (isConst && initializer != null) {
+      final key = _literalKey(initializer);
+      if (key != null) {
+        _constants.putIfAbsent(key, () => []).add(NamedConstant(
+              node.name.lexeme,
+              _file,
+              _lineInfo.getLocation(node.offset).lineNumber,
+            ));
+      }
+    }
+    super.visitVariableDeclaration(node);
+  }
+
+  /// The canonical literal key of a plain constant initializer, or
+  /// `null` for interpolated strings and computed values.
+  String? _literalKey(Expression initializer) {
+    final string = stringValueOf(initializer);
+    if (string != null) return 's:$string';
+    if (initializer is IntegerLiteral) {
+      final value = initializer.value;
+      if (value != null) return 'i:$value';
+    }
+    if (initializer is DoubleLiteral) return 'd:${initializer.value}';
+    return null;
+  }
 }
 
 /// Collects literal occurrences eligible for cross-file comparison:
 /// strings of at least [minLength] characters and numbers of magnitude
 /// at least [minValue]. Constant-declaration literals count too —
-/// across files, a local const per file is itself the scatter.
+/// across files, a local const per file is itself the scatter, and
+/// once a shared constant exists the local copies are regressions.
 class _LiteralCollector extends RecursiveAstVisitor<void> {
   _LiteralCollector(
     this._lineInfo, {
@@ -159,19 +256,61 @@ class _LiteralCollector extends RecursiveAstVisitor<void> {
   final List<_Hit> hits = [];
 
   @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    final parent = node.parent;
+    final isConst = parent is VariableDeclarationList && parent.isConst;
+    if (isConst) {
+      _collectConstInitializer(node);
+    } else {
+      node.initializer?.accept(this);
+    }
+  }
+
+  /// Collects the plain-literal initializer of a const declaration as
+  /// one const-decl hit; nested literals (list/map entries) descend
+  /// as ordinary hits.
+  void _collectConstInitializer(VariableDeclaration node) {
+    final initializer = node.initializer;
+    if (initializer == null) return;
+    final string = stringValueOf(initializer);
+    if (string != null) {
+      _addString(string, initializer, isConstDecl: true);
+      return;
+    }
+    if (initializer is IntegerLiteral) {
+      _addNumber(
+          '${initializer.value}', 'i:${initializer.value}', _line(initializer),
+          isConstDecl: true);
+      return;
+    }
+    if (initializer is DoubleLiteral) {
+      _addNumber(
+          '${initializer.value}', 'd:${initializer.value}', _line(initializer),
+          isConstDecl: true);
+      return;
+    }
+    initializer.accept(this);
+  }
+
+  @override
   void visitIntegerLiteral(IntegerLiteral node) {
     final value = node.value;
     if (value == null || value.abs() <= minValue) return;
     if (ignoreValues.contains('$value')) return;
-    hits.add(_Hit('i:$value', '$value', _line(node)));
+    _addNumber('$value', 'i:$value', _line(node), isConstDecl: false);
   }
 
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
-    final value = node.value;
-    if (value.abs() <= minValue) return;
-    if (ignoreValues.contains('$value')) return;
-    hits.add(_Hit('d:$value', '$value', _line(node)));
+    if (node.value.abs() <= minValue) return;
+    if (ignoreValues.contains('${node.value}')) return;
+    _addNumber('${node.value}', 'd:${node.value}', _line(node),
+        isConstDecl: false);
+  }
+
+  void _addNumber(String display, String key, int line,
+      {required bool isConstDecl}) {
+    hits.add(_Hit(key, display, line, isConstDecl: isConstDecl));
   }
 
   @override
@@ -179,20 +318,21 @@ class _LiteralCollector extends RecursiveAstVisitor<void> {
     // Map keys, index expressions and case labels are protocol
     // identifiers, not magic constants — same rule as magic_constants.
     if (isProtocolIdentifier(node)) return;
-    _collectString(node.value, node);
+    _addString(node.value, node, isConstDecl: false);
   }
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
     final value = stringValueOf(node);
     if (value == null) return;
-    _collectString(value, node);
+    _addString(value, node, isConstDecl: false);
   }
 
-  void _collectString(String value, AstNode node) {
+  void _addString(String value, AstNode node, {required bool isConstDecl}) {
     if (value.length < minLength) return;
     if (ignoreValues.contains(value)) return;
-    hits.add(_Hit('s:$value', _display(value), _line(node)));
+    hits.add(_Hit('s:$value', _display(value), _line(node),
+        isConstDecl: isConstDecl));
   }
 
   /// String literals render quoted and truncated in messages.

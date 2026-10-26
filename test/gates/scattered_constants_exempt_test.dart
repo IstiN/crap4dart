@@ -25,16 +25,21 @@ void main() {
     );
   }
 
-  test('a local const per file is itself the scatter', () async {
-    // One shared constant would be imported; N local consts with the
-    // same value are N unlinked definitions of the same fact.
+  test('duplicate local consts regress against the first declaration',
+      () async {
+    // The first const declaration is the fact's home; the other
+    // local consts are unlinked re-definitions flagged immediately —
+    // they name the constant to reference.
     final result = await runOn({
       'lib/a.dart': 'const secondsPerDay = 86400;\n',
       'lib/b.dart': 'const day = 86400;\n',
       'lib/c.dart': 'const daySeconds = 86400;\n',
     });
     expect(result.passed, isFalse);
-    expect(result.violations, hasLength(3));
+    expect(result.violations, hasLength(2));
+    expect(result.violations[0].file, 'lib/b.dart');
+    expect(result.violations[0].message, contains('secondsPerDay'));
+    expect(result.violations[0].message, contains('duplicates constant'));
   });
 
   test('small numbers and short strings are coincidence', () async {
