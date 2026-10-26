@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:crap4dart/src/gates/hardcoded_strings_gate.dart';
+import 'package:crap4dart/src/gates/content/hardcoded_strings_gate.dart';
 import 'package:test/test.dart';
 
 import 'gate_test_utils.dart';

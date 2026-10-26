@@ -1,5 +1,5 @@
 import 'package:crap4dart/src/gates/gate.dart';
-import 'package:crap4dart/src/gates/inline_record_types_gate.dart';
+import 'package:crap4dart/src/gates/records/inline_record_types_gate.dart';
 import 'package:test/test.dart';
 
 import 'gate_test_utils.dart';

@@ -317,9 +317,13 @@ gates:
   # feature packages (flat-file sprawl).
   folder_structure:
     enabled: true
-    # Directories checked for loose-file sprawl.
+    # Directories checked for file sprawl — literal paths or glob
+    # patterns ('lib/src/*', 'packages/**') expanding to every
+    # matching directory.
     dirs: [lib]
-    # Max .dart files directly inside each directory.
+    # Max logical .dart units directly inside each directory. Files
+    # in subdirectories never count; generated siblings of one source
+    # file (foo.dart, foo.g.dart) are one unit.
     max_loose_files: 0
     # Glob patterns excluded from the gate.
     exclude: []

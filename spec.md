@@ -832,11 +832,27 @@ none) are skipped.
 
 ### 11.16 folder_structure
 
-Flags configured `dirs` (default `lib`) containing more than
-`max_loose_files` (default 0) `.dart` files directly — a flat-file
-sprawl that should be organized into feature packages. Only direct
-children count; files in subdirectories are the organized form. Files
-matching `exclude` (default none) are not counted.
+Flags directories containing more than their cap of logical `.dart`
+units directly — a flat-file sprawl that should be organized into
+feature packages. Two configuration shapes:
+
+- **Classic** (default `dirs: lib`, `max_loose_files: 0`): every
+  `dirs` entry — a literal path or a glob pattern (`lib/src/*`,
+  `packages/**`) expanding to every matching directory — shares one
+  cap.
+- **`config`** (optional map): each key is a pattern and each value
+  its own cap — `config: {lib/src: 3, 'lib/src/**': 30}` — a
+  registry folder may hold more than a hot core directory. When
+  present, `config` takes precedence and `dirs`/`max_loose_files`
+  are not consulted. A directory matched by several patterns uses
+  the first pattern's cap.
+
+Counting rules: only a directory's OWN contents count — files in
+subdirectories are the organized form and never reach the parent's
+budget. Generated siblings of one source file collapse into a single
+logical unit — `magic.dart`, `magic.g.dart`, `magic.freezed.dart`
+share the stem `magic` and count once. Files matching `exclude`
+(default none) don't count.
 
 ### 11.17 external
 

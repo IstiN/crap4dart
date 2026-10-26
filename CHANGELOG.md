@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- `folder_structure` — `dirs` entries accept glob patterns
+  (`lib/src/*`, `packages/**`) expanding to every matching directory,
+  and generated siblings of one source file (`magic.dart` +
+  `magic.g.dart` + `magic.freezed.dart`) count as one logical unit;
+  only a directory's own files count (nested directories are the
+  organized form). New optional `config` map with per-pattern caps —
+  `config: {lib/src: 3, 'lib/src/**': 30}` — taking precedence over
+  `dirs`/`max_loose_files`, which stay fully backward compatible.
+
 ## 0.21.0 — 2026-10-23
 
 - `scattered_constants` v2: new constant-regression rule — when a

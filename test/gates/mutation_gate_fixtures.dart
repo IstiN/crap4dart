@@ -1,6 +1,6 @@
 import 'package:crap4dart/src/coverage/lcov_parser.dart';
-import 'package:crap4dart/src/gates/mutation_engine.dart';
-import 'package:crap4dart/src/gates/mutation_gate.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_engine.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_gate.dart';
 
 /// Fixture source: `add` is on executable line 3, `zero` on line 8
 /// (Dart drops the newline right after `'''`).

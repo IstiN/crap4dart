@@ -565,6 +565,7 @@ class FolderStructureGateConfig implements GateConfigFlags {
     this.ignorable = false,
     this.dirs = const ['lib'],
     this.maxLooseFiles = 0,
+    this.caps = const {},
     this.exclude = const [],
   });
 
@@ -578,14 +579,29 @@ class FolderStructureGateConfig implements GateConfigFlags {
   /// gate. Disabled by default — suppression must be opted into.
   final bool ignorable;
 
-  /// Directories checked for loose-file sprawl.
+  /// Directories checked for loose-file sprawl — literal paths or
+  /// glob patterns (`lib/src/*`, `packages/**`) expanding to every
+  /// matching directory. Ignored when `config` is present.
   final List<String> dirs;
 
-  /// Maximum number of `.dart` files allowed directly in each listed
-  /// directory before the sprawl is flagged.
+  /// Maximum number of logical `.dart` units allowed directly in
+  /// each listed directory before the sprawl is flagged. Generated
+  /// siblings of one source file (`foo.dart`, `foo.g.dart`) are one
+  /// unit; files in subdirectories never count — a directory's own
+  /// tidiness is judged on its own contents. Ignored when `config`
+  /// is present.
   final int maxLooseFiles;
 
-  /// Glob patterns excluded from the gate.
+  /// Per-pattern caps — the `config` key
+  /// (`{lib/src: 3, 'lib/src/**': 30}`). When present it takes
+  /// precedence: each matching directory is checked against its
+  /// pattern's cap (a directory matched by several patterns uses the
+  /// first pattern's), and [dirs]/[maxLooseFiles] are not consulted.
+  /// Empty — the default — means the classic list form applies.
+  final Map<String, int> caps;
+
+  /// Glob patterns excluded from the gate — matching files don't
+  /// count.
   final List<String> exclude;
 }
 

@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:crap4dart/src/gates/mutation_cache.dart';
-import 'package:crap4dart/src/gates/mutation_engine.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_cache.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_engine.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 

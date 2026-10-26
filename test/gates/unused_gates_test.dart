@@ -1,5 +1,5 @@
-import 'package:crap4dart/src/gates/unused_code_gate.dart';
-import 'package:crap4dart/src/gates/unused_files_gate.dart';
+import 'package:crap4dart/src/gates/usage/unused_code_gate.dart';
+import 'package:crap4dart/src/gates/usage/unused_files_gate.dart';
 import 'package:test/test.dart';
 
 import 'gate_test_utils.dart';

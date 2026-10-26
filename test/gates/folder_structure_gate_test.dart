@@ -1,4 +1,4 @@
-import 'package:crap4dart/src/gates/folder_structure_gate.dart';
+import 'package:crap4dart/src/gates/usage/folder_structure_gate.dart';
 import 'package:test/test.dart';
 
 import 'gate_test_utils.dart';
@@ -10,7 +10,6 @@ void main() {
     writeFile(project, 'lib/src/a.dart', 'void a() {}\n');
     writeFile(project, 'lib/src/b.dart', 'void b() {}\n');
     writeFile(project, 'lib/src/c.dart', 'void c() {}\n');
-    writeFile(project, 'lib/src/web_search/search.dart', 'void s() {}\n');
     final result = await FolderStructureGate().run(
       makeContext(
         project,
@@ -38,18 +37,26 @@ void main() {
     expect(result.passed, isTrue, reason: '${result.violations}');
   });
 
-  test('folder_structure honors max_loose_files', () async {
+  test('files in subdirectories never count toward the parent', () async {
     final project = createTempProject();
     addTearDown(() => project.deleteSync(recursive: true));
-    writeFile(project, 'lib/one.dart', 'void one() {}\n');
-    writeFile(project, 'lib/two.dart', 'void two() {}\n');
+    // The parent holds 1 direct file; its subdir holds 20. A parent is
+    // judged on its own contents only — nested dirs are the organized
+    // form, and subtree sums would turn every project root into a mess.
+    writeFile(project, 'lib/README.dart', '// entry\n');
+    for (var i = 0; i < 20; i++) {
+      writeFile(project, 'lib/src/f$i.dart', 'void f() {}\n');
+    }
     final result = await FolderStructureGate().run(
       makeContext(
         project,
         const [],
-        configYaml: 'gates:\n  folder_structure:\n    max_loose_files: 3\n',
+        configYaml: 'gates:\n'
+            '  folder_structure:\n'
+            '    dirs: [lib]\n'
+            '    max_loose_files: 2\n',
       ),
     );
-    expect(result.passed, isTrue);
+    expect(result.passed, isTrue, reason: '${result.violations}');
   });
 }

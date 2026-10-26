@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:crap4dart/src/gates/mutation_engine.dart';
-import 'package:crap4dart/src/gates/mutation_operators.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_engine.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_operators.dart';
 import 'package:test/test.dart';
 
 MutationSite site(String file, {String mutant = 'X', int offset = 0}) =>

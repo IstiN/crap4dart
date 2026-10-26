@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:crap4dart/src/gates/mutation_engine.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_engine.dart';
 import 'package:test/test.dart';
 
 /// A [Process] double with a programmable exit code; [hang] models a

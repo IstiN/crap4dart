@@ -108,4 +108,6 @@ gates:
       - 'test/**'
   folder_structure:
     enabled: true
-    dirs: [lib/src]
+    config:
+      lib/src: 3
+      'lib/src/**': 30
