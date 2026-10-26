@@ -38,7 +38,7 @@ gates:
   golden:
     enabled: false
   folder_structure:
-    max_files: 5
+    max_loose_files: 5
 ''',
       ),
     );
@@ -62,7 +62,7 @@ coverage:
   required: false
 gates:
   folder_structure:
-    max_files: 5
+    max_loose_files: 5
 '''),
     );
     expect(result.passed, isFalse);

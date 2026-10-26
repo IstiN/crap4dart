@@ -18,25 +18,8 @@ void main() {
         configYaml: 'gates:\n'
             '  folder_structure:\n'
             '    dirs: [lib/src]\n'
-            '    max_files: 3\n'
+            '    max_loose_files: 3\n'
             "    exclude: ['**.g.dart']\n",
-      ),
-    );
-    expect(result.passed, isTrue, reason: '${result.violations}');
-  });
-
-  test('deprecated max_loose_files alias keeps old configs working', () async {
-    final project = createTempProject();
-    addTearDown(() => project.deleteSync(recursive: true));
-    writeFile(project, 'lib/src/a.dart', 'void a() {}\n');
-    final result = await FolderStructureGate().run(
-      makeContext(
-        project,
-        const [],
-        configYaml: 'gates:\n'
-            '  folder_structure:\n'
-            '    dirs: [lib/src]\n'
-            '    max_loose_files: 5\n',
       ),
     );
     expect(result.passed, isTrue, reason: '${result.violations}');

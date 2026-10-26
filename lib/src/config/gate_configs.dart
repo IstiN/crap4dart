@@ -567,7 +567,7 @@ class FolderStructureGateConfig implements GateConfigFlags {
     this.severity = GateSeverity.error,
     this.ignorable = false,
     this.dirs = const ['lib'],
-    this.maxFiles = 0,
+    this.maxLooseFiles = 0,
     this.exclude = const [],
   });
 
@@ -581,8 +581,8 @@ class FolderStructureGateConfig implements GateConfigFlags {
   /// gate. Disabled by default — suppression must be opted into.
   final bool ignorable;
 
-  /// Directories checked for file sprawl — literal paths or glob
-  /// patterns (`lib/src/*`, `packages/**`) expanding to every
+  /// Directories checked for loose-file sprawl — literal paths or
+  /// glob patterns (`lib/src/*`, `packages/**`) expanding to every
   /// matching directory.
   final List<String> dirs;
 
@@ -591,7 +591,7 @@ class FolderStructureGateConfig implements GateConfigFlags {
   /// siblings of one source file (`foo.dart`, `foo.g.dart`) are one
   /// unit; files in subdirectories never count — a directory's own
   /// tidiness is judged on its own contents.
-  final int maxFiles;
+  final int maxLooseFiles;
 
   /// Glob patterns excluded from the gate — matching files don't
   /// count.

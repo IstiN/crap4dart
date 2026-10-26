@@ -36,13 +36,13 @@ class FolderStructureGate implements Gate {
     for (final dir in dirs) {
       final units = _unitCount(context, dir, config);
       checked++;
-      if (units > config.maxFiles) {
+      if (units > config.maxLooseFiles) {
         violations.add(
           GateViolation(
             file: dir,
-            message: '$units logical .dart files directly in '
+            message: '$units loose .dart files directly in '
                 '$dir — group them into feature packages '
-                '(max_files ${config.maxFiles})',
+                '(max ${config.maxLooseFiles})',
           ),
         );
       }

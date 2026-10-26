@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 import 'gate_test_utils.dart';
 
 void main() {
-  test('max_files counts only the directory itself', () async {
+  test('max_loose_files counts only the directory itself', () async {
     final project = createTempProject();
     addTearDown(() => project.deleteSync(recursive: true));
     for (var i = 0; i < 5; i++) {
@@ -17,13 +17,13 @@ void main() {
         configYaml: 'gates:\n'
             '  folder_structure:\n'
             '    dirs: [lib/src]\n'
-            '    max_files: 4\n',
+            '    max_loose_files: 4\n',
       ),
     );
     expect(result.passed, isFalse, reason: '${result.violations}');
     expect(result.violations.single.message,
-        contains('5 logical .dart files directly in lib/src'));
-    expect(result.violations.single.message, contains('max_files 4'));
+        contains('5 loose .dart files directly in lib/src'));
+    expect(result.violations.single.message, contains('max 4'));
   });
 
   test('generated siblings collapse into one logical unit', () async {
@@ -39,7 +39,7 @@ void main() {
         configYaml: 'gates:\n'
             '  folder_structure:\n'
             '    dirs: [lib/src]\n'
-            '    max_files: 2\n',
+            '    max_loose_files: 2\n',
       ),
     );
     expect(result.passed, isTrue, reason: '${result.violations}');
@@ -61,7 +61,7 @@ void main() {
         configYaml: 'gates:\n'
             '  folder_structure:\n'
             "    dirs: ['lib/src/*']\n"
-            '    max_files: 2\n',
+            '    max_loose_files: 2\n',
       ),
     );
     expect(result.passed, isFalse, reason: '${result.violations}');

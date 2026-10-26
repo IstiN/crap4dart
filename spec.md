@@ -787,7 +787,7 @@ none) are skipped.
 
 Flags configured `dirs` (default `lib`; each entry is a literal path
 or a glob pattern — `lib/src/*`, `packages/**` — that expands to every
-matching directory) containing more than `max_files` (default 0)
+matching directory) containing more than `max_loose_files` (default 0)
 logical `.dart` units directly — a flat-file sprawl that should be
 organized into feature packages.
 
@@ -796,9 +796,7 @@ subdirectories are the organized form and never reach the parent's
 budget. Generated siblings of one source file collapse into a single
 logical unit — `magic.dart`, `magic.g.dart`, `magic.freezed.dart`
 share the stem `magic` and count once. Files matching `exclude`
-(default none) don't count. `max_loose_files` remains accepted as a
-deprecated alias of `max_files`; setting both is a configuration
-error.
+(default none) don't count.
 
 ### 11.17 external
 

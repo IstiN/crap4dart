@@ -296,9 +296,8 @@ gates:
     dirs: [lib]
     # Max logical .dart units directly inside each directory. Files
     # in subdirectories never count; generated siblings of one source
-    # file (foo.dart, foo.g.dart) are one unit. Deprecated alias:
-    # max_loose_files still loads, set only one.
-    max_files: 0
+    # file (foo.dart, foo.g.dart) are one unit.
+    max_loose_files: 0
     # Glob patterns excluded from the gate.
     exclude: []
   # Wrap external static-analysis tools (detekt, ktlint, swiftlint,

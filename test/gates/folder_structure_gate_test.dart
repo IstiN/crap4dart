@@ -18,7 +18,7 @@ void main() {
       ),
     );
     expect(result.passed, isFalse);
-    expect(result.violations.single.message, contains('3 logical .dart files'));
+    expect(result.violations.single.message, contains('3 loose .dart files'));
     expect(result.violations.single.message, contains('lib/src'));
   });
 
@@ -54,7 +54,7 @@ void main() {
         configYaml: 'gates:\n'
             '  folder_structure:\n'
             '    dirs: [lib]\n'
-            '    max_files: 2\n',
+            '    max_loose_files: 2\n',
       ),
     );
     expect(result.passed, isTrue, reason: '${result.violations}');

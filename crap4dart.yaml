@@ -88,4 +88,4 @@ gates:
     enabled: true
     dirs: [lib/src]
     # lib/src holds no direct files: any new dump is flagged at once.
-    max_files: 0
+    max_loose_files: 0

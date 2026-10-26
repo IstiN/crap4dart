@@ -4,33 +4,23 @@ import 'package:test/test.dart';
 ConfigLoader _loader() => const ConfigLoader();
 
 void main() {
-  test('max_files is the primary knob', () {
+  test('max_loose_files is the knob', () {
     final gates = _loader()
         .loadString('gates:\n'
             '  folder_structure:\n'
             '    dirs: [lib, test]\n'
-            '    max_files: 7\n')
+            '    max_loose_files: 7\n')
         .gates;
     final gate = gates.folderStructure;
-    expect(gate.maxFiles, 7);
+    expect(gate.maxLooseFiles, 7);
     expect(gate.dirs, ['lib', 'test']);
   });
 
-  test('max_loose_files still loads as the deprecated alias', () {
-    final gates = _loader()
-        .loadString('gates:\n'
-            '  folder_structure:\n'
-            '    max_loose_files: 3\n')
-        .gates;
-    expect(gates.folderStructure.maxFiles, 3);
-  });
-
-  test('setting both keys is a config error', () {
+  test('max_files is an unknown key (strict validation)', () {
     expect(
       () => _loader().loadString('gates:\n'
           '  folder_structure:\n'
-          '    max_files: 3\n'
-          '    max_loose_files: 5\n'),
+          '    max_files: 3\n'),
       throwsA(isA<ConfigException>()),
     );
   });
@@ -42,6 +32,6 @@ void main() {
             '    max_lines: 100\n')
         .gates;
     expect(gates.folderStructure.enabled, isTrue);
-    expect(gates.folderStructure.maxFiles, 0);
+    expect(gates.folderStructure.maxLooseFiles, 0);
   });
 }

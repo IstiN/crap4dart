@@ -5,10 +5,9 @@
 - `folder_structure` — `dirs` entries accept glob patterns
   (`lib/src/*`, `packages/**`) expanding to every matching directory,
   and generated siblings of one source file (`magic.dart` +
-  `magic.g.dart` + `magic.freezed.dart`) count as one logical unit.
-  `max_loose_files` is renamed to `max_files` (same per-directory,
-  direct-children semantics; the old key still loads as a deprecated
-  alias — setting both is a configuration error).
+  `magic.g.dart` + `magic.freezed.dart`) count as one logical unit;
+  only a directory's own files count (nested directories are the
+  organized form).
 
 ## 0.19.0 — 2026-10-24
 
