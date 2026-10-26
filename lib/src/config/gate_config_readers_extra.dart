@@ -130,23 +130,29 @@ class _ExtendedGateConfigReaders {
         _severityKey,
         _ignorableKey,
         _dirsKey,
-        'max_loose_files',
         'max_files',
+        'max_loose_files', // deprecated alias of max_files
         _excludeKey
       },
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
+        final hasDeprecated = map['max_loose_files'] != null;
+        final hasPrimary = map['max_files'] != null;
+        if (hasDeprecated && hasPrimary) {
+          throw ConfigException(
+            path,
+            'gates.folder_structure',
+            'use max_files (max_loose_files is its deprecated alias — '
+                'set only one)',
+          );
+        }
+        final key = hasDeprecated ? 'max_loose_files' : 'max_files';
         return FolderStructureGateConfig(
           enabled: flags.enabled,
           severity: flags.severity,
           ignorable: flags.ignorable,
           dirs: _ConfigScalars.strList(map, _dirsKey, base.dirs, path, ctx),
-          maxLooseFiles: _ConfigScalars.readInt(
-              map, 'max_loose_files', base.maxLooseFiles, path, ctx),
-          maxFiles: map['max_files'] == null
-              ? base.maxFiles
-              : _ConfigScalars.readInt(
-                  map, 'max_files', base.maxFiles ?? 0, path, ctx),
+          maxFiles: _ConfigScalars.readInt(map, key, base.maxFiles, path, ctx),
           exclude:
               _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
         );

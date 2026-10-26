@@ -193,7 +193,7 @@ coverage:
 gates:
   folder_structure:
     dirs: [lib/src]
-    max_loose_files: 2
+    max_files: 2
 ''');
 }
 

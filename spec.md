@@ -785,23 +785,20 @@ none) are skipped.
 
 ### 11.16 folder_structure
 
-Two checks over the configured `dirs` (default `lib`; each entry is a
-literal path or a glob pattern — `lib/src/*`, `packages/**` — that
-expands to every matching directory):
+Flags configured `dirs` (default `lib`; each entry is a literal path
+or a glob pattern — `lib/src/*`, `packages/**` — that expands to every
+matching directory) containing more than `max_files` (default 0)
+logical `.dart` units directly — a flat-file sprawl that should be
+organized into feature packages.
 
-- **Loose-file sprawl**: `max_loose_files` (default 0) bounds the
-  `.dart` files directly inside each listed directory — a flat-file
-  sprawl that should be organized into feature packages.
-- **Fan-out cap**: `max_files` (default: disabled) bounds the logical
-  `.dart` units in each listed directory's whole subtree — bounded
-  fan-out keeps navigation cheap even when the direct structure looks
-  organized.
-
-Counting rules (both checks): generated siblings of one source file
-collapse into a single logical unit — `magic.dart`, `magic.g.dart`,
-`magic.freezed.dart` share the stem `magic` and count once; files
-matching `exclude` (default none) don't count, and an excluded
-directory removes its whole subtree.
+Counting rules: only a directory's OWN contents count — files in
+subdirectories are the organized form and never reach the parent's
+budget. Generated siblings of one source file collapse into a single
+logical unit — `magic.dart`, `magic.g.dart`, `magic.freezed.dart`
+share the stem `magic` and count once. Files matching `exclude`
+(default none) don't count. `max_loose_files` remains accepted as a
+deprecated alias of `max_files`; setting both is a configuration
+error.
 
 ### 11.17 external
 

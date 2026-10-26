@@ -290,18 +290,16 @@ gates:
   # feature packages (flat-file sprawl).
   folder_structure:
     enabled: true
-    # Directories checked for loose-file sprawl — literal paths or
-    # glob patterns ('lib/src/*', 'packages/**') expanding to every
+    # Directories checked for file sprawl — literal paths or glob
+    # patterns ('lib/src/*', 'packages/**') expanding to every
     # matching directory.
     dirs: [lib]
-    # Max .dart files directly inside each directory. Generated
-    # siblings of one source file (foo.dart, foo.g.dart) count as one.
-    max_loose_files: 0
-    # Recursive fan-out cap: max logical .dart units in each listed
-    # directory's whole subtree. Omit to disable (default).
-    # max_files: 100
-    # Glob patterns excluded from the gate — matching files don't
-    # count; matching directories remove their subtree.
+    # Max logical .dart units directly inside each directory. Files
+    # in subdirectories never count; generated siblings of one source
+    # file (foo.dart, foo.g.dart) are one unit. Deprecated alias:
+    # max_loose_files still loads, set only one.
+    max_files: 0
+    # Glob patterns excluded from the gate.
     exclude: []
   # Wrap external static-analysis tools (detekt, ktlint, swiftlint,
   # ...) producing a Checkstyle XML report; their findings become

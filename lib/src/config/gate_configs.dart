@@ -567,8 +567,7 @@ class FolderStructureGateConfig implements GateConfigFlags {
     this.severity = GateSeverity.error,
     this.ignorable = false,
     this.dirs = const ['lib'],
-    this.maxLooseFiles = 0,
-    this.maxFiles,
+    this.maxFiles = 0,
     this.exclude = const [],
   });
 
@@ -582,22 +581,20 @@ class FolderStructureGateConfig implements GateConfigFlags {
   /// gate. Disabled by default — suppression must be opted into.
   final bool ignorable;
 
-  /// Directories checked for loose-file sprawl — literal paths or
-  /// glob patterns (`lib/src/*`, `packages/**`) expanding to every
+  /// Directories checked for file sprawl — literal paths or glob
+  /// patterns (`lib/src/*`, `packages/**`) expanding to every
   /// matching directory.
   final List<String> dirs;
 
-  /// Maximum number of `.dart` files allowed directly in each listed
-  /// directory before the sprawl is flagged.
-  final int maxLooseFiles;
-
-  /// Recursive fan-out cap: maximum number of logical `.dart` units
-  /// (generated siblings collapsed) in each listed directory's whole
-  /// subtree. `null` (default) disables the check.
-  final int? maxFiles;
+  /// Maximum number of logical `.dart` units allowed directly in
+  /// each listed directory before the sprawl is flagged. Generated
+  /// siblings of one source file (`foo.dart`, `foo.g.dart`) are one
+  /// unit; files in subdirectories never count — a directory's own
+  /// tidiness is judged on its own contents.
+  final int maxFiles;
 
   /// Glob patterns excluded from the gate — matching files don't
-  /// count; matching directories remove their subtree.
+  /// count.
   final List<String> exclude;
 }
 

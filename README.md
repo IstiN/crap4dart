@@ -638,14 +638,14 @@ gates:
   fewer than `min_assertions` (default 1) assertion calls (`expect`,
   `expectLater`, `fail`, `throwsA`, ...). A test without assertions
   runs green and verifies nothing — a typical AI placeholder.
-- **folder_structure** — two checks over the configured `dirs`
-  (literal paths or globs like `lib/src/*`): loose-file sprawl
-  (`max_loose_files`, default 0 — `.dart` files directly inside a
-  directory instead of feature packages) and a recursive **fan-out
-  cap** (`max_files`, default off — logical `.dart` units in a
-  directory's whole subtree). Generated siblings of one source file
-  (`magic.dart` + `magic.g.dart`) count as one unit; `exclude` globs
-  exempt files or whole subtrees.
+- **folder_structure** — flags directories holding more than
+  `max_files` (default 0) logical `.dart` units directly, instead of
+  organizing code into feature packages. `dirs` entries are literal
+  paths or globs (`lib/src/*`); only a directory's own files count
+  (nested directories are the organized form); generated siblings of
+  one source file (`magic.dart` + `magic.g.dart`) count as one unit;
+  `exclude` globs exempt files. `max_loose_files` still loads as a
+  deprecated alias.
 - **external** — wraps external static-analysis tools (detekt for
   Kotlin, ktlint, swiftlint, anything emitting a Checkstyle XML
   report) as rules `{id, executable, arguments}`; `{report}` in the

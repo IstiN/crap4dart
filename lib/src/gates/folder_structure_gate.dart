@@ -4,30 +4,22 @@ import '../config/config.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
-/// The `folder_structure` gate.
+/// The `folder_structure` gate: flags directories that accumulate more
+/// than `max_files` logical `.dart` units directly — a flat-file
+/// sprawl that should be organized into feature packages.
 ///
-/// Two checks over the configured `dirs` (literal paths or glob
-/// patterns — `lib/src/*`, `packages/**` — expand to every matching
-/// directory):
+/// Loose-file sprawl is a typical AI artifact: instead of creating a
+/// domain package (`lib/src/web_search/`), an agent keeps dumping
+/// sibling files into a directory until nothing is findable. Only a
+/// directory's OWN contents count — files in subdirectories are the
+/// organized form, and a parent is never penalized for a tidy tree
+/// below it (configure the directories you care about, or a glob like
+/// `lib/src/*` to check each package on its own).
 ///
-/// - **Loose-file sprawl** (`max_loose_files`, default 0): a directory
-///   holding more `.dart` files directly than allowed — a flat-file
-///   sprawl that should be organized into feature packages. Typical
-///   AI artifact: instead of creating a domain package, an agent keeps
-///   dumping sibling files into one directory until nothing is
-///   findable.
-/// - **Fan-out cap** (`max_files`, disabled by default): a directory
-///   holding more `.dart` files in its whole subtree — bounded
-///   fan-out keeps navigation cheap even when the direct structure
-///   looks organized (the experiment evidence: one 310-file package
-///   inside a decent human structure was the worst exploration
-///   hotspot).
-///
-/// Counting rules (both checks): generated siblings of a source file
-/// collapse into one logical unit — `magic.dart`, `magic.g.dart`,
-/// `magic.freezed.dart` share the stem `magic` and count once; `exclude`
-/// globs exempt matching paths (files for the loose count, files or
-/// whole subdirectories for the fan-out count).
+/// Counting rules: generated siblings of a source file collapse into
+/// one logical unit — `magic.dart`, `magic.g.dart`,
+/// `magic.freezed.dart` share the stem `magic` and count once;
+/// `exclude` globs exempt matching files.
 class FolderStructureGate implements Gate {
   /// Creates a [FolderStructureGate].
   const FolderStructureGate();
@@ -40,35 +32,24 @@ class FolderStructureGate implements Gate {
     final config = context.config.gates.folderStructure;
     final dirs = _resolveDirs(context, config);
     final violations = <GateViolation>[];
-    var looseDirs = 0;
+    var checked = 0;
     for (final dir in dirs) {
-      final loose = _looseCount(context, dir, config);
-      looseDirs++;
-      if (loose > config.maxLooseFiles) {
+      final units = _unitCount(context, dir, config);
+      checked++;
+      if (units > config.maxFiles) {
         violations.add(
           GateViolation(
             file: dir,
-            message: '$loose loose .dart files directly in '
+            message: '$units logical .dart files directly in '
                 '$dir — group them into feature packages '
-                '(max ${config.maxLooseFiles})',
-          ),
-        );
-      }
-      if (config.maxFiles == null) continue;
-      final fanOut = _fanOutCount(context, dir, config);
-      if (fanOut > config.maxFiles!) {
-        violations.add(
-          GateViolation(
-            file: dir,
-            message: '$fanOut source files under $dir (recursively) — '
-                'split into subpackages (max_files ${config.maxFiles})',
+                '(max_files ${config.maxFiles})',
           ),
         );
       }
     }
     final summary = violations.isEmpty
-        ? '$looseDirs directories organized into packages'
-        : '${violations.length} directory(ies) over their file limits';
+        ? '$checked directories organized into packages'
+        : '${violations.length} directory(ies) with file sprawl';
     return violations.isEmpty
         ? GateResult.pass(id, summary: summary)
         : GateResult.fail(id, violations, summary: summary);
@@ -122,7 +103,7 @@ class FolderStructureGate implements Gate {
   /// Number of distinct logical `.dart` units directly inside [dir]:
   /// files grouped by stem (see [_stem]), so generated siblings do
   /// not inflate the count.
-  int _looseCount(
+  int _unitCount(
     GateContext context,
     String dir,
     FolderStructureGateConfig config,
@@ -133,34 +114,6 @@ class FolderStructureGate implements Gate {
       if (context.matchesAnyGlob(entity.path, config.exclude)) continue;
       stems.add(_stem(entity.path));
     }
-    return stems.length;
-  }
-
-  /// Number of distinct logical `.dart` units in [dir]'s whole
-  /// subtree. Excluded files don't count; an excluded directory
-  /// removes its subtree.
-  int _fanOutCount(
-    GateContext context,
-    String dir,
-    FolderStructureGateConfig config,
-  ) {
-    final root = Directory('${context.projectRoot}/$dir');
-    if (!root.existsSync()) return 0;
-    final stems = <String>{};
-    void walk(Directory dir) {
-      for (final entity in dir.listSync(followLinks: false)) {
-        if (context.matchesAnyGlob(entity.path, config.exclude)) {
-          continue; // excluded file — or excluded directory subtree
-        }
-        if (entity is Directory) {
-          walk(entity);
-        } else if (entity is File && entity.path.endsWith('.dart')) {
-          stems.add(_stem(entity.path));
-        }
-      }
-    }
-
-    walk(root);
     return stems.length;
   }
 

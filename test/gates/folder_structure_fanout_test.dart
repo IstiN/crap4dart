@@ -4,14 +4,12 @@ import 'package:test/test.dart';
 import 'gate_test_utils.dart';
 
 void main() {
-  test('fan-out cap flags a directory whose subtree exceeds max_files',
-      () async {
+  test('max_files counts only the directory itself', () async {
     final project = createTempProject();
     addTearDown(() => project.deleteSync(recursive: true));
     for (var i = 0; i < 5; i++) {
       writeFile(project, 'lib/src/f$i.dart', 'void f() {}\n');
     }
-    writeFile(project, 'lib/src/deep/g.dart', 'void g() {}\n');
     final result = await FolderStructureGate().run(
       makeContext(
         project,
@@ -19,13 +17,13 @@ void main() {
         configYaml: 'gates:\n'
             '  folder_structure:\n'
             '    dirs: [lib/src]\n'
-            '    max_loose_files: 10\n'
             '    max_files: 4\n',
       ),
     );
     expect(result.passed, isFalse, reason: '${result.violations}');
     expect(result.violations.single.message,
-        contains('6 source files under lib/src (recursively)'));
+        contains('5 logical .dart files directly in lib/src'));
+    expect(result.violations.single.message, contains('max_files 4'));
   });
 
   test('generated siblings collapse into one logical unit', () async {
@@ -41,7 +39,6 @@ void main() {
         configYaml: 'gates:\n'
             '  folder_structure:\n'
             '    dirs: [lib/src]\n'
-            '    max_loose_files: 5\n'
             '    max_files: 2\n',
       ),
     );
@@ -64,7 +61,6 @@ void main() {
         configYaml: 'gates:\n'
             '  folder_structure:\n'
             "    dirs: ['lib/src/*']\n"
-            '    max_loose_files: 5\n'
             '    max_files: 2\n',
       ),
     );

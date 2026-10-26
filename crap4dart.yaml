@@ -87,5 +87,5 @@ gates:
   folder_structure:
     enabled: true
     dirs: [lib/src]
-    # Bounded fan-out: the subtree held at ~100 logical units (93 now).
-    max_files: 100
+    # lib/src holds no direct files: any new dump is flagged at once.
+    max_files: 0

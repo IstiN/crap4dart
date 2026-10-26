@@ -2,14 +2,13 @@
 
 ## Unreleased
 
-- `folder_structure` extension — fan-out cap: new `max_files` bounds
-  the logical `.dart` units in each configured directory's whole
-  subtree (recursive; default disabled). `dirs` entries now accept
-  glob patterns (`lib/src/*`, `packages/**`) expanding to every
-  matching directory, and generated siblings of one source file
-  (`magic.dart` + `magic.g.dart` + `magic.freezed.dart`) count as one
-  logical unit. `exclude` globs exempt files or whole subtrees from
-  both checks.
+- `folder_structure` — `dirs` entries accept glob patterns
+  (`lib/src/*`, `packages/**`) expanding to every matching directory,
+  and generated siblings of one source file (`magic.dart` +
+  `magic.g.dart` + `magic.freezed.dart`) count as one logical unit.
+  `max_loose_files` is renamed to `max_files` (same per-directory,
+  direct-children semantics; the old key still loads as a deprecated
+  alias — setting both is a configuration error).
 
 ## 0.19.0 — 2026-10-24
 
