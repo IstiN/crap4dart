@@ -88,4 +88,4 @@ gates:
     enabled: true
     config:
       lib/src: 3
-      'lib/src/**': 45
+      'lib/src/**': 30
