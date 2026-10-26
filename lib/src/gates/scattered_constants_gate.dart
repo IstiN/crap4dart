@@ -286,17 +286,19 @@ class _ConstantCollector extends RecursiveAstVisitor<void> {
   /// seed the corpus: small numbers (see [_minValue]) and values the
   /// configuration ignores.
   bool _coincidence(Expression initializer, String key) {
-    final numeric = switch (initializer) {
+    if (_numericMagnitude(initializer) case final m? when m <= _minValue) {
+      return true;
+    }
+    return _ignoreValues.contains(key.substring(2));
+  }
+
+  /// The magnitude of a plain numeric literal initializer, or null.
+  static int? _numericMagnitude(Expression initializer) {
+    return switch (initializer) {
       IntegerLiteral(:final value) => value?.abs(),
       DoubleLiteral(:final value) => value.abs().toInt(),
       _ => null,
     };
-    if (numeric != null && numeric <= _minValue) return true;
-    final bare =
-        key.startsWith('s:') || key.startsWith('i:') || key.startsWith('d:')
-            ? key.substring(2)
-            : key;
-    return _ignoreValues.contains(bare);
   }
 
   /// The canonical literal key of a plain constant initializer, or
@@ -361,21 +363,34 @@ class _LiteralCollector extends RecursiveAstVisitor<void> {
       }
       return;
     }
+    if (_addNumericConst(initializer)) return;
+    initializer.accept(this);
+  }
+
+  /// Collects a numeric const-decl hit when [initializer] is an int
+  /// or double literal. Returns whether the initializer was handled —
+  /// true also means "handled, but skipped" (below [minValue] or
+  /// ignored); only a non-numeric literal returns false.
+  bool _addNumericConst(Expression initializer) {
+    final num magnitude;
+    final String display;
+    final String key;
     if (initializer is IntegerLiteral) {
       final value = initializer.value;
-      if (value == null || value.abs() <= minValue) return;
-      if (ignoreValues.contains('$value')) return;
-      _addNumber('$value', 'i:$value', _line(initializer), isConstDecl: true);
-      return;
+      if (value == null) return true;
+      magnitude = value.abs();
+      display = '$value';
+      key = 'i:$value';
+    } else if (initializer is DoubleLiteral) {
+      magnitude = initializer.value.abs();
+      display = '${initializer.value}';
+      key = 'd:$display';
+    } else {
+      return false;
     }
-    if (initializer is DoubleLiteral) {
-      if (initializer.value.abs() <= minValue) return;
-      final display = '${initializer.value}';
-      if (ignoreValues.contains(display)) return;
-      _addNumber(display, 'd:$display', _line(initializer), isConstDecl: true);
-      return;
-    }
-    initializer.accept(this);
+    if (magnitude <= minValue || ignoreValues.contains(display)) return true;
+    _addNumber(display, key, _line(initializer), isConstDecl: true);
+    return true;
   }
 
   @override
