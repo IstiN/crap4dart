@@ -231,9 +231,9 @@ class SimilarityCommand extends Command<int> {
 }
 
 const String _formatOption = kFormat;
-const String _jaccardOption = 'jaccard';
-const String _containmentOption = 'containment';
+const String _jaccardOption = kJaccard;
+const String _containmentOption = kContainment;
 const String _minShinglesOption = 'min-shingles';
-const String _includeOption = 'include';
-const String _excludeOption = 'exclude';
-const String _configFlag = 'config';
+const String _includeOption = kInclude;
+const String _excludeOption = kExclude;
+const String _configFlag = kConfig;

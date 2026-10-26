@@ -3,13 +3,14 @@ part of 'config_loader.dart';
 /// YAML keys shared by the per-gate config readers.
 const String _maxLinesKey = 'max_lines';
 const String _entriesKey = 'entries';
-const String _excludeKey = 'exclude';
+const String _excludeKey = kExclude;
 const String _dirsKey = 'dirs';
 
 /// The per-pattern `config` key of folder_structure.
 const String _configKey = 'config';
 const String _maxParamsKey = 'max_params';
 const String _maxComplexityKey = 'max_complexity';
+const String _minLengthKey = 'min_length';
 const String _locEntriesCtx = '$kGatePrefix.${GateIds.loc}.entries';
 const String _complexityEntriesCtx =
     '$kGatePrefix.${GateIds.complexity}.entries';
@@ -558,7 +559,7 @@ class _GateConfigReaders {
         _enabledKey,
         _severityKey,
         _ignorableKey,
-        'threshold',
+        _thresholdKey,
         'report',
         'min_tokens',
         'min_lines',
@@ -577,7 +578,7 @@ class _GateConfigReaders {
           severity: flags.severity,
           ignorable: flags.ignorable,
           threshold: _ConfigScalars.readNum(
-              map, 'threshold', base.threshold, path, ctx),
+              map, _thresholdKey, base.threshold, path, ctx),
           report: _ConfigScalars.duplicationReport(
               map, 'report', base.report, path, ctx),
           matching: DuplicationMatching(
@@ -654,7 +655,7 @@ class _GateConfigReaders {
         _ignorableKey,
         'flag_hex_colors',
         'min_duplicates',
-        'min_length',
+        _minLengthKey,
         _excludeKey,
       },
       (map, base, path, ctx) {
@@ -668,7 +669,7 @@ class _GateConfigReaders {
           minDuplicates: _ConfigScalars.readInt(
               map, 'min_duplicates', base.minDuplicates, path, ctx),
           minLength: _ConfigScalars.readInt(
-              map, 'min_length', base.minLength, path, ctx),
+              map, _minLengthKey, base.minLength, path, ctx),
           exclude:
               _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
         );

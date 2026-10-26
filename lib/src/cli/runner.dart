@@ -59,20 +59,20 @@ const String crap4dartVersion = '0.21.0';
 
 /// Shared CLI flag names used by multiple commands.
 const String _configFlag = kConfig;
-const String _changedFlag = 'changed';
+const String _changedFlag = kChanged;
 const String _runTestsFlag = 'run-tests';
 const String _formatFlag = kFormat;
 const String _forceFlag = 'force';
-const String _diffBaseFlag = 'diff-base';
-const String _diffFlag = 'diff';
-const String _stagedFlagName = 'staged';
+const String _diffBaseFlag = kDiffBase;
+const String _diffFlag = kDiff;
+const String _stagedFlagName = kStaged;
 
 /// Shared `--format` option values.
-const String _consoleFormat = 'console';
-const String _jsonFormat = 'json';
+const String _consoleFormat = kConsole;
+const String _jsonFormat = kJson;
 
 /// Option names used by a single command family.
-const String _thresholdFlagName = 'threshold';
+const String _thresholdFlagName = kThreshold;
 const String _lcovFlag = 'lcov';
 const String _configHelp = kConfigHelp;
 
@@ -348,7 +348,7 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
         help: kDiffBaseHelp,
       )
       ..addOption(
-        'badge',
+        kBadge,
         help: 'Write an SVG badge with the max CRAP score to this path.',
       );
   }
@@ -457,7 +457,7 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
   /// Writes the SVG badge when `--badge` is given. Always runs — also
   /// when the threshold is exceeded — and never changes the exit code.
   void _writeBadge(CrapReport report, double threshold) {
-    final badgePath = argResults!['badge'] as String?;
+    final badgePath = argResults![kBadge] as String?;
     if (badgePath == null) return;
     final hasNumeric = report.metrics.any((m) => m.crap != null);
     final message = hasNumeric ? report.maxCrap.toStringAsFixed(2) : 'N/A';

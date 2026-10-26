@@ -161,9 +161,8 @@ class MutationGate implements Gate {
   /// to the full invocation.
   List<String>? _scopedTestArgs(GateContext context, MutationSite site) {
     final relative = context.relativePath(site.file);
-    const libPrefix = 'lib/';
-    if (!relative.startsWith(libPrefix)) return null;
-    final base = p.withoutExtension(relative.substring(libPrefix.length));
+    if (!relative.startsWith(kLibPrefix)) return null;
+    final base = p.withoutExtension(relative.substring(kLibPrefix.length));
     final candidates = <String>{
       'test/${base}_test.dart',
       if (base.startsWith('src/')) 'test/${base.substring(4)}_test.dart',

@@ -234,5 +234,5 @@ class MemoryCommand extends Command<int> {
 const String _topOption = 'top';
 const String _formatOption = kFormat;
 const String _engineOption = 'engine';
-const String _badgeOption = 'badge';
+const String _badgeOption = kBadge;
 const String _badgeThresholdOption = 'badge-threshold';

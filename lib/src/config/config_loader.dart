@@ -14,11 +14,12 @@ part 'gate_config_readers_extra.dart';
 /// Top-level and section keys of `crap4dart.yaml`.
 const String _crapKey = 'crap';
 const String _coverageKey = 'coverage';
-const String _profileKey = 'profile';
+const String _profileKey = kProfile;
 const String _sourcesKey = 'sources';
 const String _runTestsKey = 'run_tests';
-const String _gatesKey = 'gates';
+const String _gatesKey = kGatePrefix;
 const String _thresholdMsKey = 'threshold_ms';
+const String _thresholdKey = kThreshold;
 
 /// Error raised for malformed or invalid `crap4dart.yaml` content.
 class ConfigException implements Exception {
@@ -133,7 +134,7 @@ class ConfigLoader {
     final map = _ConfigScalars.asMap(node, path, _crapKey);
     _ConfigScalars.checkKeys(
       map,
-      const {_enabledKey, 'threshold', _runTestsKey, 'count_lambdas'},
+      const {_enabledKey, _thresholdKey, _runTestsKey, 'count_lambdas'},
       path,
       _crapKey,
     );
@@ -141,7 +142,7 @@ class ConfigLoader {
       enabled: _ConfigScalars.readBool(
           map, _enabledKey, base.enabled, path, _crapKey),
       threshold: _ConfigScalars.readNum(
-          map, 'threshold', base.threshold, path, _crapKey),
+          map, _thresholdKey, base.threshold, path, _crapKey),
       runTests: _ConfigScalars.readBool(
           map, _runTestsKey, base.runTests, path, _crapKey),
       countLambdas: _ConfigScalars.readBool(

@@ -27,6 +27,44 @@ const String kConsole = 'console';
 /// The `diff` subcommand of git and the shared `--diff` CLI flag.
 const String kDiff = 'diff';
 
+/// The shared `--diff-base` option (diff against a given git ref).
+const String kDiffBase = 'diff-base';
+
+/// The shared `--changed` flag (diff scope: git working tree).
+const String kChanged = 'changed';
+
+/// The shared `--staged` flag (diff scope: git index).
+const String kStaged = 'staged';
+
+/// The shared `--badge` option name (SVG badge output path).
+const String kBadge = 'badge';
+
+/// The `--threshold` option name and the `threshold` key of config
+/// sections; each command and section defines what it thresholds.
+const String kThreshold = 'threshold';
+
+/// The `profile` command name, its config section key and the command
+/// tag in JSON reports.
+const String kProfile = 'profile';
+
+/// The shared `--include` option name and `include` config key.
+const String kInclude = 'include';
+
+/// The shared `--exclude` option name and per-gate `exclude` key.
+const String kExclude = 'exclude';
+
+/// The `jaccard` similarity setting (CLI option and config key).
+const String kJaccard = 'jaccard';
+
+/// The `containment` similarity setting (CLI option and config key).
+const String kContainment = 'containment';
+
+/// The `.dart_tool` directory of a package.
+const String kDartToolDir = '.dart_tool';
+
+/// The path prefix of sources inside a package's `lib/` directory.
+const String kLibPrefix = 'lib/';
+
 /// The shared `--format` CLI option name.
 const String kFormat = 'format';
 
@@ -77,3 +115,6 @@ const String kGatePrefix = 'gates';
 
 /// Milliseconds per second (memory and profile reports).
 const int millisPerSecond = 1000;
+
+/// Microseconds per millisecond (unit conversion for reported times).
+const double microsPerMillisecond = 1000.0;

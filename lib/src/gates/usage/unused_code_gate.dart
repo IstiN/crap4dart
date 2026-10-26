@@ -23,7 +23,7 @@ class UnusedCodeGate implements Gate {
   Future<GateResult> run(GateContext context) async {
     if (context.partialSelection) {
       return GateResult.skip(
-        'unused_code',
+        GateIds.unusedCode,
         'not meaningful for a partial selection',
       );
     }

@@ -327,7 +327,7 @@ class FlutterSuiteDriver {
           error: 'suite failed to load: ${body['error']}',
         );
       }
-      if (type == 'success') {
+      if (type == _successResult) {
         tests.addAll(flattenGroup(body['root'] as Map<String, Object?>, ''));
         break;
       }
@@ -522,7 +522,8 @@ class VmServiceClient {
           (event['isolate'] as Map<String, Object?>?)?['name'] as String? ??
               'main',
       seq: seq,
-      startSeconds: ((event['timestamp'] as num?)?.toDouble() ?? 0) / 1000,
+      startSeconds:
+          ((event['timestamp'] as num?)?.toDouble() ?? 0) / millisPerSecond,
       newBeforeMb: 0, // not reported by the service stream
       newAfterMb: mb(newSpace['used']) / 1048576,
       oldBeforeMb: _lastOldAfterMb ?? oldAfter,

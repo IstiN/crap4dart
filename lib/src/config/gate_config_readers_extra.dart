@@ -55,11 +55,11 @@ class _ExtendedGateConfigReaders {
         _severityKey,
         _ignorableKey,
         _dirsKey,
-        'include',
+        kInclude,
         'min_shingles',
-        'jaccard',
-        'containment',
-        _excludeKey
+        kJaccard,
+        kContainment,
+        kExclude
       },
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -69,13 +69,13 @@ class _ExtendedGateConfigReaders {
           ignorable: flags.ignorable,
           dirs: _ConfigScalars.strList(map, _dirsKey, base.dirs, path, ctx),
           include:
-              _ConfigScalars.strList(map, 'include', base.include, path, ctx),
+              _ConfigScalars.strList(map, kInclude, base.include, path, ctx),
           minShingles: _ConfigScalars.readInt(
               map, 'min_shingles', base.minShingles, path, ctx),
           jaccard:
-              _ConfigScalars.readNum(map, 'jaccard', base.jaccard, path, ctx),
+              _ConfigScalars.readNum(map, kJaccard, base.jaccard, path, ctx),
           containment: _ConfigScalars.readNum(
-              map, 'containment', base.containment, path, ctx),
+              map, kContainment, base.containment, path, ctx),
           exclude:
               _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
         );
@@ -343,7 +343,6 @@ class _ExtendedGateConfigReaders {
 
   /// YAML keys shared by the two scattered-literal readers.
   static const _minFilesKey = 'min_files';
-  static const _minLengthKey = 'min_length';
   static const _minValueKey = 'min_value';
 
   static ScatteredGateConfig readScatteredConstants(
@@ -405,14 +404,10 @@ class _ExtendedGateConfigReaders {
     String path,
   ) {
     if (node == null) return base;
-    if (node is! YamlList) {
-      throw ConfigException(
-        path,
-        'gates.scattered_constants.ignore',
-        'expected a list of values',
-      );
-    }
     const ctx = 'gates.scattered_constants.ignore';
+    if (node is! YamlList) {
+      throw ConfigException(path, ctx, 'expected a list of values');
+    }
     final values = <String>[];
     for (final n in node.nodes) {
       final value = n is YamlScalar ? n.value : null;

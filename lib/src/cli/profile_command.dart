@@ -16,7 +16,7 @@ import 'exit_codes.dart';
 import 'runner.dart';
 
 /// Name of the `--threshold` option (milliseconds).
-const String _thresholdFlag = 'threshold';
+const String _thresholdFlag = kThreshold;
 
 /// The `profile` command: runs the test suite against instrumented source
 /// code and reports per-method timing data.
@@ -26,12 +26,12 @@ class ProfileCommand extends Command<int> with CommandHelpers {
       {this.projectRoot, this.profileRunner = const ProfileRunner()}) {
     argParser
       ..addFlag(
-        'changed',
+        kChanged,
         negatable: false,
         help: 'Profile only changed Dart files (git working tree).',
       )
       ..addFlag(
-        'staged',
+        kStaged,
         negatable: false,
         help: 'Profile only staged Dart files (git index).',
       )
@@ -71,7 +71,7 @@ class ProfileCommand extends Command<int> with CommandHelpers {
         help: 'Profile only methods on lines changed since HEAD.',
       )
       ..addOption(
-        'diff-base',
+        kDiffBase,
         help: kDiffBaseHelp,
       );
   }
@@ -84,7 +84,7 @@ class ProfileCommand extends Command<int> with CommandHelpers {
   final ProfileRunner profileRunner;
 
   @override
-  final String name = 'profile';
+  final String name = kProfile;
 
   @override
   final description = 'Run instrumented tests and report per-method timing.';

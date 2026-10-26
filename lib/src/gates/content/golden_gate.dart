@@ -119,7 +119,7 @@ class GoldenGate implements Gate {
       };
 
   String _withoutLibPrefix(String path) =>
-      path.startsWith('lib/') ? path.substring(4) : path;
+      path.startsWith(kLibPrefix) ? path.substring(kLibPrefix.length) : path;
 
   List<String> _dartFiles(String projectRoot, List<String> dirs) => [
         for (final dir in dirs)

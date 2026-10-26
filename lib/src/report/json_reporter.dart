@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../common/constants.dart';
 import '../crap/crap_report.dart';
 import '../gates/gate.dart';
 import '../gates/gate_runner.dart';
@@ -75,7 +76,7 @@ class JsonReporter {
     final passed = thresholdMs == null ||
         sorted.every((p) => p.timing.totalMillis <= thresholdMs);
     return _encoder.convert({
-      _commandKey: 'profile',
+      _commandKey: kProfile,
       'totalMicros': totalMicros,
       if (thresholdMs != null) 'thresholdMs': thresholdMs,
       _passedKey: passed,

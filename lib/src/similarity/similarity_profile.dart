@@ -1,3 +1,7 @@
+library;
+
+import '../common/constants.dart';
+
 /// Content profiles for similarity analysis: how a file's raw bytes
 /// become comparable text.
 ///
@@ -32,7 +36,7 @@ abstract final class SimilarityProfiles {
   /// Source code extensions (any language — the normalizer is
   /// language-agnostic token shaping).
   static const Set<String> _codeExtensions = {
-    '.dart',
+    kDartExtension,
     '.js',
     '.mjs',
     '.cjs',
