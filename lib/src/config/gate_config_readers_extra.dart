@@ -131,6 +131,7 @@ class _ExtendedGateConfigReaders {
         _ignorableKey,
         _dirsKey,
         'max_loose_files',
+        'max_files',
         _excludeKey
       },
       (map, base, path, ctx) {
@@ -142,6 +143,10 @@ class _ExtendedGateConfigReaders {
           dirs: _ConfigScalars.strList(map, _dirsKey, base.dirs, path, ctx),
           maxLooseFiles: _ConfigScalars.readInt(
               map, 'max_loose_files', base.maxLooseFiles, path, ctx),
+          maxFiles: map['max_files'] == null
+              ? base.maxFiles
+              : _ConfigScalars.readInt(
+                  map, 'max_files', base.maxFiles ?? 0, path, ctx),
           exclude:
               _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
         );
