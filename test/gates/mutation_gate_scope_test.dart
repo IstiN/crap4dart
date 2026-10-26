@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:crap4dart/src/config/config_loader.dart';
 import 'package:crap4dart/src/files/diff_parser.dart';
 import 'package:crap4dart/src/gates/gate_context.dart';
-import 'package:crap4dart/src/gates/mutation_engine.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_engine.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 

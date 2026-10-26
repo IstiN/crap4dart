@@ -1,4 +1,4 @@
-import 'package:crap4dart/src/gates/similarity_gate.dart';
+import 'package:crap4dart/src/gates/similarity/similarity_gate.dart';
 import 'package:test/test.dart';
 
 import '../similarity/similarity_fixtures.dart';

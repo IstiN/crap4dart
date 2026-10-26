@@ -1,5 +1,5 @@
 import 'package:crap4dart/src/gates/gate.dart';
-import 'package:crap4dart/src/gates/record_named_fields_gate.dart';
+import 'package:crap4dart/src/gates/records/record_named_fields_gate.dart';
 import 'package:test/test.dart';
 
 import 'gate_test_utils.dart';

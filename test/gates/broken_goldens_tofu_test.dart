@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:crap4dart/src/gates/broken_goldens_gate.dart';
+import 'package:crap4dart/src/gates/content/broken_goldens_gate.dart';
 import 'package:test/test.dart';
 
 import 'gate_test_utils.dart';

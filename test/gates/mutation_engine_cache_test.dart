@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:crap4dart/src/analysis/dart_parser.dart';
 import 'package:crap4dart/src/analysis/method_extractor.dart';
 import 'package:crap4dart/src/config/config.dart';
-import 'package:crap4dart/src/gates/mutation_cache.dart';
-import 'package:crap4dart/src/gates/mutation_engine.dart';
-import 'package:crap4dart/src/gates/mutation_operators.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_cache.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_engine.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_operators.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 

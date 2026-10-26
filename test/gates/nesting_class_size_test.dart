@@ -1,5 +1,5 @@
-import 'package:crap4dart/src/gates/class_size_gate.dart';
-import 'package:crap4dart/src/gates/nesting_gate.dart';
+import 'package:crap4dart/src/gates/quality/class_size_gate.dart';
+import 'package:crap4dart/src/gates/quality/nesting_gate.dart';
 import 'package:test/test.dart';
 
 import 'gate_test_utils.dart';

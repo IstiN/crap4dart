@@ -1,4 +1,4 @@
-import 'package:crap4dart/src/gates/folder_structure_gate.dart';
+import 'package:crap4dart/src/gates/usage/folder_structure_gate.dart';
 import 'package:test/test.dart';
 
 import 'gate_test_utils.dart';

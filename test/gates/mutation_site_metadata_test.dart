@@ -1,5 +1,5 @@
 import 'package:crap4dart/src/analysis/dart_parser.dart';
-import 'package:crap4dart/src/gates/mutation_operators.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_operators.dart';
 import 'package:test/test.dart';
 
 List<MutationSite> detect(String source, {Set<String>? categories}) =>
