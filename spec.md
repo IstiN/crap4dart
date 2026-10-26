@@ -785,11 +785,19 @@ none) are skipped.
 
 ### 11.16 folder_structure
 
-Flags configured `dirs` (default `lib`; each entry is a literal path
-or a glob pattern — `lib/src/*`, `packages/**` — that expands to every
-matching directory) containing more than `max_loose_files` (default 0)
-logical `.dart` units directly — a flat-file sprawl that should be
-organized into feature packages.
+Flags directories containing more than their cap of logical `.dart`
+units directly — a flat-file sprawl that should be organized into
+feature packages. Two `dirs` forms:
+
+- **List** (default `lib`) + `max_loose_files` (default 0): every
+  listed directory shares one cap. Each entry is a literal path or a
+  glob pattern — `lib/src/*`, `packages/**` — that expands to every
+  matching directory.
+- **Map**: each key is a pattern and each value its own cap —
+  `{lib/src: 3, 'lib/src/**': 30}` — a registry folder may hold more
+  than a hot core directory. `max_loose_files` does not apply in
+  this form (setting both is a configuration error). A directory
+  matched by several patterns uses the first pattern's cap.
 
 Counting rules: only a directory's OWN contents count — files in
 subdirectories are the organized form and never reach the parent's

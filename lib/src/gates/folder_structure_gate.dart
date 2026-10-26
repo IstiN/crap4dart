@@ -4,6 +4,9 @@ import '../config/config.dart';
 import 'gate.dart';
 import 'gate_context.dart';
 
+/// One directory to check with its effective cap.
+typedef FolderCap = ({String dir, int cap});
+
 /// The `folder_structure` gate: flags directories that accumulate more
 /// than `max_files` logical `.dart` units directly — a flat-file
 /// sprawl that should be organized into feature packages.
@@ -30,19 +33,19 @@ class FolderStructureGate implements Gate {
   @override
   Future<GateResult> run(GateContext context) async {
     final config = context.config.gates.folderStructure;
-    final dirs = _resolveDirs(context, config);
+    final checks = _checks(context, config);
     final violations = <GateViolation>[];
     var checked = 0;
-    for (final dir in dirs) {
-      final units = _unitCount(context, dir, config);
+    for (final check in checks) {
+      final units = _unitCount(context, check.dir, config);
       checked++;
-      if (units > config.maxLooseFiles) {
+      if (units > check.cap) {
         violations.add(
           GateViolation(
-            file: dir,
+            file: check.dir,
             message: '$units loose .dart files directly in '
-                '$dir — group them into feature packages '
-                '(max ${config.maxLooseFiles})',
+                '${check.dir} — group them into feature packages '
+                '(max ${check.cap})',
           ),
         );
       }
@@ -55,23 +58,52 @@ class FolderStructureGate implements Gate {
         : GateResult.fail(id, violations, summary: summary);
   }
 
-  /// The configured `dirs` entries resolved to existing directories:
-  /// a literal path passes through (when it exists); a glob pattern
-  /// expands to every matching directory under the project root.
-  List<String> _resolveDirs(
+  /// Every directory to check with its effective cap: the list form
+  /// gives every directory [FolderStructureGateConfig.maxLooseFiles];
+  /// the map form gives each pattern's directory its own cap (a
+  /// directory matched by several patterns uses the first one's).
+  List<FolderCap> _checks(
     GateContext context,
     FolderStructureGateConfig config,
   ) {
-    final resolved = <String>{};
-    for (final entry in config.dirs) {
-      final literal = Directory('${context.projectRoot}/$entry');
-      if (literal.existsSync()) {
-        resolved.add(entry);
-        continue;
+    final out = <FolderCap>[];
+    final seen = <String>{};
+    void add(String dir, int cap) {
+      if (!seen.add(dir)) return; // first pattern wins
+      out.add((dir: dir, cap: cap));
+    }
+
+    if (config.dirCaps.isNotEmpty) {
+      for (final entry in config.dirCaps.entries) {
+        for (final dir in _expand(context, entry.key)) {
+          add(dir, entry.value);
+        }
       }
-      resolved.addAll(_globDirs(context, entry));
+      return out;
+    }
+    for (final dir in _expandList(context, config.dirs)) {
+      add(dir, config.maxLooseFiles);
+    }
+    return out;
+  }
+
+  /// The configured list entries resolved to existing directories: a
+  /// literal path passes through (when it exists); a glob pattern
+  /// expands to every matching directory under the project root.
+  List<String> _expandList(GateContext context, List<String> entries) {
+    final resolved = <String>{};
+    for (final entry in entries) {
+      resolved.addAll(_expand(context, entry));
     }
     return resolved.toList()..sort();
+  }
+
+  /// One `dirs` entry resolved to existing directories.
+  List<String> _expand(GateContext context, String entry) {
+    if (Directory('${context.projectRoot}/$entry').existsSync()) {
+      return [entry];
+    }
+    return _globDirs(context, entry);
   }
 
   /// Every directory under the project root matching [pattern].
