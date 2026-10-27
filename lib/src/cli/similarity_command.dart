@@ -22,6 +22,16 @@ typedef _ScanTargets = ({String root, List<String> dirs});
 /// Informational: always exits 0; the gate (in `check`) is the
 /// enforcer.
 class SimilarityCommand extends Command<int> {
+  /// Project root override (default: the current working directory).
+  final String? projectRoot;
+
+  @override
+  final String name = GateIds.similarity;
+
+  @override
+  final String description = 'Scan for near-duplicate files (docs, code) '
+      'and print the similarity clusters.';
+
   /// Creates a [SimilarityCommand].
   SimilarityCommand({this.projectRoot}) {
     argParser
@@ -55,16 +65,6 @@ class SimilarityCommand extends Command<int> {
       )
       ..addOption(kConfig, help: kConfigHelp);
   }
-
-  /// Project root override (default: the current working directory).
-  final String? projectRoot;
-
-  @override
-  final String name = GateIds.similarity;
-
-  @override
-  final String description = 'Scan for near-duplicate files (docs, code) '
-      'and print the similarity clusters.';
 
   @override
   Future<int> run() async {

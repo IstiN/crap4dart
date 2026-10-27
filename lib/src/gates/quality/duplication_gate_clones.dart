@@ -8,7 +8,23 @@ typedef _TokenRange = ({int start, int end});
 /// non-overlapping selection (PMD CPD Match semantics).
 class _CloneDetector {
   static const int _base = 0x9e3779b97f4a7c15;
+
   static final int _mask = (1 << 64) - 1;
+
+  /// The reporting order: longest clones first, then most occurrences,
+  /// then first position.
+  static int _byPriority(_CloneGroup a, _CloneGroup b) {
+    final byLength = b.tokenCount.compareTo(a.tokenCount);
+    if (byLength != 0) return byLength;
+    final byOcc = b.occurrences.length.compareTo(a.occurrences.length);
+    if (byOcc != 0) return byOcc;
+    final firstA = a.occurrences.first;
+    final firstB = b.occurrences.first;
+    if (firstA.fileIndex != firstB.fileIndex) {
+      return firstA.fileIndex.compareTo(firstB.fileIndex);
+    }
+    return firstA.startToken.compareTo(firstB.startToken);
+  }
 
   /// Detects duplicated windows, marks the involved tokens and returns
   /// the accepted clone groups (longest-first, non-overlapping — the
@@ -35,21 +51,6 @@ class _CloneDetector {
     // selection order that keeps reporting deterministic.
     candidates.sort(_byPriority);
     return _accept(files, candidates);
-  }
-
-  /// The reporting order: longest clones first, then most occurrences,
-  /// then first position.
-  static int _byPriority(_CloneGroup a, _CloneGroup b) {
-    final byLength = b.tokenCount.compareTo(a.tokenCount);
-    if (byLength != 0) return byLength;
-    final byOcc = b.occurrences.length.compareTo(a.occurrences.length);
-    if (byOcc != 0) return byOcc;
-    final firstA = a.occurrences.first;
-    final firstB = b.occurrences.first;
-    if (firstA.fileIndex != firstB.fileIndex) {
-      return firstA.fileIndex.compareTo(firstB.fileIndex);
-    }
-    return firstA.startToken.compareTo(firstB.startToken);
   }
 
   /// Greedily accepts non-overlapping groups and marks their tokens.

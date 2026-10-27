@@ -8,6 +8,9 @@ class _XCrossScanner {
   /// Creates the scanner.
   const _XCrossScanner();
 
+  static bool _isInkAt(img.Image image, int x, int y, int background) =>
+      TofuDetector._isInk(image.getPixel(x, y), background);
+
   /// Whether [image] contains a tofu cross (icon-sized boxes only;
   /// text rows fail the box checks).
   bool scan(img.Image image) {
@@ -129,9 +132,6 @@ class _XCrossScanner {
   bool _wallsAtEdges(List<_Span> bands, int runStart, int runWidth) =>
       bands.first.start - runStart <= 2 &&
       runStart + runWidth - bands.last.end <= 2;
-
-  static bool _isInkAt(img.Image image, int x, int y, int background) =>
-      TofuDetector._isInk(image.getPixel(x, y), background);
 }
 
 /// The X phase machine: tracks the converge phase (inner bands
@@ -146,18 +146,24 @@ class _XCrossScanner {
 const double _wallRatio = 0.15;
 
 class _XPhaseTracker {
+  int _prevStart;
+
+  int _prevEnd;
+
+  int _goodRows = 0;
+
+  bool _merged = false;
+
+  int _divStart = -1;
+
+  int _divEnd = -1;
+
+  int _divergeRows = 0;
+
   /// Anchors the tracker on the run's full extent.
   _XPhaseTracker(int runStart, int runWidth)
       : _prevStart = runStart,
         _prevEnd = runStart + runWidth;
-
-  int _prevStart;
-  int _prevEnd;
-  int _goodRows = 0;
-  bool _merged = false;
-  int _divStart = -1;
-  int _divEnd = -1;
-  int _divergeRows = 0;
 
   /// Feeds one wall row's [bands]; `true` once the X cycle is proven.
   bool step(List<_Span> bands, int runStart, int runWidth) {

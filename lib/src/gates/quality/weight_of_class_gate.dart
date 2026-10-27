@@ -51,22 +51,26 @@ class WeightOfClassGate implements Gate {
 
 /// A class candidate with its computed data-to-members weight.
 class _Weighted {
-  _Weighted(this.weight, this.violation);
-
   final double weight;
+
   final GateViolation violation;
+
+  _Weighted(this.weight, this.violation);
 }
 
 /// Public instance fields and members of one class.
 typedef _MemberCount = ({int fields, int members});
 
 class _WeightVisitor extends RecursiveAstVisitor<void> {
-  _WeightVisitor(this._file, this._parsed);
-
   final String _file;
+
   final ParsedUnit _parsed;
+
   final List<_Weighted> weighted = [];
+
   int checked = 0;
+
+  _WeightVisitor(this._file, this._parsed);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {

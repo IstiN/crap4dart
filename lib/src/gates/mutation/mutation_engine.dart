@@ -43,11 +43,11 @@ typedef MutantTestRunner = Future<MutantOutcome> Function(
 /// Thrown when the test command cannot be spawned at all; the gate
 /// turns this into a skipped result.
 class MutationTestUnavailableException implements Exception {
-  /// Creates a [MutationTestUnavailableException] with a [message].
-  const MutationTestUnavailableException(this.message);
-
   /// Human readable reason (e.g. "dart not found on PATH").
   final String message;
+
+  /// Creates a [MutationTestUnavailableException] with a [message].
+  const MutationTestUnavailableException(this.message);
 
   @override
   String toString() => message;
@@ -63,14 +63,6 @@ typedef MutantProcessSpawner = Future<Process> Function(
 
 /// The result of running every mutant of one engine invocation.
 class MutationRunResult {
-  /// Creates a [MutationRunResult].
-  MutationRunResult(
-    this.outcomes, {
-    this.integrityViolations = const [],
-    this.scopedCount = 0,
-    this.confirmedCount = 0,
-  });
-
   /// Per-site outcomes; every input site appears exactly once.
   final List<MutantOutcomeRecord> outcomes;
 
@@ -91,6 +83,14 @@ class MutationRunResult {
   /// omit the killing test — so survivors are re-confirmed; only these
   /// two counters tell how much scoping actually saved.
   final int confirmedCount;
+
+  /// Creates a [MutationRunResult].
+  MutationRunResult(
+    this.outcomes, {
+    this.integrityViolations = const [],
+    this.scopedCount = 0,
+    this.confirmedCount = 0,
+  });
 
   /// Mutants killed by the test suite (compile errors included).
   int get killed =>
@@ -123,15 +123,6 @@ class MutationRunResult {
 /// invocation context with the mutable run accumulators so the loop
 /// helpers stay within the method-size limits.
 class _RunState {
-  /// Creates a [_RunState] for one run.
-  _RunState({
-    required this.projectRoot,
-    required this.timeout,
-    required this.runner,
-    required this.testArgs,
-    required this.caching,
-  });
-
   /// Project root of the test invocations.
   final String projectRoot;
 
@@ -156,6 +147,15 @@ class _RunState {
 
   /// Fresh per-method outcomes to merge into the cache after the run.
   final fresh = <String, _FreshOutcomes>{};
+
+  /// Creates a [_RunState] for one run.
+  _RunState({
+    required this.projectRoot,
+    required this.timeout,
+    required this.runner,
+    required this.testArgs,
+    required this.caching,
+  });
 }
 
 /// Fresh per-method outcomes of one mutation run (see
@@ -170,12 +170,12 @@ typedef _FreshOutcomes = ({String digest, List<CachedOutcome> outcomes});
 /// killed, marked `fromCache`); survivors are always re-executed. The
 /// merged cache is persisted after the run.
 class MutationEngine {
+  final MutantTestRunner? _injected;
+
   /// Creates a [MutationEngine]; [runner] overrides the per-mutant
   /// test runner (injected in tests); without it the suite runs as
   /// `dart <args...>` (or `flutter <args...>`) per mutant.
   MutationEngine({MutantTestRunner? runner}) : _injected = runner;
-
-  final MutantTestRunner? _injected;
 
   /// Runs every [site] of the project at [projectRoot], giving each
   /// mutant up to [timeout].

@@ -44,12 +44,15 @@ class PublicDocsGate implements Gate {
 }
 
 class _DocsVisitor extends RecursiveAstVisitor<void> {
-  _DocsVisitor(this._file, this._parsed);
-
   final String _file;
+
   final ParsedUnit _parsed;
+
   final List<GateViolation> violations = [];
+
   int checked = 0;
+
+  _DocsVisitor(this._file, this._parsed);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {

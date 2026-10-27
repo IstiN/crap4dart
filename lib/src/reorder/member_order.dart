@@ -26,6 +26,22 @@ typedef BodyReplacement = ({int start, int end, String text});
 /// Members of the same category keep their original relative order —
 /// the transform is a stable partition, never an alphabetical sort.
 class MemberOrder {
+  static const int _constants = 0;
+
+  static const int _staticFields = 1;
+
+  static const int _fields = 2;
+
+  static const int _constructors = 3;
+
+  static const int _staticMethods = 4;
+
+  static const int _accessors = 5;
+
+  static const int _methods = 6;
+
+  static const int _privateMethods = 7;
+
   const MemberOrder._();
 
   /// Category index of [member] in the canonical order.
@@ -47,27 +63,21 @@ class MemberOrder {
     return _isPrivate(method.name.lexeme) ? _privateMethods : _methods;
   }
 
-  static const int _constants = 0;
-  static const int _staticFields = 1;
-  static const int _fields = 2;
-  static const int _constructors = 3;
-  static const int _staticMethods = 4;
-  static const int _accessors = 5;
-  static const int _methods = 6;
-  static const int _privateMethods = 7;
-
   static bool _isPrivate(String name) => name.startsWith('_');
 }
 
 /// One sliced member: its source span (with attached doc comments,
 /// metadata and directly-preceding `//` lines) plus its sort keys.
 class _MemberSlice {
-  const _MemberSlice(this.category, this.index, this.start, this.end);
-
   final int category;
+
   final int index;
+
   final int start;
+
   final int end;
+
+  const _MemberSlice(this.category, this.index, this.start, this.end);
 }
 
 /// Deterministically reorders class members of [source] into the

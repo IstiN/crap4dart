@@ -13,6 +13,8 @@ class CoverageGate implements Gate {
   /// Creates a [CoverageGate].
   const CoverageGate();
 
+  static String _fmt(double value) => value.toStringAsFixed(1);
+
   @override
   String get id => GateIds.testCoverage;
 
@@ -93,6 +95,4 @@ class CoverageGate implements Gate {
     final covered = file.lineHits.values.where((h) => h > 0).length;
     return covered / file.lineHits.length * 100;
   }
-
-  static String _fmt(double value) => value.toStringAsFixed(1);
 }

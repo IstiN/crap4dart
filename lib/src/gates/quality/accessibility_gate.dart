@@ -17,9 +17,6 @@ const String _semanticsLabelParam = 'semanticsLabel';
 /// `GestureDetector`/`InkWell` → `semanticsLabel` (or a wrapping
 /// `Semantics` widget). Skipped for non-Flutter projects.
 class AccessibilityGate implements Gate {
-  /// Creates an [AccessibilityGate].
-  const AccessibilityGate();
-
   /// Maps widget type to the named parameter that provides its label.
   static const Map<String, String> labelParams = {
     'IconButton': 'tooltip',
@@ -27,6 +24,9 @@ class AccessibilityGate implements Gate {
     'GestureDetector': _semanticsLabelParam,
     'InkWell': _semanticsLabelParam,
   };
+
+  /// Creates an [AccessibilityGate].
+  const AccessibilityGate();
 
   @override
   String get id => GateIds.accessibility;
@@ -51,12 +51,15 @@ class AccessibilityGate implements Gate {
 }
 
 class _A11yVisitor extends RecursiveAstVisitor<void> {
-  _A11yVisitor(this._file, this._parsed, this._widgets);
-
   final String _file;
+
   final ParsedUnit _parsed;
+
   final List<String> _widgets;
+
   final List<GateViolation> violations = [];
+
+  _A11yVisitor(this._file, this._parsed, this._widgets);
 
   @override
   void visitMethodInvocation(MethodInvocation node) {

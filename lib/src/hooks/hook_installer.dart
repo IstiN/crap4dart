@@ -6,11 +6,11 @@ import '../gates/gate_context.dart';
 
 /// Error raised when a git hook cannot be installed.
 class HookInstallException implements Exception {
-  /// Creates a [HookInstallException].
-  const HookInstallException(this.message);
-
   /// Human readable description of the problem.
   final String message;
+
+  /// Creates a [HookInstallException].
+  const HookInstallException(this.message);
 
   @override
   String toString() => 'Hook installation failed: $message';
@@ -18,14 +18,14 @@ class HookInstallException implements Exception {
 
 /// Installs crap4dart git hooks into a project's `.git/hooks` directory.
 class HookInstaller {
-  /// Creates a [HookInstaller].
-  const HookInstaller();
-
   /// Start marker of the managed block inside a hook script.
   static const String beginMarker = '# >>> crap4dart >>>';
 
   /// End marker of the managed block inside a hook script.
   static const String endMarker = '# <<< crap4dart <<<';
+
+  /// Creates a [HookInstaller].
+  const HookInstaller();
 
   /// Installs a git hook named [hookName] into [projectRoot].
   ///

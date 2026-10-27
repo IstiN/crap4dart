@@ -34,23 +34,6 @@ class TofuDetector {
   /// Creates a [TofuDetector].
   const TofuDetector();
 
-  /// Whether the image contains tofu icon placeholders: a bordered
-  /// square with a diagonal cross (Flutter's default render for a
-  /// failed image/icon load).
-  bool hasTofuIcons(img.Image image) => const _XCrossScanner().scan(image);
-
-  /// Whether the image contains hollow icon boxes: square-ish bordered
-  /// boxes with continuous walls and an empty interior — the glyph is
-  /// missing but the placeholder box is painted, with no diagonal.
-  bool hasHollowIconBoxes(img.Image image) =>
-      const _HollowBoxScanner().scan(image);
-
-  /// Whether the image contains runs of solid glyph rectangles (Ahem
-  /// fallback text): at least two DISTINCT solid rectangles of the
-  /// same vertical extent, side by side with a small gap.
-  bool hasSolidGlyphRuns(img.Image image) =>
-      const _SolidGlyphScanner().scan(image);
-
   /// Whether the box opening at row [y] floats on the background and
   /// its top border row is solid ink: the row above the border is
   /// background (a filled button's ink continues) and the border run
@@ -280,4 +263,21 @@ class TofuDetector {
     // grays sit far closer to the background and must not match.
     return (_luma(pixel) - background).abs() > 100;
   }
+
+  /// Whether the image contains tofu icon placeholders: a bordered
+  /// square with a diagonal cross (Flutter's default render for a
+  /// failed image/icon load).
+  bool hasTofuIcons(img.Image image) => const _XCrossScanner().scan(image);
+
+  /// Whether the image contains hollow icon boxes: square-ish bordered
+  /// boxes with continuous walls and an empty interior — the glyph is
+  /// missing but the placeholder box is painted, with no diagonal.
+  bool hasHollowIconBoxes(img.Image image) =>
+      const _HollowBoxScanner().scan(image);
+
+  /// Whether the image contains runs of solid glyph rectangles (Ahem
+  /// fallback text): at least two DISTINCT solid rectangles of the
+  /// same vertical extent, side by side with a small gap.
+  bool hasSolidGlyphRuns(img.Image image) =>
+      const _SolidGlyphScanner().scan(image);
 }

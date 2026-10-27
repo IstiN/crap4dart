@@ -3,9 +3,6 @@ import 'dart:convert';
 
 /// A suite (test file) seen in the package:test JSON reporter stream.
 class TestSuiteEvent {
-  /// Creates a [TestSuiteEvent].
-  const TestSuiteEvent({required this.id, required this.path, this.timeMs = 0});
-
   /// Suite id from the reporter.
   final int id;
 
@@ -16,19 +13,14 @@ class TestSuiteEvent {
   /// suite's isolate spawns. GC rows count THEIR time from isolate
   /// start, so this value is the isolate-clock zero in reporter time.
   final int timeMs;
+
+  /// Creates a [TestSuiteEvent].
+  const TestSuiteEvent({required this.id, required this.path, this.timeMs = 0});
 }
 
 /// One test's span: name, suite, start/end times (ms since suite run
 /// start) and result.
 class TestSpan {
-  /// Creates a [TestSpan].
-  TestSpan({
-    required this.id,
-    required this.name,
-    required this.suiteId,
-    required this.startMs,
-  });
-
   /// Test id from the reporter.
   final int id;
 
@@ -47,15 +39,20 @@ class TestSpan {
   /// `success` / `failure` / `error`; `null` until done.
   String? result;
 
+  /// Creates a [TestSpan].
+  TestSpan({
+    required this.id,
+    required this.name,
+    required this.suiteId,
+    required this.startMs,
+  });
+
   /// The span's end in ms ([endMs] once known, else [startMs]).
   int get endOrStartMs => endMs ?? startMs;
 }
 
 /// Parses the package:test `-r json` stream (one JSON object per line).
 class TestRunEvents {
-  /// Creates a parser.
-  TestRunEvents();
-
   /// Suites in first-seen order, keyed by id.
   final Map<int, TestSuiteEvent> suitesById = {};
 
@@ -64,6 +61,9 @@ class TestRunEvents {
 
   /// The `done` time of the whole run, ms; `null` until seen.
   int? doneMs;
+
+  /// Creates a parser.
+  TestRunEvents();
 
   /// Feeds one output line; ignores non-JSON noise.
   void addLine(String line) {

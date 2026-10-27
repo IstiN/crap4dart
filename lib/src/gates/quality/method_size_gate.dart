@@ -84,14 +84,19 @@ class MethodSizeGate implements Gate {
 }
 
 class _SizeVisitor extends RecursiveAstVisitor<void> {
-  _SizeVisitor(this._file, this._parsed, this._maxLines, this._maxParams);
-
   final String _file;
+
   final ParsedUnit _parsed;
+
   final int _maxLines;
+
   final int _maxParams;
+
   final List<GateViolation> violations = [];
+
   int checked = 0;
+
+  _SizeVisitor(this._file, this._parsed, this._maxLines, this._maxParams);
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {

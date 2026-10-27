@@ -13,17 +13,6 @@ import 'workspace_pubspec.dart';
 
 /// Per-method timing data collected from an instrumented test run.
 class MethodTiming {
-  /// Creates a [MethodTiming].
-  const MethodTiming({
-    required this.className,
-    required this.methodName,
-    required this.calls,
-    required this.totalMicros,
-    this.totalSelfMicros = 0,
-    required this.minMicros,
-    required this.maxMicros,
-  });
-
   /// Owning class name (or `(top-level)`).
   final String className;
 
@@ -48,6 +37,17 @@ class MethodTiming {
   /// Maximum single-call time in microseconds.
   final int maxMicros;
 
+  /// Creates a [MethodTiming].
+  const MethodTiming({
+    required this.className,
+    required this.methodName,
+    required this.calls,
+    required this.totalMicros,
+    this.totalSelfMicros = 0,
+    required this.minMicros,
+    required this.maxMicros,
+  });
+
   /// Mean execution time in microseconds.
   double get meanMicros => calls > 0 ? totalMicros / calls : 0.0;
 
@@ -63,11 +63,11 @@ class MethodTiming {
 
 /// Merged timing result from an instrumented test run.
 class ProfileResult {
-  /// Creates a [ProfileResult].
-  const ProfileResult({required this.timings});
-
   /// Per-method timing data, sorted by total time descending.
   final List<MethodTiming> timings;
+
+  /// Creates a [ProfileResult].
+  const ProfileResult({required this.timings});
 }
 
 /// Signature of a process run — matches [Process.run] so tests can inject
@@ -81,14 +81,6 @@ typedef ProcessRunner = Future<ProcessResult> Function(
 
 /// Test selection options forwarded to `dart test` / `flutter test`.
 class TestFilter {
-  /// Creates a [TestFilter].
-  const TestFilter({
-    this.name,
-    this.tags,
-    this.excludeTags,
-    this.paths = const [],
-  });
-
   /// Run only tests whose name matches this substring or regex.
   final String? name;
 
@@ -100,6 +92,14 @@ class TestFilter {
 
   /// Explicit test file/directory paths.
   final List<String> paths;
+
+  /// Creates a [TestFilter].
+  const TestFilter({
+    this.name,
+    this.tags,
+    this.excludeTags,
+    this.paths = const [],
+  });
 }
 
 /// Runs the project's test suite against instrumented source code and
@@ -109,13 +109,13 @@ class TestFilter {
 /// in a `Stopwatch`-based `try/finally` block. Tests are run normally; the
 /// collector accumulates timing data and writes it to a JSON file.
 class ProfileRunner {
+  final ProcessRunner _runner;
+
   /// Creates a [ProfileRunner].
   ///
   /// [runner] defaults to [Process.run]; tests inject a fake.
   const ProfileRunner({ProcessRunner? runner})
       : _runner = runner ?? Process.run;
-
-  final ProcessRunner _runner;
 
   /// Runs the tests of the project at [projectRoot] under instrumentation
   /// and returns the timing result, or `null` on failure.

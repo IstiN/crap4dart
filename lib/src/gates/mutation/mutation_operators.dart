@@ -12,9 +12,6 @@ import '../../config/config.dart';
 /// (`mutationOperatorCategories`) so config validation and detection
 /// share one source.
 class MutationOperator {
-  /// Creates a [MutationOperator].
-  const MutationOperator(this.category, this.original, this.mutant);
-
   /// Operator category (one of `mutationOperatorCategories`).
   final String category;
 
@@ -23,6 +20,9 @@ class MutationOperator {
 
   /// Lexeme written in place of [original] in the mutated file.
   final String mutant;
+
+  /// Creates a [MutationOperator].
+  const MutationOperator(this.category, this.original, this.mutant);
 }
 
 /// Lexemes reused across the table and the detector, kept in named
@@ -63,18 +63,6 @@ const List<MutationOperator> mutationOperators = [
 /// A single place in a source file where one operator replacement
 /// applies. Offsets come from analyzer tokens, never from regex.
 class MutationSite {
-  /// Creates a [MutationSite].
-  const MutationSite({
-    required this.file,
-    required this.line,
-    required this.method,
-    required this.category,
-    required this.original,
-    required this.mutant,
-    required this.offset,
-    required this.length,
-  });
-
   /// Absolute path of the source file.
   final String file;
 
@@ -100,6 +88,18 @@ class MutationSite {
   /// Length of the replaced span in characters.
   final int length;
 
+  /// Creates a [MutationSite].
+  const MutationSite({
+    required this.file,
+    required this.line,
+    required this.method,
+    required this.category,
+    required this.original,
+    required this.mutant,
+    required this.offset,
+    required this.length,
+  });
+
   /// Returns [content] with this site mutated (used by the engine).
   String applyTo(String content) =>
       content.replaceRange(offset, offset + length, mutant);
@@ -112,12 +112,12 @@ class MutationSite {
 /// matching AST nodes against [mutationOperators]; all offsets come
 /// from token offsets of the parsed (unresolved) unit.
 class MutationSiteDetector {
+  final Set<String> _categories;
+
   /// Creates a [MutationSiteDetector] limited to [categories]
   /// (all categories when omitted).
   MutationSiteDetector({Set<String>? categories})
       : _categories = categories ?? mutationOperatorCategories.toSet();
-
-  final Set<String> _categories;
 
   /// Finds every mutation site in [parsed], sorted by offset.
   List<MutationSite> detect(ParsedUnit parsed) {
@@ -134,13 +134,17 @@ class MutationSiteDetector {
 
 /// AST visitor collecting sites for the enabled operator categories.
 class _SiteVisitor extends GeneralizingAstVisitor<void> {
-  _SiteVisitor(this._categories, this._lineInfo, this._methods, this._file);
-
   final Set<String> _categories;
+
   final LineInfo _lineInfo;
+
   final List<ExtractedMethod> _methods;
+
   final String _file;
+
   final List<MutationSite> sites = [];
+
+  _SiteVisitor(this._categories, this._lineInfo, this._methods, this._file);
 
   @override
   void visitNode(AstNode node) => node.visitChildren(this);

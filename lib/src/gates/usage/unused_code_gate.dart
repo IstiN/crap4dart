@@ -57,20 +57,24 @@ class UnusedCodeGate implements Gate {
 }
 
 class _Declaration {
-  _Declaration(this.name, this.violation);
-
   final String name;
+
   final GateViolation violation;
+
+  _Declaration(this.name, this.violation);
 }
 
 /// Collects private declarations and identifier references of a unit.
 class _DeclarationVisitor extends RecursiveAstVisitor<void> {
-  _DeclarationVisitor(this._file, this._lineInfo);
-
   final String _file;
+
   final LineInfo _lineInfo;
+
   final List<_Declaration> declarations = [];
+
   final Set<String> references = {};
+
+  _DeclarationVisitor(this._file, this._lineInfo);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
@@ -156,9 +160,9 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
 
 /// Counts every simple identifier as a potential reference.
 class _RefVisitor extends RecursiveAstVisitor<void> {
-  _RefVisitor(this.references);
-
   final Set<String> references;
+
+  _RefVisitor(this.references);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {

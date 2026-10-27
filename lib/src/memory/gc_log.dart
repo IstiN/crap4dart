@@ -1,16 +1,5 @@
 /// One row of the Dart VM `--verbose_gc` table.
 class GcEvent {
-  /// Creates a [GcEvent].
-  const GcEvent({
-    required this.isolate,
-    required this.seq,
-    required this.startSeconds,
-    required this.newBeforeMb,
-    required this.newAfterMb,
-    required this.oldBeforeMb,
-    required this.oldAfterMb,
-  });
-
   /// Isolate name as printed (e.g. `main`, `test_suite:file:///…`).
   final String isolate;
 
@@ -31,6 +20,17 @@ class GcEvent {
 
   /// Old-gen used after the GC, MB.
   final double oldAfterMb;
+
+  /// Creates a [GcEvent].
+  const GcEvent({
+    required this.isolate,
+    required this.seq,
+    required this.startSeconds,
+    required this.newBeforeMb,
+    required this.newAfterMb,
+    required this.oldBeforeMb,
+    required this.oldAfterMb,
+  });
 
   /// How much new-gen memory this GC reclaimed (allocated volume that
   /// had accumulated since the previous GC).

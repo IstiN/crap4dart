@@ -20,32 +20,38 @@ part 'duplication_gate_mask.dart';
 /// A single token together with its source line, raw lexeme, and
 /// normalized value (identical to the lexeme when no masking applies).
 class _NormalizedToken {
+  final String lexeme;
+
+  final String value;
+
+  final int line;
+
+  bool duplicated = false;
+
   /// Creates a [_NormalizedToken].
   _NormalizedToken(this.lexeme, this.value, this.line);
-
-  final String lexeme;
-  final String value;
-  final int line;
-  bool duplicated = false;
 }
 
 /// Position of a token window inside a file's token stream.
 class _TokenPos {
+  final int fileIndex;
+
+  final int tokenIndex;
+
   /// Creates a [_TokenPos].
   _TokenPos(this.fileIndex, this.tokenIndex);
-
-  final int fileIndex;
-  final int tokenIndex;
 }
 
 /// Token stream of a single file.
 class _FileTokens {
+  final String file;
+
+  final List<_NormalizedToken> tokens;
+
+  final int totalLines;
+
   /// Creates a [_FileTokens].
   _FileTokens(this.file, this.tokens, this.totalLines);
-
-  final String file;
-  final List<_NormalizedToken> tokens;
-  final int totalLines;
 }
 
 /// Inclusive-start, exclusive-end character range inside one file.
@@ -65,8 +71,20 @@ typedef _CharRange = ({int start, int end});
 /// locals or different calls never match — and `ignore_literals`
 /// replaces string and numeric literals with type placeholders.
 class DuplicationGate implements Gate {
+  /// Percent scale: fraction to percent.
+  static const double _percentScale = 100.0;
+
   /// Creates a [DuplicationGate].
   const DuplicationGate();
+
+  /// The set of [file] lines carrying at least one marked token.
+  static Set<int> _duplicatedLineSet(_FileTokens file) {
+    final dupLineSet = <int>{};
+    for (final token in file.tokens) {
+      if (token.duplicated) dupLineSet.add(token.line);
+    }
+    return dupLineSet;
+  }
 
   @override
   String get id => GateIds.duplication;
@@ -256,18 +274,6 @@ class DuplicationGate implements Gate {
         .toStringAsFixed(2);
   }
 
-  /// The set of [file] lines carrying at least one marked token.
-  static Set<int> _duplicatedLineSet(_FileTokens file) {
-    final dupLineSet = <int>{};
-    for (final token in file.tokens) {
-      if (token.duplicated) dupLineSet.add(token.line);
-    }
-    return dupLineSet;
-  }
-
-  /// Percent scale: fraction to percent.
-  static const double _percentScale = 100.0;
-
   /// Returns a violation when the file exceeds the duplication threshold.
   GateViolation? _violationFor(
     _FileTokens file,
@@ -353,11 +359,11 @@ class DuplicationGate implements Gate {
 /// One accepted clone group: non-overlapping occurrences of the same
 /// token block, each as a [startToken, endToken) range of its file.
 class _CloneGroup {
-  /// Creates a [_CloneGroup].
-  _CloneGroup(this.occurrences);
-
   /// The occurrences of the block.
   final List<_CloneOccurrence> occurrences;
+
+  /// Creates a [_CloneGroup].
+  _CloneGroup(this.occurrences);
 
   /// Token count shared by every occurrence.
   int get tokenCount =>
@@ -366,9 +372,6 @@ class _CloneGroup {
 
 /// A single occurrence of a [_CloneGroup].
 class _CloneOccurrence {
-  /// Creates a [_CloneOccurrence].
-  _CloneOccurrence(this.fileIndex, this.startToken, this.endToken);
-
   /// Index into the file list of this run.
   final int fileIndex;
 
@@ -377,13 +380,17 @@ class _CloneOccurrence {
 
   /// End token of the occurrence (exclusive).
   final int endToken;
+
+  /// Creates a [_CloneOccurrence].
+  _CloneOccurrence(this.fileIndex, this.startToken, this.endToken);
 }
 
 /// Intermediate result of [_buildResult].
 class _Result {
+  final List<GateViolation> violations;
+
+  final String summary;
+
   /// Creates a [_Result].
   _Result(this.violations, this.summary);
-
-  final List<GateViolation> violations;
-  final String summary;
 }

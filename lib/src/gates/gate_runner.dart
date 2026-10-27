@@ -37,14 +37,14 @@ import 'quality/weight_of_class_gate.dart';
 
 /// Aggregated outcome of a [GateRunner] run.
 class GateRunResult {
-  /// Creates a [GateRunResult].
-  const GateRunResult(this.results, {this.diffMode = false});
-
   /// Per-gate results in run order.
   final List<GateResult> results;
 
   /// Whether the run was filtered to changed lines (diff mode).
   final bool diffMode;
+
+  /// Creates a [GateRunResult].
+  const GateRunResult(this.results, {this.diffMode = false});
 
   /// Whether every run gate passed (skipped gates count as passed).
   bool get passed => results.every((r) => r.passed);
@@ -58,12 +58,12 @@ class GateRunResult {
 
 /// Runs the enabled quality gates of a project configuration.
 class GateRunner {
+  /// The gates to run, in order.
+  final List<Gate> gates;
+
   /// Creates a [GateRunner] with [gates] (defaults to all built-in gates
   /// in their fixed order).
   GateRunner({List<Gate>? gates}) : gates = gates ?? defaultGates();
-
-  /// The gates to run, in order.
-  final List<Gate> gates;
 
   /// All built-in gates in their fixed run order.
   static List<Gate> defaultGates() => [
@@ -131,6 +131,27 @@ class GateRunner {
       );
     }
     return GateRunResult(results, diffMode: diff != null);
+  }
+
+  /// Renders [result] as a human readable report. At most [maxViolations]
+  /// violations are printed per failed gate; the rest is summarized.
+  String render(GateRunResult result, {int maxViolations = 20}) {
+    final buffer = StringBuffer();
+    for (final gateResult in result.results) {
+      buffer.writeln(_renderGate(gateResult, maxViolations, result.diffMode));
+    }
+    final passed = result.results
+        .where((r) => r.passed && !r.skipped && !r.warning)
+        .length;
+    final warnings = result.results.where((r) => r.warning).length;
+    final skipped = result.skippedCount;
+    buffer.write(
+      result.passed
+          ? 'Gates: $passed passed, $warnings warned, $skipped skipped'
+          : 'Gates: $passed passed, ${result.failedCount} failed, '
+              '$warnings warned, $skipped skipped',
+    );
+    return buffer.toString();
   }
 
   /// Applies `// crap:ignore` suppression when the gate opts into it via
@@ -226,27 +247,6 @@ class GateRunner {
 
   GateSeverity _severity(String id, GatesConfig gates) =>
       _flagTable(gates)[id]?.severity ?? GateSeverity.error;
-
-  /// Renders [result] as a human readable report. At most [maxViolations]
-  /// violations are printed per failed gate; the rest is summarized.
-  String render(GateRunResult result, {int maxViolations = 20}) {
-    final buffer = StringBuffer();
-    for (final gateResult in result.results) {
-      buffer.writeln(_renderGate(gateResult, maxViolations, result.diffMode));
-    }
-    final passed = result.results
-        .where((r) => r.passed && !r.skipped && !r.warning)
-        .length;
-    final warnings = result.results.where((r) => r.warning).length;
-    final skipped = result.skippedCount;
-    buffer.write(
-      result.passed
-          ? 'Gates: $passed passed, $warnings warned, $skipped skipped'
-          : 'Gates: $passed passed, ${result.failedCount} failed, '
-              '$warnings warned, $skipped skipped',
-    );
-    return buffer.toString();
-  }
 
   String _renderGate(GateResult result, int maxViolations, bool diffMode) {
     if (result.skipped) {

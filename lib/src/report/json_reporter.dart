@@ -16,10 +16,10 @@ const String _passedKey = 'passed';
 /// values are JSON `null` (never the console placeholder "N/A"), and the
 /// method order matches the console report (CRAP descending, N/A last).
 class JsonReporter {
+  static const JsonEncoder _encoder = JsonEncoder.withIndent('  ');
+
   /// Creates a [JsonReporter].
   const JsonReporter();
-
-  static const JsonEncoder _encoder = JsonEncoder.withIndent('  ');
 
   /// Renders the `analyze` report from [report] (already computed metrics)
   /// evaluated against [threshold]. When [diffBase] is given (diff mode),

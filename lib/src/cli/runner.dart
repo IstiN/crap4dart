@@ -56,7 +56,7 @@ Future<String> gitTopLevel(String dir) async {
 }
 
 /// Current crap4dart version.
-const String crap4dartVersion = '0.21.0';
+const String crap4dartVersion = '0.22.0';
 const String _runTestsFlag = 'run-tests';
 const String _forceFlag = 'force';
 
@@ -64,14 +64,14 @@ const String _lcovFlag = 'lcov';
 
 /// Command-line entry point of crap4dart.
 class Crap4DartRunner {
+  final CommandRunner<int> _runner;
+
   /// Creates a [Crap4DartRunner].
   ///
   /// [projectRoot] overrides the project root (default: the current
   /// working directory) — used by in-process invocations and tests.
   Crap4DartRunner({String? projectRoot, ProfileRunner? profileRunner})
       : _runner = _buildRunner(projectRoot, profileRunner);
-
-  final CommandRunner<int> _runner;
 
   static CommandRunner<int> _buildRunner(
     String? projectRoot,
@@ -134,6 +134,10 @@ Future<DiffLineMap?> _loadDiff(String projectRoot, String base) async {
 
 /// Shared helpers for [AnalyzeCommand] and [CheckCommand].
 mixin CommandHelpers on Command<int> {
+  /// Reads the optional `--staged` flag when the command exposes it.
+  bool get stagedFlag =>
+      argResults!.options.contains(kStaged) && argResults![kStaged] as bool;
+
   /// Loads the config, reporting errors to stderr and returning `null` on
   /// failure.
   Crap4DartConfig? loadConfig(String projectRoot) {
@@ -194,10 +198,6 @@ mixin CommandHelpers on Command<int> {
       throw UsageException('Invalid path: ${e.path}', invocation);
     }
   }
-
-  /// Reads the optional `--staged` flag when the command exposes it.
-  bool get stagedFlag =>
-      argResults!.options.contains(kStaged) && argResults![kStaged] as bool;
 
   /// Finds changed or staged files and keeps only those inside the project
   /// root.
@@ -293,6 +293,16 @@ mixin CommandHelpers on Command<int> {
 
 /// The `analyze` command: computes CRAP scores for Dart source files.
 class AnalyzeCommand extends Command<int> with CommandHelpers {
+  /// Project root override (default: the current working directory).
+  final String? projectRoot;
+
+  @override
+  final String name = 'analyze';
+
+  @override
+  final String description =
+      'Analyze Dart files and print CRAP scores (default command).';
+
   /// Creates an [AnalyzeCommand].
   AnalyzeCommand({this.projectRoot}) {
     argParser
@@ -338,16 +348,6 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
         help: 'Write an SVG badge with the max CRAP score to this path.',
       );
   }
-
-  /// Project root override (default: the current working directory).
-  final String? projectRoot;
-
-  @override
-  final String name = 'analyze';
-
-  @override
-  final String description =
-      'Analyze Dart files and print CRAP scores (default command).';
 
   @override
   String get invocation =>
@@ -501,6 +501,15 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
 
 /// The `check` command: runs the quality gates enabled in the config.
 class CheckCommand extends Command<int> with CommandHelpers {
+  /// Project root override (default: the current working directory).
+  final String? projectRoot;
+
+  @override
+  final String name = 'check';
+
+  @override
+  final String description = 'Run the quality gates enabled in the config.';
+
   /// Creates a [CheckCommand].
   CheckCommand({this.projectRoot}) {
     argParser
@@ -554,15 +563,6 @@ class CheckCommand extends Command<int> with CommandHelpers {
         help: 'Fail only on violations not recorded in the baseline file.',
       );
   }
-
-  /// Project root override (default: the current working directory).
-  final String? projectRoot;
-
-  @override
-  final String name = 'check';
-
-  @override
-  final String description = 'Run the quality gates enabled in the config.';
 
   @override
   String get invocation =>
@@ -647,16 +647,6 @@ class CheckCommand extends Command<int> with CommandHelpers {
 
 /// The `init` command: writes a default `crap4dart.yaml` config file.
 class InitCommand extends Command<int> {
-  /// Creates an [InitCommand].
-  InitCommand({this.projectRoot}) {
-    argParser.addFlag(
-      _forceFlag,
-      abbr: 'f',
-      negatable: false,
-      help: 'Overwrite an existing config file.',
-    );
-  }
-
   /// Project root override (default: the current working directory).
   final String? projectRoot;
 
@@ -666,6 +656,16 @@ class InitCommand extends Command<int> {
   @override
   final String description =
       'Create a default crap4dart.yaml config file in the current directory.';
+
+  /// Creates an [InitCommand].
+  InitCommand({this.projectRoot}) {
+    argParser.addFlag(
+      _forceFlag,
+      abbr: 'f',
+      negatable: false,
+      help: 'Overwrite an existing config file.',
+    );
+  }
 
   @override
   int run() {
@@ -687,6 +687,16 @@ class InitCommand extends Command<int> {
 
 /// The `install` command: installs git hooks and CI workflow templates.
 class InstallCommand extends Command<int> {
+  /// Project root override (default: the current working directory).
+  final String? projectRoot;
+
+  @override
+  final String name = 'install';
+
+  @override
+  final String description =
+      'Install the pre-commit hook and (with --ci) the CI workflow.';
+
   /// Creates an [InstallCommand].
   InstallCommand({this.projectRoot}) {
     argParser
@@ -708,16 +718,6 @@ class InstallCommand extends Command<int> {
       )
       ..addOption(kConfig, help: kConfigHelp);
   }
-
-  /// Project root override (default: the current working directory).
-  final String? projectRoot;
-
-  @override
-  final String name = 'install';
-
-  @override
-  final String description =
-      'Install the pre-commit hook and (with --ci) the CI workflow.';
 
   @override
   Future<int> run() async {

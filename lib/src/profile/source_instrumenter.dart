@@ -21,11 +21,11 @@ class _Insertion {
 /// can measure inclusive time per call and subtract nested call time to
 /// derive self time.
 class SourceInstrumenter {
-  /// Creates a [SourceInstrumenter].
-  const SourceInstrumenter({required this.packageName});
-
   /// Package name used for the collector import URI.
   final String packageName;
+
+  /// Creates a [SourceInstrumenter].
+  const SourceInstrumenter({required this.packageName});
 
   /// Instruments [source] and returns the modified source code.
   ///

@@ -26,9 +26,6 @@ enum RecordFindingKind {
 
 /// One record-shape finding: kind, message, and its 1-based line.
 class RecordFinding {
-  /// Creates a finding.
-  const RecordFinding(this.kind, this.line, this.message);
-
   /// Which gate-facing check produced the finding.
   final RecordFindingKind kind;
 
@@ -37,6 +34,9 @@ class RecordFinding {
 
   /// Human readable description.
   final String message;
+
+  /// Creates a finding.
+  const RecordFinding(this.kind, this.line, this.message);
 }
 
 /// Default field cap shared by the scanner and the `record_size` gate
@@ -106,11 +106,8 @@ String _failSummary(String id, List<GateViolation> violations) => switch (id) {
 /// and lambdas; positional `.$N` accesses are collected everywhere
 /// except inside record alias declarations.
 class RecordTypesScanner extends RecursiveAstVisitor<void> {
-  /// Creates a scanner; [maxFields] caps the field count of a record
-  /// type before the `oversized` kind fires.
-  RecordTypesScanner(this._lineInfo, {this.maxFields = defaultRecordMaxFields});
-
   final LineInfo _lineInfo;
+
   final RegExp _positionalAccess = RegExp(r'^\$\d+$');
 
   /// Maximum record field count before a record should become a class.
@@ -127,6 +124,16 @@ class RecordTypesScanner extends RecursiveAstVisitor<void> {
   final Set<int> _reportedShapeOffsets = {};
 
   late final _TypeWalker _typeWalker = _TypeWalker(this);
+
+  late final _SizeWalker _sizeWalker = _SizeWalker(this);
+
+  /// Creates a scanner; [maxFields] caps the field count of a record
+  /// type before the `oversized` kind fires.
+  RecordTypesScanner(this._lineInfo, {this.maxFields = defaultRecordMaxFields});
+
+  /// Total field count: positional plus named fields.
+  static int _fieldCount(RecordTypeAnnotation node) =>
+      node.positionalFields.length + (node.namedFields?.fields.length ?? 0);
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
@@ -179,16 +186,6 @@ class RecordTypesScanner extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Sizes the nested records of [node] without re-flagging the root.
-  void _sizeWalkFields(RecordTypeAnnotation node) {
-    for (final field in node.positionalFields) {
-      field.type.accept(_sizeWalker);
-    }
-    for (final field in node.namedFields?.fields ?? const []) {
-      field.type.accept(_sizeWalker);
-    }
-  }
-
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     // Legacy `typedef R f(int x);` form — a function declaration with
@@ -207,6 +204,16 @@ class RecordTypesScanner extends RecursiveAstVisitor<void> {
   void visitPropertyAccess(PropertyAccess node) {
     _checkAccess(node.propertyName.name, node);
     super.visitPropertyAccess(node);
+  }
+
+  /// Sizes the nested records of [node] without re-flagging the root.
+  void _sizeWalkFields(RecordTypeAnnotation node) {
+    for (final field in node.positionalFields) {
+      field.type.accept(_sizeWalker);
+    }
+    for (final field in node.namedFields?.fields ?? const []) {
+      field.type.accept(_sizeWalker);
+    }
   }
 
   void _checkAccess(String name, AstNode node) {
@@ -233,8 +240,6 @@ class RecordTypesScanner extends RecursiveAstVisitor<void> {
       type.accept(_sizeWalker);
     }
   }
-
-  late final _SizeWalker _sizeWalker = _SizeWalker(this);
 
   void _recordShape(RecordTypeAnnotation node) {
     if (!_reportedShapeOffsets.add(node.offset)) return;
@@ -280,10 +285,6 @@ class RecordTypesScanner extends RecursiveAstVisitor<void> {
     );
   }
 
-  /// Total field count: positional plus named fields.
-  static int _fieldCount(RecordTypeAnnotation node) =>
-      node.positionalFields.length + (node.namedFields?.fields.length ?? 0);
-
   int _line(AstNode node) =>
       _lineInfo.getLocation(node.beginToken.offset).lineNumber;
 }
@@ -292,9 +293,9 @@ class RecordTypesScanner extends RecursiveAstVisitor<void> {
 /// reporting only the outermost one of a nested group: an inner record
 /// inside a flagged shape is fixed by the same typedef extraction.
 class _TypeWalker extends RecursiveAstVisitor<void> {
-  _TypeWalker(this._scanner);
-
   final RecordTypesScanner _scanner;
+
+  _TypeWalker(this._scanner);
 
   @override
   void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
@@ -307,9 +308,9 @@ class _TypeWalker extends RecursiveAstVisitor<void> {
 /// wherever it hides. Findings are gated to
 /// [RecordFindingKind.oversized].
 class _SizeWalker extends RecursiveAstVisitor<void> {
-  _SizeWalker(this._scanner);
-
   final RecordTypesScanner _scanner;
+
+  _SizeWalker(this._scanner);
 
   @override
   void visitRecordTypeAnnotation(RecordTypeAnnotation node) {

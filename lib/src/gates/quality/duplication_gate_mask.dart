@@ -3,12 +3,15 @@ part of 'duplication_gate.dart';
 /// A single function-local scope: identifiers declared inside [start,
 /// end) are renamed consistently for clone matching.
 class _FunctionScope {
-  _FunctionScope(this.start, this.end, this.names);
-
   final int start;
+
   final int end;
+
   final Set<String> names;
+
   final Map<String, String> _placeholders = {};
+
+  _FunctionScope(this.start, this.end, this.names);
 
   /// Placeholder for [name], assigned in first-use order: renamed clones
   /// of the same algorithm hash identically, while two locals swapped
@@ -21,17 +24,20 @@ class _FunctionScope {
 /// identifier erasure, and function-local consistent renaming. All
 /// modes are opt-in.
 class _TokenMask {
+  final List<_FunctionScope> _scopes;
+
+  final bool _ignoreLocals;
+
+  final bool _ignoreLiterals;
+
+  final bool _ignoreIdentifiers;
+
   _TokenMask(
     this._scopes,
     this._ignoreLocals,
     this._ignoreLiterals,
     this._ignoreIdentifiers,
   );
-
-  final List<_FunctionScope> _scopes;
-  final bool _ignoreLocals;
-  final bool _ignoreLiterals;
-  final bool _ignoreIdentifiers;
 
   /// Builds the mask [config] asks for; scopes are sorted and disjoint.
   static _TokenMask build(
@@ -55,6 +61,16 @@ class _TokenMask {
       matching.ignoreLiterals,
       matching.ignoreIdentifiers,
     );
+  }
+
+  /// Whether [token] is identifier-shaped: a plain identifier or a
+  /// built-in / pseudo keyword (`out`, `show`, `sync`, ...), which the
+  /// scanner reports as a keyword token occupying an identifier slot.
+  static bool _isIdentifierToken(Token token) {
+    final type = token.type;
+    if (type == TokenType.IDENTIFIER) return true;
+    if (type is! Keyword) return false;
+    return type.isBuiltIn || type.isPseudo;
   }
 
   /// Masked value of [token], or null to keep its lexeme.
@@ -84,16 +100,6 @@ class _TokenMask {
     final scope = _scopeAt(token.offset);
     if (scope == null || !scope.names.contains(token.lexeme)) return null;
     return scope.placeholderFor(token.lexeme);
-  }
-
-  /// Whether [token] is identifier-shaped: a plain identifier or a
-  /// built-in / pseudo keyword (`out`, `show`, `sync`, ...), which the
-  /// scanner reports as a keyword token occupying an identifier slot.
-  static bool _isIdentifierToken(Token token) {
-    final type = token.type;
-    if (type == TokenType.IDENTIFIER) return true;
-    if (type is! Keyword) return false;
-    return type.isBuiltIn || type.isPseudo;
   }
 
   /// Literal mask for [token] when `ignore_literals` is on, else null.

@@ -6,9 +6,6 @@ import 'package:path/path.dart' as p;
 
 /// Finds Dart source files to analyze.
 class SourceFinder {
-  /// Creates a [SourceFinder].
-  const SourceFinder();
-
   /// Glob patterns excluded from default source discovery.
   static const List<String> defaultExcludes = [
     kGeneratedGlob,
@@ -20,6 +17,19 @@ class SourceFinder {
   /// Directories scanned when no explicit paths are given. Only existing
   /// directories are scanned.
   static const List<String> defaultRoots = ['lib', 'bin'];
+
+  /// Creates a [SourceFinder].
+  const SourceFinder();
+
+  /// Whether [path] matches any of the [defaultExcludes] patterns.
+  static bool isExcluded(String path) {
+    final segments = p.split(path);
+    if (segments.contains(kDartToolDir)) return true;
+    final baseName = p.basename(path);
+    return baseName.endsWith('.g.dart') ||
+        baseName.endsWith('.freezed.dart') ||
+        baseName.endsWith('.mocks.dart');
+  }
 
   /// Returns all `.dart` files under [roots] (default: [defaultRoots]) of
   /// [rootDir], excluding [defaultExcludes]. Non-existing roots are
@@ -59,16 +69,6 @@ class SourceFinder {
     }
     final sorted = result.toList()..sort();
     return sorted;
-  }
-
-  /// Whether [path] matches any of the [defaultExcludes] patterns.
-  static bool isExcluded(String path) {
-    final segments = p.split(path);
-    if (segments.contains(kDartToolDir)) return true;
-    final baseName = p.basename(path);
-    return baseName.endsWith('.g.dart') ||
-        baseName.endsWith('.freezed.dart') ||
-        baseName.endsWith('.mocks.dart');
   }
 
   /// Filters out [files] matching any of [patterns]: glob patterns matched

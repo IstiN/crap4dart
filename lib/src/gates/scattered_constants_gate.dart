@@ -133,12 +133,15 @@ class ScatteredConstantsGate implements Gate {
 /// another constant's identifier — `const _x = kY;`. Only private
 /// declarations are flagged; public re-export shims are deliberate.
 class _PureAlias {
-  const _PureAlias(this.name, this.target, this.file, this.line);
-
   final String name;
+
   final String target;
+
   final String file;
+
   final int line;
+
+  const _PureAlias(this.name, this.target, this.file, this.line);
 }
 
 /// Violations for one literal value: constant regressions first (any
@@ -185,9 +188,6 @@ List<GateViolation> _violationsFor(
 /// A named constant in the corpus: the declaration every hardcoded
 /// occurrence of the same value should reference.
 class NamedConstant {
-  /// Creates a record of a const declaration.
-  const NamedConstant(this.name, this.file, this.line);
-
   /// Declared identifier.
   final String name;
 
@@ -196,19 +196,22 @@ class NamedConstant {
 
   /// 1-based declaration line.
   final int line;
+
+  /// Creates a record of a const declaration.
+  const NamedConstant(this.name, this.file, this.line);
 }
 
 /// One literal value tracked across the corpus.
 class _ScatteredLiteral extends LiteralSites {
-  /// Creates a tracker for a literal with canonical [key] rendered as
-  /// [display].
-  _ScatteredLiteral(this.key, this.display);
-
   /// Canonical key.
   final String key;
 
   /// Human readable form for messages.
   final String display;
+
+  /// Creates a tracker for a literal with canonical [key] rendered as
+  /// [display].
+  _ScatteredLiteral(this.key, this.display);
 }
 
 /// A collected literal occurrence: canonical key plus display form,
@@ -216,31 +219,25 @@ class _ScatteredLiteral extends LiteralSites {
 /// initializer (such sites are the good case — a named extraction —
 /// or a duplicate local const, never protocol vocabulary).
 class _Hit {
-  const _Hit(this.key, this.display, this.line, {required this.isConstDecl});
-
   final String key;
+
   final String display;
+
   final int line;
+
   final bool isConstDecl;
+
+  const _Hit(this.key, this.display, this.line, {required this.isConstDecl});
 }
 
 /// Collects the corpus-wide registry of named constants: `const`
 /// declarations (top-level, static or instance fields) whose
 /// initializer is a plain string, int or double literal.
 class _ConstantCollector extends RecursiveAstVisitor<void> {
-  _ConstantCollector(
-    this._file,
-    this._lineInfo,
-    this._constants, {
-    required List<_PureAlias> aliases,
-    required int minValue,
-    required Set<String> ignoreValues,
-  })  : _aliases = aliases,
-        _minValue = minValue,
-        _ignoreValues = ignoreValues;
-
   final String _file;
+
   final LineInfo _lineInfo;
+
   final Map<String, List<NamedConstant>> _constants;
 
   /// Numbers at or below this magnitude are coincidence — they leave
@@ -255,6 +252,26 @@ class _ConstantCollector extends RecursiveAstVisitor<void> {
 
   /// Pure value aliases discovered in the same pass.
   final List<_PureAlias> _aliases;
+
+  _ConstantCollector(
+    this._file,
+    this._lineInfo,
+    this._constants, {
+    required List<_PureAlias> aliases,
+    required int minValue,
+    required Set<String> ignoreValues,
+  })  : _aliases = aliases,
+        _minValue = minValue,
+        _ignoreValues = ignoreValues;
+
+  /// The magnitude of a plain numeric literal initializer, or null.
+  static int? _numericMagnitude(Expression initializer) {
+    return switch (initializer) {
+      IntegerLiteral(:final value) => value?.abs(),
+      DoubleLiteral(:final value) => value.abs().toInt(),
+      _ => null,
+    };
+  }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
@@ -292,15 +309,6 @@ class _ConstantCollector extends RecursiveAstVisitor<void> {
     return _ignoreValues.contains(key.substring(2));
   }
 
-  /// The magnitude of a plain numeric literal initializer, or null.
-  static int? _numericMagnitude(Expression initializer) {
-    return switch (initializer) {
-      IntegerLiteral(:final value) => value?.abs(),
-      DoubleLiteral(:final value) => value.abs().toInt(),
-      _ => null,
-    };
-  }
-
   /// The canonical literal key of a plain constant initializer, or
   /// `null` for interpolated strings and computed values.
   String? _literalKey(Expression initializer) {
@@ -321,15 +329,10 @@ class _ConstantCollector extends RecursiveAstVisitor<void> {
 /// across files, a local const per file is itself the scatter, and
 /// once a shared constant exists the local copies are regressions.
 class _LiteralCollector extends RecursiveAstVisitor<void> {
-  _LiteralCollector(
-    this._lineInfo, {
-    required this.minLength,
-    required this.minValue,
-    required this.ignoreValues,
-  });
-
   final LineInfo _lineInfo;
+
   final int minLength;
+
   final int minValue;
 
   /// Literal values never flagged: whole-literal hits by value.
@@ -338,6 +341,17 @@ class _LiteralCollector extends RecursiveAstVisitor<void> {
   final Set<String> ignoreValues;
 
   final List<_Hit> hits = [];
+
+  _LiteralCollector(
+    this._lineInfo, {
+    required this.minLength,
+    required this.minValue,
+    required this.ignoreValues,
+  });
+
+  /// String literals render quoted and truncated in messages.
+  static String _display(String value) =>
+      value.length > 40 ? "'${value.substring(0, 40)}…'" : "'$value'";
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
@@ -348,6 +362,37 @@ class _LiteralCollector extends RecursiveAstVisitor<void> {
     } else {
       node.initializer?.accept(this);
     }
+  }
+
+  @override
+  void visitIntegerLiteral(IntegerLiteral node) {
+    final value = node.value;
+    if (value == null || value.abs() <= minValue) return;
+    if (ignoreValues.contains('$value')) return;
+    _addNumber('$value', 'i:$value', _line(node), isConstDecl: false);
+  }
+
+  @override
+  void visitDoubleLiteral(DoubleLiteral node) {
+    if (node.value.abs() <= minValue) return;
+    if (ignoreValues.contains('${node.value}')) return;
+    _addNumber('${node.value}', 'd:${node.value}', _line(node),
+        isConstDecl: false);
+  }
+
+  @override
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
+    // Map keys, index expressions and case labels are protocol
+    // identifiers, not magic constants — same rule as magic_constants.
+    if (isProtocolIdentifier(node)) return;
+    _addString(node.value, node, isConstDecl: false);
+  }
+
+  @override
+  void visitAdjacentStrings(AdjacentStrings node) {
+    final value = stringValueOf(node);
+    if (value == null) return;
+    _addString(value, node, isConstDecl: false);
   }
 
   /// Collects the plain-literal initializer of a const declaration as
@@ -393,40 +438,9 @@ class _LiteralCollector extends RecursiveAstVisitor<void> {
     return true;
   }
 
-  @override
-  void visitIntegerLiteral(IntegerLiteral node) {
-    final value = node.value;
-    if (value == null || value.abs() <= minValue) return;
-    if (ignoreValues.contains('$value')) return;
-    _addNumber('$value', 'i:$value', _line(node), isConstDecl: false);
-  }
-
-  @override
-  void visitDoubleLiteral(DoubleLiteral node) {
-    if (node.value.abs() <= minValue) return;
-    if (ignoreValues.contains('${node.value}')) return;
-    _addNumber('${node.value}', 'd:${node.value}', _line(node),
-        isConstDecl: false);
-  }
-
   void _addNumber(String display, String key, int line,
       {required bool isConstDecl}) {
     hits.add(_Hit(key, display, line, isConstDecl: isConstDecl));
-  }
-
-  @override
-  void visitSimpleStringLiteral(SimpleStringLiteral node) {
-    // Map keys, index expressions and case labels are protocol
-    // identifiers, not magic constants — same rule as magic_constants.
-    if (isProtocolIdentifier(node)) return;
-    _addString(node.value, node, isConstDecl: false);
-  }
-
-  @override
-  void visitAdjacentStrings(AdjacentStrings node) {
-    final value = stringValueOf(node);
-    if (value == null) return;
-    _addString(value, node, isConstDecl: false);
   }
 
   void _addString(String value, AstNode node, {required bool isConstDecl}) {
@@ -435,10 +449,6 @@ class _LiteralCollector extends RecursiveAstVisitor<void> {
     hits.add(_Hit('s:$value', _display(value), _line(node),
         isConstDecl: isConstDecl));
   }
-
-  /// String literals render quoted and truncated in messages.
-  static String _display(String value) =>
-      value.length > 40 ? "'${value.substring(0, 40)}…'" : "'$value'";
 
   int _line(AstNode node) => _lineInfo.getLocation(node.offset).lineNumber;
 }

@@ -101,10 +101,13 @@ class ClassSizeGate implements Gate {
 }
 
 class _ClassTotals {
-  _ClassTotals({required this.firstLine});
-
   int methods = 0;
+
   int wmc = 0;
+
   final int firstLine;
+
   int lastLine = 0;
+
+  _ClassTotals({required this.firstLine});
 }

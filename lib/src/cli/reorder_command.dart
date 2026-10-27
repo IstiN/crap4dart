@@ -18,17 +18,6 @@ import 'exit_codes.dart';
 /// nothing is written; the command lists the files that would change
 /// and exits 2 (0 when everything is already canonical).
 class ReorderCommand extends Command<int> {
-  /// Creates a [ReorderCommand].
-  ReorderCommand({this.projectRoot}) {
-    argParser.addFlag(
-      _dryRun,
-      abbr: 'n',
-      negatable: false,
-      help: 'Show which files would change without writing them. '
-          'Exits 2 when any file would change.',
-    );
-  }
-
   static const String _dryRun = 'dry-run';
 
   /// Project root override (default: the current working directory).
@@ -40,6 +29,17 @@ class ReorderCommand extends Command<int> {
   @override
   final String description = 'Reorder class members into the canonical '
       'Dart/Flutter order (deterministic; same-kind order is kept).';
+
+  /// Creates a [ReorderCommand].
+  ReorderCommand({this.projectRoot}) {
+    argParser.addFlag(
+      _dryRun,
+      abbr: 'n',
+      negatable: false,
+      help: 'Show which files would change without writing them. '
+          'Exits 2 when any file would change.',
+    );
+  }
 
   @override
   Future<int> run() async {

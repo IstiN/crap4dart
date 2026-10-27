@@ -19,9 +19,6 @@ import '../gate_ids.dart';
 ///
 /// Skipped for non-Flutter projects and for projects without widgets.
 class GoldenGate implements Gate {
-  /// Creates a [GoldenGate].
-  const GoldenGate();
-
   /// Superclass names that mark a class as a widget.
   static const Set<String> widgetBaseClasses = {
     'StatelessWidget',
@@ -29,6 +26,9 @@ class GoldenGate implements Gate {
     'ConsumerWidget',
     'ConsumerStatefulWidget',
   };
+
+  /// Creates a [GoldenGate].
+  const GoldenGate();
 
   @override
   String get id => GateIds.golden;
@@ -133,20 +133,25 @@ class GoldenGate implements Gate {
 }
 
 class _WidgetInfo {
-  _WidgetInfo(this.name, this.file, this.line);
-
   final String name;
+
   final String file;
+
   final int line;
+
+  _WidgetInfo(this.name, this.file, this.line);
 }
 
 class _WidgetVisitor extends RecursiveAstVisitor<void> {
-  _WidgetVisitor(this._file, this._parsed, this._exclude);
-
   final String _file;
+
   final ParsedUnit _parsed;
+
   final Set<String> _exclude;
+
   final List<_WidgetInfo> widgets = [];
+
+  _WidgetVisitor(this._file, this._parsed, this._exclude);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
