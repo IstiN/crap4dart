@@ -27,6 +27,7 @@ import 'quality/nesting_gate.dart';
 import 'quality/public_docs_gate.dart';
 import 'scattered_constants_gate.dart';
 import 'similarity/similarity_gate.dart';
+import 'content/string_hazards_gate.dart';
 import 'content/test_assertions_gate.dart';
 import 'usage/unused_code_gate.dart';
 import 'usage/unused_files_gate.dart';
@@ -94,6 +95,7 @@ class GateRunner {
         const WeightOfClassGate(),
         MutationGate(),
         const SimilarityGate(),
+        const StringHazardsGate(),
       ];
 
   /// Runs every enabled gate against [context].
@@ -237,6 +239,7 @@ class GateRunner {
         GateIds.golden: gates.golden,
         GateIds.mutation: gates.mutation,
         GateIds.similarity: gates.similarity,
+        GateIds.stringHazards: gates.stringHazards,
       };
 
   bool _isEnabled(String id, GatesConfig gates) =>

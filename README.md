@@ -29,14 +29,14 @@ crap4dart is a Dart port of the Java tool
 ## Features
 
 - **CRAP analysis** per method, combining complexity and LCOV coverage
-- **27 quality gates**: `loc`, `test_coverage`, `golden`,
+- **28 quality gates**: `loc`, `test_coverage`, `golden`,
   `hardcoded_strings`, `accessibility`, `complexity`, `method_size`,
   `nesting`, `record_named_fields`, `inline_record_types`,
   `record_size`, `class_size`, `weight_of_class`, `unused_code`,
   `unused_files`, `banned_imports`, `public_docs`, `duplication`,
   `file_naming`, `magic_constants`, `scattered_constants`, `broken_goldens`,
   `test_assertions`, `folder_structure`, `external`, `mutation`,
-  `similarity`
+  `similarity`, `string_hazards`
 - **Gate framework**: per-path thresholds (`entries`), warning
   severity, baseline mode, opt-in ignore markers
 - **Configuration** via `crap4dart.yaml` with strict validation
@@ -373,6 +373,12 @@ gates:
     enabled: true
     # Widget types that must provide a semantics label.
     require_label_for: [IconButton, Image, GestureDetector, InkWell]
+  # String literal hazards: escaped interpolations rendering literally,
+  # raw RegExp patterns with an escaped anchor, and regex anchors in
+  # literal String patterns of replaceFirst/replaceAll/split.
+  string_hazards:
+    enabled: true
+    severity: warning
   # Limit cyclomatic complexity per method.
   complexity:
     enabled: true
@@ -763,6 +769,23 @@ gates:
   run (`--diff` / `--diff-base`) only sites whose containing method
   intersects the changed lines are executed at all: per-PR runs pay
   only for the mutants of the changed methods.
+
+- **string_hazards** — flags string literals whose escaping or pattern
+  usage contradicts what the author almost certainly meant, from the
+  parsed-unresolved AST only. Three checks: (1) escaped interpolation —
+  `\$name` / `\${name}` inside a non-raw string renders the literal
+  text `$name`; flagged only when the same identifier is interpolated
+  elsewhere in the same file (sibling evidence), keeping deliberate
+  shell escapes quiet; (2) raw regex with an escaped anchor — a raw
+  string passed to `RegExp(...)` ending with `\$` (or starting with
+  `\^`) matches a literal dollar/caret where the end/start anchor was
+  almost certainly intended (a plain `$`/`^` is the anchor); (3) regex
+  anchors in literal String patterns — `replaceFirst`/`replaceAll`/
+  `replaceFirstMapped`/`replaceAllMapped`/`split` treat their `String`
+  pattern as literal text, so a leading `^` or unescaped trailing `$`
+  can only ever match that literal character. Warning severity by
+  default: deliberate literal dollars (shell code, price patterns) trip
+  the warnings occasionally — confirm or restructure.
 
 ## Baseline
 

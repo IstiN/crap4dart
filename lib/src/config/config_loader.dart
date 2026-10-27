@@ -256,6 +256,8 @@ class ConfigLoader {
           map[GateIds.mutation], base.mutation, path),
       similarity: _ExtendedGateConfigReaders.readSimilarity(
           map[GateIds.similarity], base.similarity, path),
+      stringHazards: _GateConfigReaders.readStringHazards(
+          map[GateIds.stringHazards], base.stringHazards, path),
       flutter: FlutterGatesConfig(
         golden: _GateConfigReaders.readGolden(
             map[GateIds.golden], base.flutter.golden, path),

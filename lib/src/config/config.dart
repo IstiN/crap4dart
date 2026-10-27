@@ -189,6 +189,9 @@ class GatesConfig {
   /// Mutation testing gate (`mutation`).
   final MutationGateConfig mutation;
 
+  /// String literal hazards gate (`string_hazards`).
+  final StringHazardsGateConfig stringHazards;
+
   /// Flutter-specific gates grouped together.
   final FlutterGatesConfig flutter;
 
@@ -218,6 +221,7 @@ class GatesConfig {
     this.external = const ExternalGateConfig(),
     this.mutation = const MutationGateConfig(),
     this.similarity = const SimilarityGateConfig(),
+    this.stringHazards = const StringHazardsGateConfig(),
     this.flutter = const FlutterGatesConfig(),
   });
 
