@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Ignore comments gain Dart-lint-style granularity alongside the
+  legacy `// crap:ignore` / `// crap:ignore-file` (both unchanged):
+  `// ignore:<gate-id>` suppresses that gate on the line (trailing
+  or stacked above — several markers combine), `// ignore-file:<id>`
+  that gate file-wide. One rule per marker; `// ignore:` with no id
+  means every ignorable gate; unknown ids are inert. The
+  `ignorable: true` opt-in still applies per gate.
 - `scattered_constants` — new `aliases` rule (default on): a private
   pure value alias (`const _x = kY;`) is flagged as adding a name
   without information; the message says to reference the shared
