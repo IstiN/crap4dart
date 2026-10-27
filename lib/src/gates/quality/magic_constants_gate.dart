@@ -85,19 +85,21 @@ class MagicConstantsGate implements Gate {
 
 /// One literal occurrence with its 1-based line.
 class _Occurrence {
-  const _Occurrence(this.line);
-
   final int line;
+
+  const _Occurrence(this.line);
 }
 
 /// Collects hex color literals, literal occurrence counts and the
 /// lines that belong to constant declarations.
 class _MagicLiteralsVisitor extends ExemptingLiteralVisitor {
-  _MagicLiteralsVisitor(super.lineInfo, this.minLength);
-
   final int minLength;
+
   final List<_Occurrence> hexColors = [];
+
   final Map<String, List<_Occurrence>> counts = {};
+
+  _MagicLiteralsVisitor(super.lineInfo, this.minLength);
 
   /// Exempt literal lines (inside constant declarations).
   Set<int> get constantLines => exemptLines;
@@ -119,8 +121,6 @@ class _MagicLiteralsVisitor extends ExemptingLiteralVisitor {
     _count(node.value, node);
   }
 
-  bool _isMapKey(AstNode node) => isProtocolIdentifier(node);
-
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
     _count(node.stringValue, node);
@@ -130,6 +130,8 @@ class _MagicLiteralsVisitor extends ExemptingLiteralVisitor {
   void visitDoubleLiteral(DoubleLiteral node) {
     _count(node.literal.lexeme, node);
   }
+
+  bool _isMapKey(AstNode node) => isProtocolIdentifier(node);
 
   /// Counts a literal value when it is eligible for duplication.
   void _count(String? value, AstNode node) {

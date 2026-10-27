@@ -3,14 +3,14 @@
 /// Shared by [CrapReport] and [ProfileReport] to avoid duplicated
 /// width-computation and row-formatting logic.
 class TableFormatter {
+  /// Number of leading columns to right-align (numeric columns).
+  final int numericColumnCount;
+
   /// Creates a [TableFormatter].
   ///
   /// Columns with index < [numericColumnCount] are right-aligned; the
   /// remaining columns are left-aligned.
   const TableFormatter({this.numericColumnCount = 0});
-
-  /// Number of leading columns to right-align (numeric columns).
-  final int numericColumnCount;
 
   /// Computes the maximum width for each column from [headers] and [rows].
   List<int> computeWidths(List<String> headers, List<List<String>> rows) {

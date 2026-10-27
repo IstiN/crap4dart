@@ -11,6 +11,9 @@ const String baselineFileName = '.crap-baseline.json';
 /// Stored gate violations a project starts from; `check --baseline`
 /// fails only on violations not present here.
 class Baseline {
+  /// The stored violation keys ("gate|file|line|message").
+  final Set<String> entries;
+
   /// Creates a [Baseline] over the stored [entries].
   const Baseline(this.entries);
 
@@ -37,15 +40,12 @@ class Baseline {
     }
   }
 
-  /// The stored violation keys ("gate|file|line|message").
-  final Set<String> entries;
+  static String _key(String gate, String file, int? line, String message) =>
+      '$gate|$file|$line|$message';
 
   /// Whether [violation] of [gateId] is covered by the baseline.
   bool contains(String gateId, GateViolation violation) => entries.contains(
       _key(gateId, violation.file, violation.line, violation.message));
-
-  static String _key(String gate, String file, int? line, String message) =>
-      '$gate|$file|$line|$message';
 }
 
 /// Writes the current violations of [results] to the baseline file of

@@ -6,6 +6,13 @@ const String _externalCtx = '$kGatePrefix.${GateIds.external}';
 /// folder_structure) — split out of [_GateConfigReaders] to keep both
 /// classes under the class_size method limit.
 class _ExtendedGateConfigReaders {
+  /// YAML keys shared by the two scattered-literal readers.
+  static const _minFilesKey = 'min_files';
+
+  static const _minValueKey = 'min_value';
+
+  static const _aliasesKey = 'aliases';
+
   static BrokenGoldensGateConfig readBrokenGoldens(
     Object? node,
     BrokenGoldensGateConfig base,
@@ -340,11 +347,6 @@ class _ExtendedGateConfigReaders {
     if (value is String && value.isNotEmpty) return value;
     throw ConfigException(path, '$ctx.$key', 'expected a non-empty string');
   }
-
-  /// YAML keys shared by the two scattered-literal readers.
-  static const _minFilesKey = 'min_files';
-  static const _minValueKey = 'min_value';
-  static const _aliasesKey = 'aliases';
 
   static ScatteredGateConfig readScatteredConstants(
     Object? node,

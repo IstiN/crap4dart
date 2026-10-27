@@ -19,9 +19,6 @@ const String _thresholdMsKey = 'threshold_ms';
 
 /// Error raised for malformed or invalid `crap4dart.yaml` content.
 class ConfigException implements Exception {
-  /// Creates a [ConfigException].
-  const ConfigException(this.path, this.key, this.message);
-
   /// Path of the config file that failed to load.
   final String path;
 
@@ -31,20 +28,23 @@ class ConfigException implements Exception {
   /// Human readable description of the problem.
   final String message;
 
+  /// Creates a [ConfigException].
+  const ConfigException(this.path, this.key, this.message);
+
   @override
   String toString() => 'Invalid config "$path": $key: $message';
 }
 
 /// Loads `crap4dart.yaml` with strict validation and per-key defaults.
 class ConfigLoader {
-  /// Creates a [ConfigLoader].
-  const ConfigLoader();
-
   /// Default config file name looked up in the project root.
   static const String configFileName = 'crap4dart.yaml';
 
   /// Known gate identifiers under the `gates` key.
   static const Set<String> knownGates = {...GateIds.all};
+
+  /// Creates a [ConfigLoader].
+  const ConfigLoader();
 
   /// Loads the configuration for the project at [projectRoot].
   ///

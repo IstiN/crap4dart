@@ -17,14 +17,14 @@ import '../gate_ids.dart';
 ///
 /// Skipped for non-Flutter projects.
 class HardcodedStringsGate implements Gate {
-  /// Creates a [HardcodedStringsGate].
-  const HardcodedStringsGate();
-
   /// Marker comment that disables the gate for a whole file when it
   /// appears within the first 5 lines.
   static const String ignoreFileMarker = '// l10n:ignore-file';
 
   static final RegExp _letters = RegExp('[A-Za-z\u0400-\u04FF]');
+
+  /// Creates a [HardcodedStringsGate].
+  const HardcodedStringsGate();
 
   @override
   String get id => GateIds.hardcodedStrings;
@@ -89,6 +89,22 @@ class HardcodedStringsGate implements Gate {
 }
 
 class _StringsVisitor extends RecursiveAstVisitor<void> {
+  static final RegExp _letters = HardcodedStringsGate._letters;
+
+  final String _file;
+
+  final ParsedUnit _parsed;
+
+  final List<String> _checkParams;
+
+  final String _ignoreMarker;
+
+  final List<String> _lines;
+
+  final Set<String>? _arbKeys;
+
+  final List<GateViolation> violations = [];
+
   _StringsVisitor(
     this._file,
     this._parsed,
@@ -97,16 +113,6 @@ class _StringsVisitor extends RecursiveAstVisitor<void> {
     this._lines,
     this._arbKeys,
   );
-
-  final String _file;
-  final ParsedUnit _parsed;
-  final List<String> _checkParams;
-  final String _ignoreMarker;
-  final List<String> _lines;
-  final Set<String>? _arbKeys;
-  final List<GateViolation> violations = [];
-
-  static final RegExp _letters = HardcodedStringsGate._letters;
 
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
@@ -124,6 +130,21 @@ class _StringsVisitor extends RecursiveAstVisitor<void> {
       _checkNode(node, literal.trim());
     }
     super.visitStringInterpolation(node);
+  }
+
+  @override
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    if (node.prefix.name == 'l10n') _checkL10nKey(node, node.identifier.name);
+    super.visitPrefixedIdentifier(node);
+  }
+
+  @override
+  void visitPropertyAccess(PropertyAccess node) {
+    final target = node.target;
+    if (target is SimpleIdentifier && target.name == 'l10n') {
+      _checkL10nKey(node, node.propertyName.name);
+    }
+    super.visitPropertyAccess(node);
   }
 
   void _checkString(SingleStringLiteral node, String value) {
@@ -157,21 +178,6 @@ class _StringsVisitor extends RecursiveAstVisitor<void> {
       return node.constructorName.type.name.lexeme == 'Text';
     }
     return false;
-  }
-
-  @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    if (node.prefix.name == 'l10n') _checkL10nKey(node, node.identifier.name);
-    super.visitPrefixedIdentifier(node);
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    final target = node.target;
-    if (target is SimpleIdentifier && target.name == 'l10n') {
-      _checkL10nKey(node, node.propertyName.name);
-    }
-    super.visitPropertyAccess(node);
   }
 
   void _checkL10nKey(AstNode node, String key) {

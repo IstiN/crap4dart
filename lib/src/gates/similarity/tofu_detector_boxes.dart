@@ -111,11 +111,11 @@ class _SolidGlyphScanner {
 
 /// A solid, bounded, glyph-sized rectangle found by its row runs.
 class _SolidRect {
-  /// Creates the extent record.
-  const _SolidRect(this.top, this.bottom);
-
   /// First and last row of the rectangle.
   final int top, bottom;
+
+  /// Creates the extent record.
+  const _SolidRect(this.top, this.bottom);
 
   /// The rectangle covering row [y]'s ink run, or `null` when the run
   /// is not a bounded solid rectangle with vertical glyph-size edges.
@@ -215,13 +215,16 @@ class _SolidRect {
 /// The side walls of one candidate box, for continuity and interior
 /// checks.
 class _Walls {
+  final img.Image image;
+
+  final int runStart;
+
+  final int runWidth;
+
+  final int background;
+
   /// Creates the wall helper for a box.
   const _Walls(this.image, this.runStart, this.runWidth, this.background);
-
-  final img.Image image;
-  final int runStart;
-  final int runWidth;
-  final int background;
 
   /// Whether the pixel is inside the box walls (ink test).
   bool isInkInside(int x, int y) =>

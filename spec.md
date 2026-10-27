@@ -1046,6 +1046,31 @@ directories or the config's `dirs`, with `--jaccard`, `--containment`,
 `--min-shingles`, `--include`, `--exclude` overrides and
 `--format console|json`; it is informational and always exits 0.
 
+### 11.24 The `reorder` command
+
+`reorder [paths]` shall rewrite each listed Dart file (default: `lib`)
+so that class, mixin and extension members appear in the canonical
+order: constants (`static const`), static fields, instance fields,
+constructors, static methods, getters and setters, public methods,
+private methods. Members within one category shall keep their original
+relative order (a stable partition — the command never sorts
+alphabetically). Doc comments, metadata annotations and whole-line
+`//` comment blocks above a member shall move with it — including a
+block separated from the member by a single blank line; two or more
+blank lines detach the block. Enum bodies shall never be reordered
+(enum value order is semantics). A file's line-ending style (LF or
+CRLF) shall be preserved.
+
+The transform shall be deterministic and idempotent: the same input
+shall produce the same output, already-canonical files shall be left
+byte-identical (whatever their member layout — single-line bodies and
+members sharing the header line are preserved as written), and
+reordering an already-reordered file shall not change it. With `--dry-run` the command shall write nothing, list the
+files that would change, and exit 2 when at least one would (0
+otherwise); without it, files are written and the command exits 0.
+Files that fail to parse shall be skipped with a note and shall not
+fail the run.
+
 ## 12. Baseline
 
 `check --save-baseline` shall run all enabled gates and write every

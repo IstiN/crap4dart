@@ -115,12 +115,6 @@ void _paintYellowOnDark(Grid g) {
 
 /// A tiny RGB grid canvas the fixture painters draw on.
 class Grid {
-  /// Creates a [size]x[size] grid filled with [color].
-  Grid(int size, List<int> color)
-      : width = size,
-        height = size,
-        _px = List.generate(size, (_) => List.filled(size, color));
-
   /// Grid width in pixels.
   final int width;
 
@@ -128,6 +122,12 @@ class Grid {
   final int height;
 
   final List<List<List<int>>> _px;
+
+  /// Creates a [size]x[size] grid filled with [color].
+  Grid(int size, List<int> color)
+      : width = size,
+        height = size,
+        _px = List.generate(size, (_) => List.filled(size, color));
 
   /// The color at (x, y).
   List<int> at(int x, int y) => _px[y][x];

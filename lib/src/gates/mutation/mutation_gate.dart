@@ -51,6 +51,8 @@ typedef MutationScan = ({
 /// and cached; a scoped survivor is re-confirmed against the full
 /// invocation before it counts).
 class MutationGate implements Gate {
+  final MutationEngine _engine;
+
   /// Creates a [MutationGate]; [runner] overrides the per-mutant test
   /// runner (injected in tests, real projects run `dart test`).
   MutationGate({MutantTestRunner? runner})
@@ -58,8 +60,6 @@ class MutationGate implements Gate {
 
   @override
   String get id => GateIds.mutation;
-
-  final MutationEngine _engine;
 
   @override
   Future<GateResult> run(GateContext context) async {

@@ -11,6 +11,16 @@ import 'exit_codes.dart';
 /// The `goldens` command: golden-testing helpers. Prints the runtime
 /// image-error guard snippet projects copy into their test suites.
 class GoldensCommand extends Command<int> {
+  /// Project root override (default: the current working directory).
+  final String? projectRoot;
+
+  @override
+  final String name = 'goldens';
+
+  @override
+  final String description =
+      'Golden test helpers: generate the runtime image-error guard.';
+
   /// Creates a [GoldensCommand] with an optional [projectRoot]
   /// override (used by in-process invocations and tests).
   GoldensCommand({this.projectRoot}) {
@@ -26,16 +36,6 @@ class GoldensCommand extends Command<int> {
         help: 'Like --print-snippet, but writes test/goldens_guard.dart.',
       );
   }
-
-  /// Project root override (default: the current working directory).
-  final String? projectRoot;
-
-  @override
-  final String name = 'goldens';
-
-  @override
-  final String description =
-      'Golden test helpers: generate the runtime image-error guard.';
 
   @override
   String get invocation => 'crap4dart goldens [--print-snippet | --write]';

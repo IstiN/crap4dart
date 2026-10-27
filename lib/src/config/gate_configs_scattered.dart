@@ -10,19 +10,6 @@ const List<String> _scatteredExcludeDefaults = [
 
 /// Config of the `scattered_constants` gate.
 class ScatteredGateConfig implements GateConfigFlags {
-  /// Creates a [ScatteredGateConfig].
-  const ScatteredGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.warning,
-    this.ignorable = false,
-    this.minFiles = 3,
-    this.minLength = 4,
-    this.minValue = 100,
-    this.ignore = const [],
-    this.exclude = _scatteredExcludeDefaults,
-    this.flagAliases = true,
-  });
-
   /// Whether the gate is enabled.
   @override
   final bool enabled;
@@ -63,4 +50,17 @@ class ScatteredGateConfig implements GateConfigFlags {
   /// shared constant directly. Public declarations are exempt:
   /// re-export shims are a deliberate API shape.
   final bool flagAliases;
+
+  /// Creates a [ScatteredGateConfig].
+  const ScatteredGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.warning,
+    this.ignorable = false,
+    this.minFiles = 3,
+    this.minLength = 4,
+    this.minValue = 100,
+    this.ignore = const [],
+    this.exclude = _scatteredExcludeDefaults,
+    this.flagAliases = true,
+  });
 }

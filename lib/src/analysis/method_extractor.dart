@@ -12,15 +12,6 @@ const String unnamedExtensionName = kExtension;
 
 /// A concrete method or top-level function found in a Dart source file.
 class MethodInfo {
-  /// Creates a [MethodInfo].
-  const MethodInfo({
-    required this.className,
-    required this.methodName,
-    required this.startLine,
-    required this.endLine,
-    required this.filePath,
-  });
-
   /// Name of the containing class, mixin, enum or extension, or
   /// [topLevelClassName] for top-level functions.
   final String className;
@@ -37,6 +28,15 @@ class MethodInfo {
 
   /// Path of the source file the method was extracted from.
   final String filePath;
+
+  /// Creates a [MethodInfo].
+  const MethodInfo({
+    required this.className,
+    required this.methodName,
+    required this.startLine,
+    required this.endLine,
+    required this.filePath,
+  });
 
   @override
   String toString() => '$className.$methodName ($filePath:$startLine)';
@@ -83,11 +83,13 @@ class MethodExtractor {
 }
 
 class _MethodVisitor extends RecursiveAstVisitor<void> {
-  _MethodVisitor(this._lineInfo, this._filePath);
-
   final LineInfo _lineInfo;
+
   final String _filePath;
+
   final List<ExtractedMethod> methods = [];
+
+  _MethodVisitor(this._lineInfo, this._filePath);
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {

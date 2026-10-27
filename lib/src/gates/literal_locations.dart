@@ -61,10 +61,11 @@ bool _stopsProtocolWalk(AstNode parent) =>
     parent is InterpolationElement || parent is ArgumentList;
 
 class _ExemptMarker extends RecursiveAstVisitor<void> {
-  _ExemptMarker(this.lines, this.lineTo);
-
   final Set<int> lines;
+
   final int Function(AstNode) lineTo;
+
+  _ExemptMarker(this.lines, this.lineTo);
 
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) =>
@@ -84,14 +85,14 @@ class _ExemptMarker extends RecursiveAstVisitor<void> {
 /// keeping every literal line that belongs to a constant declaration
 /// in [exemptLines] — such literals are already named constants.
 abstract class ExemptingLiteralVisitor extends RecursiveAstVisitor<void> {
-  /// Creates a visitor over [lineInfo].
-  ExemptingLiteralVisitor(this.lineInfo);
-
   /// Line info of the scanned file.
   final LineInfo lineInfo;
 
   /// 1-based lines of literals inside constant declarations.
   final Set<int> exemptLines = {};
+
+  /// Creates a visitor over [lineInfo].
+  ExemptingLiteralVisitor(this.lineInfo);
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
@@ -108,14 +109,14 @@ abstract class ExemptingLiteralVisitor extends RecursiveAstVisitor<void> {
 /// literal values and prefix heads; entries containing a `/` are
 /// file-path globs and exempt the files themselves.
 class IgnoreConfig {
-  /// Creates a partition for the given [ignore] entries.
-  const IgnoreConfig(this.values, this.pathGlobs);
-
   /// Value entries (no separator).
   final Set<String> values;
 
   /// File-path glob entries (containing a `/`).
   final List<String> pathGlobs;
+
+  /// Creates a partition for the given [ignore] entries.
+  const IgnoreConfig(this.values, this.pathGlobs);
 
   /// Partitions [ignore] by whether the entry contains a `/`.
   factory IgnoreConfig.partition(Iterable<String> ignore) {
@@ -138,9 +139,7 @@ typedef LiteralSite = ({String file, int line, bool isConstDecl});
 
 /// Occurrence sites of one literal value across the corpus.
 class LiteralSites {
-  /// Records one occurrence.
-  void add(String file, int line, {bool isConstDecl = false}) =>
-      _sites.add((file: file, line: line, isConstDecl: isConstDecl));
+  final List<LiteralSite> _sites = [];
 
   /// Every occurrence, in scan order.
   List<LiteralSite> get sites => _sites;
@@ -148,7 +147,9 @@ class LiteralSites {
   /// Distinct files containing the value.
   Set<String> get files => _sites.map((s) => s.file).toSet();
 
-  final List<LiteralSite> _sites = [];
+  /// Records one occurrence.
+  void add(String file, int line, {bool isConstDecl = false}) =>
+      _sites.add((file: file, line: line, isConstDecl: isConstDecl));
 }
 
 /// The value of a plain (non-interpolated) string expression, `null`

@@ -18,9 +18,6 @@ const _testFunctionNames = {kTest, 'testWidgets'};
 /// A test without assertions compiles, runs green and verifies nothing
 /// — a typical AI-generated placeholder.
 class TestAssertionsGate implements Gate {
-  /// Creates a [TestAssertionsGate].
-  const TestAssertionsGate();
-
   /// Assertion-ish method names counted towards the minimum.
   static const Set<String> assertionNames = {
     'expect',
@@ -32,6 +29,9 @@ class TestAssertionsGate implements Gate {
     'verify',
     'matchesGoldenFile',
   };
+
+  /// Creates a [TestAssertionsGate].
+  const TestAssertionsGate();
 
   @override
   String get id => GateIds.testAssertions;
@@ -71,19 +71,22 @@ class TestAssertionsGate implements Gate {
 }
 
 class _TestCandidate {
-  _TestCandidate(this.name, this.line, this.assertions);
-
   final String name;
+
   final int line;
+
   final int assertions;
+
+  _TestCandidate(this.name, this.line, this.assertions);
 }
 
 /// Counts assertion calls inside `test()`/`testWidgets()` bodies.
 class _TestBodyVisitor extends RecursiveAstVisitor<void> {
-  _TestBodyVisitor(this._lineInfo);
-
   final LineInfo _lineInfo;
+
   final List<_TestCandidate> tests = [];
+
+  _TestBodyVisitor(this._lineInfo);
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
@@ -92,6 +95,11 @@ class _TestBodyVisitor extends RecursiveAstVisitor<void> {
       _registerTest(node, name);
     }
     super.visitMethodInvocation(node);
+  }
+
+  String nameLiteral(StringLiteral node) {
+    final value = node.stringValue;
+    return value == null ? '<test>' : "'$value'";
   }
 
   void _registerTest(MethodInvocation node, String kind) {
@@ -107,11 +115,6 @@ class _TestBodyVisitor extends RecursiveAstVisitor<void> {
     final counter = _AssertionCounter();
     bodyArg.accept(counter);
     tests.add(_TestCandidate(label, line, counter.count));
-  }
-
-  String nameLiteral(StringLiteral node) {
-    final value = node.stringValue;
-    return value == null ? '<test>' : "'$value'";
   }
 }
 

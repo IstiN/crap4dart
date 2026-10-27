@@ -1,7 +1,19 @@
 # Changelog
 
-## Unreleased
+## 0.22.0 — 2026-10-27
 
+- New `reorder` command: deterministically rewrites class members into
+  the canonical Dart/Flutter order (constants, static fields, fields,
+  constructors, static methods, getters/setters, public methods,
+  private methods — same-kind members keep their relative order; a
+  stable partition, never alphabetical). Doc comments, annotations and
+  `//` comment blocks directly above a member (even separated by one
+  blank line) move with it; enum bodies are untouched; CRLF files keep
+  their line endings. Idempotent and byte-stable on canonical input —
+  including single-line class bodies and members sharing the header
+  line, which are preserved (and never corrupted) as-is.
+  `--dry-run` lists would-change files and exits 2 for CI/pre-commit
+  use.
 - Ignore comments gain Dart-lint-style granularity alongside the
   legacy `// crap:ignore` / `// crap:ignore-file` (both unchanged):
   `// ignore:<gate-id>` suppresses that gate on the line (trailing

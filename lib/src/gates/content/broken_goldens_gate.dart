@@ -242,8 +242,6 @@ class BrokenGoldensGate implements Gate {
 
 /// Single-pass pixel statistics feeding both golden detectors.
 class _PixelStats {
-  _PixelStats(this.kinds, this.hasYellow, this.redFraction);
-
   /// Stripe classification code per pixel (see
   /// [BrokenGoldensGate._stripeKindOf]).
   final Uint8List kinds;
@@ -254,6 +252,8 @@ class _PixelStats {
 
   /// Share of pixels matching the dark-red error background.
   final double redFraction;
+
+  _PixelStats(this.kinds, this.hasYellow, this.redFraction);
 
   /// Classifies every pixel of [image] once.
   static _PixelStats of(img.Image image) {

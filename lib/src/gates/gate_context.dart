@@ -13,16 +13,6 @@ import '../files/flutter_project.dart' as files_flutter;
 /// Shared input for all quality gates: project root, config, target files,
 /// optional coverage data and a memoized AST cache.
 class GateContext {
-  /// Creates a [GateContext].
-  GateContext({
-    required this.projectRoot,
-    required this.config,
-    required this.files,
-    this.lcov,
-    this.partialSelection = false,
-    this.diff,
-  });
-
   /// Absolute path of the project root.
   final String projectRoot;
 
@@ -48,36 +38,35 @@ class GateContext {
   final DiffLineMap? diff;
 
   final Map<String, ParsedUnit> _astCache = {};
+
   final Map<String, List<String>> _linesCache = {};
+
   String? _packageName;
+
+  final Map<String, Glob> _globCache = {};
+
+  /// Creates a [GateContext].
+  GateContext({
+    required this.projectRoot,
+    required this.config,
+    required this.files,
+    this.lcov,
+    this.partialSelection = false,
+    this.diff,
+  });
+
+  /// Whether the pubspec at [root] declares a `flutter` dependency.
+  static bool isFlutterProjectAt(String root) =>
+      files_flutter.isFlutterProject(root);
 
   /// The `name:` of the project's pubspec.yaml, or `null` when absent.
   String? get packageName => _packageName ??= _readPackageName(
         p.join(projectRoot, kPubspec),
       );
 
-  String? _readPackageName(String pubspecPath) {
-    try {
-      final content = File(pubspecPath).readAsStringSync();
-      final match = RegExp(
-        kPubspecNamePattern,
-        multiLine: true,
-      ).firstMatch(content);
-      return match?.group(1)?.trim();
-    } on FileSystemException {
-      return null;
-    }
-  }
-
-  /// The lines of the file at [path], read and cached on first access;
-  /// empty for unreadable files.
-  List<String> _lines(String path) => _linesCache.putIfAbsent(path, () {
-        try {
-          return File(path).readAsStringSync().split('\n');
-        } on FileSystemException {
-          return const [];
-        }
-      });
+  /// Whether the project is a Flutter project (its pubspec depends on the
+  /// `flutter` package).
+  bool get isFlutterProject => isFlutterProjectAt(projectRoot);
 
   /// 1-based [lineNumber] of the file at [path], or `null` when out of
   /// range or the file is unreadable.
@@ -107,12 +96,6 @@ class GateContext {
   String relativePath(String path) =>
       p.isAbsolute(path) ? p.relative(path, from: projectRoot) : path;
 
-  /// Whether the project is a Flutter project (its pubspec depends on the
-  /// `flutter` package).
-  bool get isFlutterProject => isFlutterProjectAt(projectRoot);
-
-  final Map<String, Glob> _globCache = {};
-
   /// Whether any of [patterns] (globs) matches [path], which is first made
   /// relative to [projectRoot]. Compiled globs are cached per pattern —
   /// this runs for every file in every gate.
@@ -121,13 +104,32 @@ class GateContext {
     return patterns.any((pattern) => _glob(pattern).matches(relative));
   }
 
+  String? _readPackageName(String pubspecPath) {
+    try {
+      final content = File(pubspecPath).readAsStringSync();
+      final match = RegExp(
+        kPubspecNamePattern,
+        multiLine: true,
+      ).firstMatch(content);
+      return match?.group(1)?.trim();
+    } on FileSystemException {
+      return null;
+    }
+  }
+
+  /// The lines of the file at [path], read and cached on first access;
+  /// empty for unreadable files.
+  List<String> _lines(String path) => _linesCache.putIfAbsent(path, () {
+        try {
+          return File(path).readAsStringSync().split('\n');
+        } on FileSystemException {
+          return const [];
+        }
+      });
+
   /// The compiled glob for [pattern], parsed at most once.
   Glob _glob(String pattern) =>
       _globCache.putIfAbsent(pattern, () => Glob(pattern));
-
-  /// Whether the pubspec at [root] declares a `flutter` dependency.
-  static bool isFlutterProjectAt(String root) =>
-      files_flutter.isFlutterProject(root);
 }
 
 /// One scanned corpus file: the parsed unit and its project-relative

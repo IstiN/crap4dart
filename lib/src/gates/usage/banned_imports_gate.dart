@@ -9,11 +9,13 @@ import '../gate_ids.dart';
 
 /// A compiled rule of the `banned_imports` gate.
 class _CompiledRule {
-  _CompiledRule(this.from, this.forbid, this.message);
-
   final Glob from;
+
   final List<Glob> forbid;
+
   final String? message;
+
+  _CompiledRule(this.from, this.forbid, this.message);
 }
 
 /// The `banned_imports` gate: enforces architectural boundaries declared

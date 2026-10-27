@@ -18,6 +18,18 @@ import '../report/badge_svg.dart';
 /// gate come separately (they need baseline machinery to be honest —
 /// raw GC counts are machine-dependent, allocated MB are not).
 class MemoryCommand extends Command<int> {
+  /// Project root override (default: the current working directory).
+  final String? projectRoot;
+
+  final MemoryProfiler _profiler;
+
+  @override
+  final String name = 'memory';
+
+  @override
+  final String description = 'Run the test suite under --verbose_gc and '
+      'report per-test allocation churn and GC pressure.';
+
   /// Creates a [MemoryCommand].
   MemoryCommand({this.projectRoot, MemoryProfiler? profiler})
       : _profiler = profiler ?? MemoryProfiler() {
@@ -54,17 +66,7 @@ class MemoryCommand extends Command<int> {
       );
   }
 
-  /// Project root override (default: the current working directory).
-  final String? projectRoot;
-
-  final MemoryProfiler _profiler;
-
-  @override
-  final String name = 'memory';
-
-  @override
-  final String description = 'Run the test suite under --verbose_gc and '
-      'report per-test allocation churn and GC pressure.';
+  static double _round1(double value) => double.parse(value.toStringAsFixed(1));
 
   @override
   Future<int> run() async {
@@ -227,8 +229,6 @@ class MemoryCommand extends Command<int> {
       }),
     );
   }
-
-  static double _round1(double value) => double.parse(value.toStringAsFixed(1));
 }
 
 const String _topOption = 'top';

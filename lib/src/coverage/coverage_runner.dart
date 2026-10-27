@@ -19,13 +19,13 @@ typedef ProcessSpawner = Future<ProcessResult> Function(
 /// dependencies) use `flutter test --coverage`; pure Dart projects use
 /// `dart test --coverage` followed by `coverage:format_coverage`.
 class CoverageRunner {
+  final ProcessSpawner _spawn;
+
   /// Creates a [CoverageRunner].
   ///
   /// [spawn] defaults to [Process.run]; tests inject a fake instead of
   /// running real test suites.
   const CoverageRunner({ProcessSpawner spawn = Process.run}) : _spawn = spawn;
-
-  final ProcessSpawner _spawn;
 
   /// Default LCOV output path, relative to the project root.
 

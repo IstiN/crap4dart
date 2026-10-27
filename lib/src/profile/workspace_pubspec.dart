@@ -5,11 +5,23 @@ import 'package:path/path.dart' as p;
 
 /// Rewrites pubspec.yaml for the temp copy of a workspace member.
 class WorkspacePubspec {
-  /// Creates a rewriter for the member at [projectRoot].
-  WorkspacePubspec(this.projectRoot);
+  /// The `resolution: workspace` marker line of a member pubspec.
+  static final RegExp _workspaceMarker =
+      RegExp(r'^resolution:\s*workspace\s*$');
+
+  /// The `dependency_overrides:` section header line.
+  static final RegExp _overridesHeader = RegExp(r'^dependency_overrides:\s*$');
+
+  /// A relative `path:` dependency line (`group(1)` is the prefix,
+  /// `group(2)` the relative path).
+  static final RegExp _relativePathDep =
+      RegExp(r'^(\s*path:\s*)(\.\.?[/\\].*)$');
 
   /// The workspace member being profiled.
   final String projectRoot;
+
+  /// Creates a rewriter for the member at [projectRoot].
+  WorkspacePubspec(this.projectRoot);
 
   /// Writes a standalone `pubspec.yaml` for the temp copy: strips the
   /// `resolution: workspace` marker (the temp dir belongs to no
@@ -88,16 +100,4 @@ class WorkspacePubspec {
     ).firstMatch(tail);
     return nextKey == null ? tail : tail.substring(0, nextKey.start);
   }
-
-  /// The `resolution: workspace` marker line of a member pubspec.
-  static final RegExp _workspaceMarker =
-      RegExp(r'^resolution:\s*workspace\s*$');
-
-  /// The `dependency_overrides:` section header line.
-  static final RegExp _overridesHeader = RegExp(r'^dependency_overrides:\s*$');
-
-  /// A relative `path:` dependency line (`group(1)` is the prefix,
-  /// `group(2)` the relative path).
-  static final RegExp _relativePathDep =
-      RegExp(r'^(\s*path:\s*)(\.\.?[/\\].*)$');
 }

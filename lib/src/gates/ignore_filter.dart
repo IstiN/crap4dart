@@ -28,12 +28,13 @@ final RegExp ignoreFileRule = RegExp(r'//\s*ignore-file:([^\s/]*)');
 /// no-list form (suppress everything ignorable), [ids] the named
 /// gates.
 class _IgnoreScope {
+  static const empty = _IgnoreScope(false, {});
+
   final bool blanket;
+
   final Set<String> ids;
 
   const _IgnoreScope(this.blanket, this.ids);
-
-  static const empty = _IgnoreScope(false, {});
 
   bool matches(String gateId) => blanket || ids.contains(gateId);
 

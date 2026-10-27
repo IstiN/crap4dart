@@ -231,6 +231,28 @@ crap4dart similarity --include '**/*.md' --include '**/*.dart'
 crap4dart similarity --format json            # machine-readable clusters
 ```
 
+### `reorder`
+
+`crap4dart reorder [paths]` rewrites Dart files so class members follow
+the canonical Dart/Flutter order: `static const` constants, static
+fields, instance fields, constructors, static methods, getters and
+setters, public methods, private methods. Members of the same category
+keep their relative order — it is a stable partition, never an
+alphabetical sort.
+
+```sh
+crap4dart reorder              # reorder everything under lib/
+crap4dart reorder test/lib/    # explicit paths
+crap4dart reorder --dry-run    # list files that would change; exit 2 if any
+```
+
+The transform is deterministic: the same input always produces the same
+output, already-canonical files are left byte-identical, and running it
+twice changes nothing. Doc comments, annotations and directly-preceding
+`//` notes move with their member; enum bodies are never touched (value
+order is semantics). `--dry-run` is the CI/pre-commit form: it exits 2
+when any file would change.
+
 The `similarity` **gate** (in `check`) turns this into CI enforcement:
 one violation per clustered file, baseline-compatible so existing
 clusters can be grandfathered while new ones fail the run.

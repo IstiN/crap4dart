@@ -11,9 +11,6 @@ import '../gate_ids.dart';
 /// (`jira_batch1.dart`, `report2.dart`) and generic dumping-ground
 /// names (`utils.dart`, `helpers.dart`).
 class FileNamingGate implements Gate {
-  /// Creates a [FileNamingGate].
-  const FileNamingGate();
-
   /// Lower-cased generic stems with no domain meaning. Files with these
   /// names accumulate unrelated declarations over time.
   static const Set<String> _genericStems = {
@@ -34,6 +31,9 @@ class FileNamingGate implements Gate {
     'utility',
     'various',
   };
+
+  /// Creates a [FileNamingGate].
+  const FileNamingGate();
 
   @override
   String get id => GateIds.fileNaming;

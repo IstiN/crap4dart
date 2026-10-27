@@ -2,9 +2,6 @@ import 'gate_context.dart';
 
 /// A single violation reported by a quality gate.
 class GateViolation {
-  /// Creates a [GateViolation].
-  const GateViolation({required this.file, this.line, required this.message});
-
   /// File the violation belongs to (may be a non-Dart artifact path).
   final String file;
 
@@ -14,6 +11,9 @@ class GateViolation {
   /// Human readable description of the violation.
   final String message;
 
+  /// Creates a [GateViolation].
+  const GateViolation({required this.file, this.line, required this.message});
+
   @override
   String toString() =>
       line == null ? '$file: $message' : '$file:$line: $message';
@@ -21,6 +21,29 @@ class GateViolation {
 
 /// The outcome of running a single quality gate.
 class GateResult {
+  /// Identifier of the gate that produced this result.
+  final String gateId;
+
+  /// Whether the gate passed (skipped and warning results count as
+  /// passed for the run outcome).
+  final bool passed;
+
+  /// Reported violations; empty when [passed] is true.
+  final List<GateViolation> violations;
+
+  /// Optional one-line summary, e.g. "coverage 83.5% >= 80.0%".
+  final String? summary;
+
+  /// Whether the gate was skipped instead of run.
+  final bool skipped;
+
+  /// Reason for skipping, when [skipped] is true.
+  final String? skipReason;
+
+  /// Whether violations were downgraded to warnings (severity
+  /// `warning`): reported but not failing the run.
+  final bool warning;
+
   /// Creates a [GateResult].
   const GateResult({
     required this.gateId,
@@ -71,29 +94,6 @@ class GateResult {
         summary: summary,
         warning: true,
       );
-
-  /// Identifier of the gate that produced this result.
-  final String gateId;
-
-  /// Whether the gate passed (skipped and warning results count as
-  /// passed for the run outcome).
-  final bool passed;
-
-  /// Reported violations; empty when [passed] is true.
-  final List<GateViolation> violations;
-
-  /// Optional one-line summary, e.g. "coverage 83.5% >= 80.0%".
-  final String? summary;
-
-  /// Whether the gate was skipped instead of run.
-  final bool skipped;
-
-  /// Reason for skipping, when [skipped] is true.
-  final String? skipReason;
-
-  /// Whether violations were downgraded to warnings (severity
-  /// `warning`): reported but not failing the run.
-  final bool warning;
 }
 
 /// A quality gate: a single check over the project sources.

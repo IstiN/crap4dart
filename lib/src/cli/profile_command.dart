@@ -18,6 +18,19 @@ import 'runner.dart';
 /// The `profile` command: runs the test suite against instrumented source
 /// code and reports per-method timing data.
 class ProfileCommand extends Command<int> with CommandHelpers {
+  /// Project root override (default: the current working directory).
+  final String? projectRoot;
+
+  /// Test runner used to execute the instrumented test suite; tests
+  /// inject a fake so no real `dart test` subprocess is spawned.
+  final ProfileRunner profileRunner;
+
+  @override
+  final String name = kProfile;
+
+  @override
+  final description = 'Run instrumented tests and report per-method timing.';
+
   /// Creates a [ProfileCommand].
   ProfileCommand(
       {this.projectRoot, this.profileRunner = const ProfileRunner()}) {
@@ -72,19 +85,6 @@ class ProfileCommand extends Command<int> with CommandHelpers {
         help: kDiffBaseHelp,
       );
   }
-
-  /// Project root override (default: the current working directory).
-  final String? projectRoot;
-
-  /// Test runner used to execute the instrumented test suite; tests
-  /// inject a fake so no real `dart test` subprocess is spawned.
-  final ProfileRunner profileRunner;
-
-  @override
-  final String name = kProfile;
-
-  @override
-  final description = 'Run instrumented tests and report per-method timing.';
 
   @override
   String get invocation => 'crap4dart profile [options] [test_paths...]\n'

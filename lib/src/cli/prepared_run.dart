@@ -15,16 +15,6 @@ typedef ResolvedDiff = ({DiffLineMap? map, String? base, bool ok});
 /// (the `record_size` gate caps records at five), and `partialSelection`
 /// defaults to `false` at the type level.
 class PreparedRun {
-  /// Creates a [PreparedRun].
-  const PreparedRun({
-    this.config,
-    this.files,
-    this.diffMap,
-    this.diffBase,
-    this.partialSelection = false,
-    this.exitCode,
-  });
-
   /// The loaded configuration, `null` when the run stops early.
   final Crap4DartConfig? config;
 
@@ -42,4 +32,14 @@ class PreparedRun {
 
   /// The early exit code, or `null` to proceed with the command.
   final int? exitCode;
+
+  /// Creates a [PreparedRun].
+  const PreparedRun({
+    this.config,
+    this.files,
+    this.diffMap,
+    this.diffBase,
+    this.partialSelection = false,
+    this.exitCode,
+  });
 }
