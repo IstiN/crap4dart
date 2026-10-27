@@ -49,6 +49,17 @@ void main() {
     expect(_magic(results).passed, isFalse);
   });
 
+  test('several ignore-file markers on separate lines union', () async {
+    final results = await _run({
+      'lib/a.dart': _fixture(
+          header:
+              '// ignore-file:public_docs\n// ignore-file:magic_constants\n',
+          trailing: ''),
+    });
+    expect(_docs(results).passed, isTrue);
+    expect(_magic(results).passed, isTrue);
+  });
+
   test('a bare ignore-file: suppresses everything ignorable', () async {
     final results = await _run({
       'lib/a.dart': _fixture(header: '// ignore-file:\n', trailing: ''),

@@ -542,16 +542,17 @@ lines of a file, shall suppress violations of a gate only when that
 gate sets `ignorable: true`; by default suppression comments have no
 effect.
 
-Gate-specific markers narrow the suppression to named gates:
-`// ignore:<id>[,<id>...]` on the violation line or the line above,
-and `// ignore-file:<id>[,<id>...]` within the first 5 lines, where
-`<id>` is a gate id (`loc`, `magic_constants`, ...). Ids are
-comma-separated; whitespace around them is ignored; several
-`ignore:` comments on one line union their id sets; an empty list
-(`// ignore:`) suppresses every ignorable gate, matching the legacy
-marker's scope. A violation of gate X is suppressed when the
-applicable marker's id list names X (or the marker is empty); the
-`ignorable: true` opt-in requirement applies unchanged.
+Gate-specific markers narrow the suppression to a single gate:
+`// ignore:<id>` on the violation line (trailing) or above it, and
+`// ignore-file:<id>` within the first 5 lines, where `<id>` is a
+gate id (`loc`, `magic_constants`, ...). Dart lint style: one rule
+per marker — multiple rules stack as several markers (`// ignore:
+a` / `// ignore: b` lines directly above the code all apply to it;
+markers may also trail the code line). Markers whose id is empty
+(`// ignore:`) suppress every ignorable gate, matching the legacy
+marker's scope; an id never matches a rule (unknown ids and
+comma-lists are silently inert). The `ignorable: true` opt-in
+requirement applies unchanged.
 
 The `loc`, `complexity` and `method_size` gates accept `entries`: a
 list of `{threshold(s), paths}` overrides where the first entry whose

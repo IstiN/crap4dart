@@ -48,22 +48,22 @@ void main() {
     expect(_docs(results).passed, isFalse);
   });
 
-  test('a comma list names several gates', () async {
+  test('one rule per marker; several markers combine', () async {
     final results = await _run({
-      'lib/a.dart':
-          _fixture(trailing: ' // ignore:public_docs,magic_constants'),
+      'lib/a.dart': _fixture(
+          trailing: ' // ignore:public_docs // ignore: magic_constants'),
     });
     expect(_docs(results).passed, isTrue);
     expect(_magic(results).passed, isTrue);
   });
 
-  test('whitespace around ids is tolerated', () async {
+  test('a comma-separated list is not a list — it names nothing', () async {
     final results = await _run({
       'lib/a.dart':
-          _fixture(trailing: ' // ignore: public_docs , magic_constants'),
+          _fixture(trailing: ' // ignore:public_docs,magic_constants'),
     });
-    expect(_docs(results).passed, isTrue);
-    expect(_magic(results).passed, isTrue);
+    expect(_docs(results).passed, isFalse);
+    expect(_magic(results).passed, isFalse);
   });
 
   test('several ignore comments on one line union', () async {
@@ -78,7 +78,8 @@ void main() {
   test('the marker on the line above works', () async {
     final results = await _run({
       'lib/a.dart': _fixture(
-          header: '// ignore:public_docs,magic_constants\n', trailing: ''),
+          header: '// ignore:public_docs\n// ignore:magic_constants\n',
+          trailing: ''),
     });
     expect(_docs(results).passed, isTrue);
     expect(_magic(results).passed, isTrue);

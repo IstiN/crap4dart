@@ -507,9 +507,9 @@ gate also accepts two framework keys:
   gate on a legacy codebase.
 - `ignorable: true` — opts this gate into `// crap:ignore` line
   comments and `// crap:ignore-file` file markers, plus the
-  gate-specific `// ignore:<id>[,<id>...]` and
-  `// ignore-file:<id>[,<id>...]` (empty list = everything;
-  several `ignore:` comments on one line union). **Off by default**:
+  gate-specific `// ignore:<id>` and `// ignore-file:<id>` (one rule
+  per marker, stacked markers combine; empty id = everything).
+  **Off by default**:
   suppression is never allowed unless you explicitly enable it.
 
 `loc`, `complexity` and `method_size` support per-path threshold

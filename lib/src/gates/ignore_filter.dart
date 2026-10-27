@@ -13,16 +13,16 @@ const String ignoreMarker = 'crap:ignore';
 /// all violations of ignorable gates in that file.
 const String ignoreFileMarker = 'crap:ignore-file';
 
-/// Granular line marker — `// ignore:<gate-id>[,<gate-id>...]` —
-/// suppresses only the named gates on its line (or the following
-/// line). An empty list (`// ignore:`) suppresses every ignorable
-/// gate, matching [ignoreMarker].
-final RegExp ignoreLineRule = RegExp(r'//\s*ignore:([^/]*)');
+/// Granular line marker — `// ignore:<gate-id>` — suppresses only
+/// that gate on its line (or the following line). Several markers on
+/// one line combine; an empty id (`// ignore:`) suppresses every
+/// ignorable gate, matching [ignoreMarker].
+final RegExp ignoreLineRule = RegExp(r'//\s*ignore:([^\s/]*)');
 
-/// Granular file marker — `// ignore-file:<gate-id>[,<gate-id>...]` —
-/// suppresses only the named gates in the whole file (first 5 lines).
-/// An empty list matches [ignoreFileMarker].
-final RegExp ignoreFileRule = RegExp(r'//\s*ignore-file:([^/]*)');
+/// Granular file marker — `// ignore-file:<gate-id>` — suppresses
+/// only that gate in the whole file (first 5 lines); several markers
+/// combine. An empty id matches [ignoreFileMarker].
+final RegExp ignoreFileRule = RegExp(r'//\s*ignore-file:([^\s/]*)');
 
 /// The gate-id set carried by one ignore comment: [blanket] marks the
 /// no-list form (suppress everything ignorable), [ids] the named
@@ -44,24 +44,14 @@ class _IgnoreScope {
 }
 
 /// Parses every `// ignore:`-style comment on one source line and
-/// unions their gate-id sets.
+/// unions their gate ids — one gate per marker, Dart lint style.
 _IgnoreScope _parseLine(String? line, RegExp rule) {
   if (line == null) return _IgnoreScope.empty;
   var scope = _IgnoreScope.empty;
   for (final match in rule.allMatches(line)) {
-    final list = match.group(1)!.trim();
-    if (list.isEmpty) {
-      scope = scope.union(const _IgnoreScope(true, {}));
-      continue;
-    }
-    final ids = [
-      for (final id in list.split(','))
-        if (id.trim().isNotEmpty) id.trim(),
-    ];
+    final id = match.group(1)!.trim();
     scope = scope.union(
-      ids.isEmpty
-          ? const _IgnoreScope(true, {})
-          : _IgnoreScope(false, ids.toSet()),
+      id.isEmpty ? const _IgnoreScope(true, {}) : _IgnoreScope(false, {id}),
     );
   }
   return scope;
@@ -125,8 +115,10 @@ bool _ignoredByFileMarker(
   return blanket || scope.matches(gateId);
 }
 
-/// Whether [line] (or the line above it) of [path] carries a
-/// line-scoped marker that suppresses [gateId].
+/// Whether [line] carries a suppressing marker itself, or the run of
+/// whole-line ignore markers directly above it names [gateId] —
+/// stacked `// ignore: a` / `// ignore: b` lines all apply to the
+/// code line that ends the run.
 bool _ignoredByLineMarker(
   String path,
   int line,
@@ -134,11 +126,27 @@ bool _ignoredByLineMarker(
   GateContext context,
 ) {
   final onLine = context.line(path, line);
-  final aboveLine = line > 1 ? context.line(path, line - 1) : null;
-  for (final source in [onLine, aboveLine]) {
-    if (source == null) continue;
-    if (source.contains(ignoreMarker)) return true;
-    if (_parseLine(source, ignoreLineRule).matches(gateId)) return true;
+  if (onLine != null) {
+    if (onLine.contains(ignoreMarker)) return true;
+    if (_parseLine(onLine, ignoreLineRule).matches(gateId)) return true;
+  }
+  var i = line - 1;
+  while (i >= 1) {
+    final above = context.line(path, i);
+    if (above == null) return false;
+    if (above.contains(ignoreMarker)) return true;
+    final scope = _parseLine(above, ignoreLineRule);
+    if (scope.matches(gateId)) return true;
+    if (!_isWholeLineIgnoreMarker(above)) return false;
+    i--;
   }
   return false;
+}
+
+/// Whether the line is nothing but an ignore comment — only such
+/// lines continue the stacked-marker run above a violation.
+bool _isWholeLineIgnoreMarker(String line) {
+  final trimmed = line.trim();
+  return trimmed.startsWith('// ignore:') ||
+      trimmed.startsWith('// ignore-file:');
 }
