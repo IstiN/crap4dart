@@ -22,7 +22,7 @@ class _ExtendedGateConfigReaders {
         _ignorableKey,
         _dirsKey,
         'min_stripe_run',
-        _excludeKey
+        kExclude
       },
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -34,7 +34,7 @@ class _ExtendedGateConfigReaders {
           minStripeRun: _ConfigScalars.readInt(
               map, 'min_stripe_run', base.minStripeRun, path, ctx),
           exclude:
-              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+              _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
         );
       },
     );
@@ -55,11 +55,11 @@ class _ExtendedGateConfigReaders {
         _severityKey,
         _ignorableKey,
         _dirsKey,
-        'include',
+        kInclude,
         'min_shingles',
-        'jaccard',
-        'containment',
-        _excludeKey
+        kJaccard,
+        kContainment,
+        kExclude
       },
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -69,15 +69,15 @@ class _ExtendedGateConfigReaders {
           ignorable: flags.ignorable,
           dirs: _ConfigScalars.strList(map, _dirsKey, base.dirs, path, ctx),
           include:
-              _ConfigScalars.strList(map, 'include', base.include, path, ctx),
+              _ConfigScalars.strList(map, kInclude, base.include, path, ctx),
           minShingles: _ConfigScalars.readInt(
               map, 'min_shingles', base.minShingles, path, ctx),
           jaccard:
-              _ConfigScalars.readNum(map, 'jaccard', base.jaccard, path, ctx),
+              _ConfigScalars.readNum(map, kJaccard, base.jaccard, path, ctx),
           containment: _ConfigScalars.readNum(
-              map, 'containment', base.containment, path, ctx),
+              map, kContainment, base.containment, path, ctx),
           exclude:
-              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+              _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
         );
       },
     );
@@ -98,7 +98,7 @@ class _ExtendedGateConfigReaders {
         _severityKey,
         _ignorableKey,
         'min_assertions',
-        _excludeKey
+        kExclude
       },
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -109,7 +109,7 @@ class _ExtendedGateConfigReaders {
           minAssertions: _ConfigScalars.readInt(
               map, 'min_assertions', base.minAssertions, path, ctx),
           exclude:
-              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+              _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
         );
       },
     );
@@ -150,21 +150,21 @@ class _ExtendedGateConfigReaders {
         _ignorableKey,
         _dirsKey,
         'max_loose_files',
-        _configKey,
-        _excludeKey
+        kConfig,
+        kExclude
       },
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
-        if (map[_configKey] != null) {
+        if (map[kConfig] != null) {
           // The per-pattern caps take precedence: dirs and
           // max_loose_files are not consulted.
           return FolderStructureGateConfig(
             enabled: flags.enabled,
             severity: flags.severity,
             ignorable: flags.ignorable,
-            caps: _capsOf(map[_configKey], path),
-            exclude: _ConfigScalars.strList(
-                map, _excludeKey, base.exclude, path, ctx),
+            caps: _capsOf(map[kConfig], path),
+            exclude:
+                _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
           );
         }
         return FolderStructureGateConfig(
@@ -175,7 +175,7 @@ class _ExtendedGateConfigReaders {
           maxLooseFiles: _ConfigScalars.readInt(
               map, 'max_loose_files', base.maxLooseFiles, path, ctx),
           exclude:
-              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+              _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
         );
       },
     );
@@ -203,7 +203,7 @@ class _ExtendedGateConfigReaders {
         'cache',
         'test_args',
         'scope_tests',
-        _excludeKey,
+        kExclude,
       },
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -239,7 +239,7 @@ class _ExtendedGateConfigReaders {
                 map, 'scope_tests', base.execution.testScope, path, ctx),
           ),
           exclude:
-              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+              _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
         );
       },
     );
@@ -343,8 +343,8 @@ class _ExtendedGateConfigReaders {
 
   /// YAML keys shared by the two scattered-literal readers.
   static const _minFilesKey = 'min_files';
-  static const _minLengthKey = 'min_length';
   static const _minValueKey = 'min_value';
+  static const _aliasesKey = 'aliases';
 
   static ScatteredGateConfig readScatteredConstants(
     Object? node,
@@ -360,7 +360,8 @@ class _ExtendedGateConfigReaders {
       _minLengthKey,
       _minValueKey,
       'ignore',
-      _excludeKey
+      _aliasesKey,
+      kExclude
     });
   }
 
@@ -393,7 +394,9 @@ class _ExtendedGateConfigReaders {
               map, _minValueKey, base.minValue, path, ctx),
           ignore: _readIgnoreValues(map['ignore'], base.ignore, path),
           exclude:
-              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+              _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
+          flagAliases: _ConfigScalars.readBool(
+              map, _aliasesKey, base.flagAliases, path, ctx),
         );
       },
     );
@@ -405,14 +408,10 @@ class _ExtendedGateConfigReaders {
     String path,
   ) {
     if (node == null) return base;
-    if (node is! YamlList) {
-      throw ConfigException(
-        path,
-        'gates.scattered_constants.ignore',
-        'expected a list of values',
-      );
-    }
     const ctx = 'gates.scattered_constants.ignore';
+    if (node is! YamlList) {
+      throw ConfigException(path, ctx, 'expected a list of values');
+    }
     final values = <String>[];
     for (final n in node.nodes) {
       final value = n is YamlScalar ? n.value : null;

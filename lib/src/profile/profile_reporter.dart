@@ -101,7 +101,7 @@ class ProfileReport {
         totalMicros > 0 ? p.timing.totalMicros / totalMicros * 100.0 : 0.0;
     // Estimate cost at 60fps: if a widget rebuilds every frame, calls ~60/sec.
     // This shows the "hidden" cost of frequently-rebuilt widgets.
-    final fps60ms = p.timing.meanMicros * 60.0 / 1000.0;
+    final fps60ms = p.timing.meanMicros * 60.0 / microsPerMillisecond;
     return [
       _fmtTotal(p.timing.totalMillis),
       _fmtTotal(p.timing.totalSelfMillis),

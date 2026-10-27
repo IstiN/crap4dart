@@ -84,7 +84,7 @@ class CoverageRunner {
         'coverage:format_coverage',
         '--lcov',
         '--in',
-        'coverage',
+        kCoverage,
         '--out',
         kDefaultLcovPath,
         '--report-on',

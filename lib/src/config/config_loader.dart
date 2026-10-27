@@ -13,11 +13,8 @@ part 'gate_config_readers_extra.dart';
 
 /// Top-level and section keys of `crap4dart.yaml`.
 const String _crapKey = 'crap';
-const String _coverageKey = 'coverage';
-const String _profileKey = 'profile';
 const String _sourcesKey = 'sources';
 const String _runTestsKey = 'run_tests';
-const String _gatesKey = 'gates';
 const String _thresholdMsKey = 'threshold_ms';
 
 /// Error raised for malformed or invalid `crap4dart.yaml` content.
@@ -80,27 +77,20 @@ class ConfigLoader {
     final root = _ConfigScalars.asMap(doc, path, '(root)');
     _ConfigScalars.checkKeys(
       root,
-      const {
-        _crapKey,
-        _coverageKey,
-        _gatesKey,
-        _profileKey,
-        _sourcesKey,
-        _excludeKey
-      },
+      const {_crapKey, kCoverage, kGatePrefix, kProfile, _sourcesKey, kExclude},
       path,
       '',
     );
     final defaults = Crap4DartConfig.defaults();
     return Crap4DartConfig(
       crap: _readCrap(root[_crapKey], defaults.crap, path),
-      coverage: _readCoverage(root[_coverageKey], defaults.coverage, path),
-      gates: _readGates(root[_gatesKey], defaults.gates, path),
-      profile: _readProfile(root[_profileKey], defaults.profile, path),
+      coverage: _readCoverage(root[kCoverage], defaults.coverage, path),
+      gates: _readGates(root[kGatePrefix], defaults.gates, path),
+      profile: _readProfile(root[kProfile], defaults.profile, path),
       sources: _readSources(root[_sourcesKey], defaults.sources, path),
       exclude: _ConfigScalars.strList(
         root,
-        _excludeKey,
+        kExclude,
         defaults.exclude,
         path,
         '',
@@ -133,7 +123,7 @@ class ConfigLoader {
     final map = _ConfigScalars.asMap(node, path, _crapKey);
     _ConfigScalars.checkKeys(
       map,
-      const {_enabledKey, 'threshold', _runTestsKey, 'count_lambdas'},
+      const {_enabledKey, kThreshold, _runTestsKey, 'count_lambdas'},
       path,
       _crapKey,
     );
@@ -141,7 +131,7 @@ class ConfigLoader {
       enabled: _ConfigScalars.readBool(
           map, _enabledKey, base.enabled, path, _crapKey),
       threshold: _ConfigScalars.readNum(
-          map, 'threshold', base.threshold, path, _crapKey),
+          map, kThreshold, base.threshold, path, _crapKey),
       runTests: _ConfigScalars.readBool(
           map, _runTestsKey, base.runTests, path, _crapKey),
       countLambdas: _ConfigScalars.readBool(
@@ -151,33 +141,33 @@ class ConfigLoader {
 
   CoverageConfig _readCoverage(Object? node, CoverageConfig base, String path) {
     if (node == null) return base;
-    final map = _ConfigScalars.asMap(node, path, _coverageKey);
+    final map = _ConfigScalars.asMap(node, path, kCoverage);
     _ConfigScalars.checkKeys(
       map,
       const {'lcov_path', _runTestsKey, 'required', 'branch_coverage'},
       path,
-      _coverageKey,
+      kCoverage,
     );
     return CoverageConfig(
-      lcovPath: _ConfigScalars.str(
-          map, 'lcov_path', base.lcovPath, path, _coverageKey),
+      lcovPath:
+          _ConfigScalars.str(map, 'lcov_path', base.lcovPath, path, kCoverage),
       runTests: _ConfigScalars.readBool(
-          map, _runTestsKey, base.runTests, path, _coverageKey),
+          map, _runTestsKey, base.runTests, path, kCoverage),
       required: _ConfigScalars.readBool(
-          map, 'required', base.required, path, _coverageKey),
+          map, 'required', base.required, path, kCoverage),
       branchCoverage: _ConfigScalars.readBool(
-          map, 'branch_coverage', base.branchCoverage, path, _coverageKey),
+          map, 'branch_coverage', base.branchCoverage, path, kCoverage),
     );
   }
 
   ProfileConfig _readProfile(Object? node, ProfileConfig base, String path) {
     if (node == null) return base;
-    final map = _ConfigScalars.asMap(node, path, _profileKey);
+    final map = _ConfigScalars.asMap(node, path, kProfile);
     _ConfigScalars.checkKeys(
       map,
       const {_enabledKey, _thresholdMsKey, 'top'},
       path,
-      _profileKey,
+      kProfile,
     );
     final thresholdValue = map[_thresholdMsKey];
     double? thresholdMs;
@@ -187,24 +177,23 @@ class ConfigLoader {
         _thresholdMsKey,
         base.thresholdMs ?? 0,
         path,
-        _profileKey,
+        kProfile,
       );
     }
     final topRaw = map['top'];
     return ProfileConfig(
       enabled: _ConfigScalars.readBool(
-          map, _enabledKey, base.enabled, path, _profileKey),
+          map, _enabledKey, base.enabled, path, kProfile),
       thresholdMs: thresholdMs,
       top: topRaw == null
           ? null
-          : _ConfigScalars.readInt(
-              map, 'top', base.top ?? 20, path, _profileKey),
+          : _ConfigScalars.readInt(map, 'top', base.top ?? 20, path, kProfile),
     );
   }
 
   GatesConfig _readGates(Object? node, GatesConfig base, String path) {
     if (node == null) return base;
-    final map = _ConfigScalars.asMap(node, path, _gatesKey);
+    final map = _ConfigScalars.asMap(node, path, kGatePrefix);
     for (final key in map.keys) {
       if (!knownGates.contains(key)) {
         throw ConfigException(path, '$kGatePrefix.$key', 'unknown gate id');

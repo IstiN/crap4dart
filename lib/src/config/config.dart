@@ -24,7 +24,7 @@ enum GateSeverity {
 
   /// Parses a config string ('error' or 'warning').
   static GateSeverity parse(String value) => switch (value) {
-        'error' => GateSeverity.error,
+        kError => GateSeverity.error,
         'warning' => GateSeverity.warning,
         _ => throw ArgumentError('unknown gate severity "$value"'),
       };

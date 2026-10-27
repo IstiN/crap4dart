@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `scattered_constants` — new `aliases` rule (default on): a private
+  pure value alias (`const _x = kY;`) is flagged as adding a name
+  without information; the message says to reference the shared
+  constant directly. Public declarations (re-export shims) are
+  exempt; `aliases: false` switches the rule off.
 - `folder_structure` — `dirs` entries accept glob patterns
   (`lib/src/*`, `packages/**`) expanding to every matching directory,
   and generated siblings of one source file (`magic.dart` +

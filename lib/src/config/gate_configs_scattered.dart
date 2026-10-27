@@ -20,6 +20,7 @@ class ScatteredGateConfig implements GateConfigFlags {
     this.minValue = 100,
     this.ignore = const [],
     this.exclude = _scatteredExcludeDefaults,
+    this.flagAliases = true,
   });
 
   /// Whether the gate is enabled.
@@ -55,4 +56,11 @@ class ScatteredGateConfig implements GateConfigFlags {
 
   /// Glob patterns excluded from the gate.
   final List<String> exclude;
+
+  /// Whether pure value aliases — `const _x = kY;` declarations whose
+  /// initializer is another constant's identifier — are flagged. A
+  /// private alias adds a name without information; reference the
+  /// shared constant directly. Public declarations are exempt:
+  /// re-export shims are a deliberate API shape.
+  final bool flagAliases;
 }

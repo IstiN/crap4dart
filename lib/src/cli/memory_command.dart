@@ -28,13 +28,13 @@ class MemoryCommand extends Command<int> {
         help: 'How many entries per leaderboard to print.',
       )
       ..addOption(
-        _formatOption,
+        kFormat,
         allowed: [kConsole, kJson],
         defaultsTo: kConsole,
         help: kOutputFormatHelp,
       )
       ..addOption(
-        _badgeOption,
+        kBadge,
         help: 'Write a shields-style SVG badge with the suite churn '
             'to this path (green below, yellow at most twice, red over '
             'the --badge-threshold MB).',
@@ -124,7 +124,7 @@ class MemoryCommand extends Command<int> {
 
   /// Writes the SVG badge when --badge was given.
   void _maybeWriteBadge(MemoryReport report) {
-    final path = argResults![_badgeOption] as String?;
+    final path = argResults![kBadge] as String?;
     if (path == null || path.isEmpty) return;
     final threshold =
         double.tryParse(argResults![_badgeThresholdOption] as String) ?? 500;
@@ -154,7 +154,7 @@ class MemoryCommand extends Command<int> {
   /// Prints the report in the selected format.
   void _printReport(MemoryReport report) {
     final top = int.tryParse(argResults![_topOption] as String) ?? 20;
-    if (argResults![_formatOption] == kJson) {
+    if (argResults![kFormat] == kJson) {
       _printJson(report);
     } else {
       _printConsole(report, top);
@@ -232,7 +232,5 @@ class MemoryCommand extends Command<int> {
 }
 
 const String _topOption = 'top';
-const String _formatOption = kFormat;
 const String _engineOption = 'engine';
-const String _badgeOption = 'badge';
 const String _badgeThresholdOption = 'badge-threshold';

@@ -252,6 +252,10 @@ gates:
     min_files: 3
     min_length: 4
     min_value: 100
+    # Pure value aliases — const _x = kY; — add a name without
+    # information; reference the shared constant directly. Public
+    # declarations (re-export shims) are exempt.
+    aliases: true
     # Literal values never flagged (fast-development repos: generic
     # vocabulary whose extraction adds churn without benefit).
     # Whole literals match by value, prefixes by head, numbers by
@@ -262,7 +266,6 @@ gates:
       - '$kGeneratedGlob'
       - '$kFreezedGlob'
       - '$kMocksGlob'
-      - 'test/**'
       - 'test/**'
   # and substring candidates against existing named constants —
   # partial reuse the whole-value gate cannot see. Findings are

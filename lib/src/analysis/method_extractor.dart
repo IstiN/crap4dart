@@ -1,3 +1,5 @@
+import '../common/constants.dart';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -6,7 +8,7 @@ import 'package:analyzer/source/line_info.dart';
 const String topLevelClassName = '(top-level)';
 
 /// Fallback container name for unnamed extensions.
-const String unnamedExtensionName = 'extension';
+const String unnamedExtensionName = kExtension;
 
 /// A concrete method or top-level function found in a Dart source file.
 class MethodInfo {

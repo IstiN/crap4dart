@@ -87,6 +87,16 @@ gates:
       - '**.freezed.dart'
       - '**.mocks.dart'
       - 'test/**'
+    # The two shared help texts below are declared exactly once (the
+    # kOutputFormatHelp / kDiffBaseHelp initializers in constants.dart),
+    # but dart format wraps the initializer onto the line after the
+    # declaration name — the gate's declaration-site exemption compares
+    # the declaration's line to the literal's line, misses its own
+    # const, and reports it as a duplicate of itself. Exempt the exact
+    # values; no other occurrence of either string exists in the code.
+    ignore:
+      - 'Output format (json writes only JSON to stdout).'
+      - 'Like --diff, but diffs against the given git ref.'
   # File-level near-duplicate detection (crap4dart >=0.15.0): docs
   # corpora rot through copy-paste; this catches new near-copies.
   # Measured on this repo: md corpus clean even at jaccard 0.5 (the

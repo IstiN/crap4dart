@@ -48,7 +48,6 @@ const Map<String, Object?> _initialMetadata = {
 };
 
 /// The VM service message type reporting a failed measurement.
-const String _errorType = 'error';
 
 /// One traced `flutter_tester` spawn: its argv and environment.
 class FlutterTesterSpawn {
@@ -318,7 +317,7 @@ class FlutterSuiteDriver {
       if (msg[0] != 0) continue;
       final body = msg[1] as Map<String, Object?>;
       final type = body['type'] as String?;
-      if (type == _errorType) {
+      if (type == kError) {
         await channel.close();
         return MeasuredFile(
           path: label,
@@ -327,7 +326,7 @@ class FlutterSuiteDriver {
           error: 'suite failed to load: ${body['error']}',
         );
       }
-      if (type == 'success') {
+      if (type == _successResult) {
         tests.addAll(flattenGroup(body['root'] as Map<String, Object?>, ''));
         break;
       }
@@ -522,7 +521,8 @@ class VmServiceClient {
           (event['isolate'] as Map<String, Object?>?)?['name'] as String? ??
               'main',
       seq: seq,
-      startSeconds: ((event['timestamp'] as num?)?.toDouble() ?? 0) / 1000,
+      startSeconds:
+          ((event['timestamp'] as num?)?.toDouble() ?? 0) / millisPerSecond,
       newBeforeMb: 0, // not reported by the service stream
       newAfterMb: mb(newSpace['used']) / 1048576,
       oldBeforeMb: _lastOldAfterMb ?? oldAfter,

@@ -33,7 +33,7 @@ class BannedImportsGate implements Gate {
     final rules = context.config.gates.bannedImports.rules;
     if (rules.isEmpty) {
       return GateResult.pass(
-        'banned_imports',
+        GateIds.bannedImports,
         summary: 'no rules configured',
       );
     }

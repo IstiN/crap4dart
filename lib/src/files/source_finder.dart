@@ -64,7 +64,7 @@ class SourceFinder {
   /// Whether [path] matches any of the [defaultExcludes] patterns.
   static bool isExcluded(String path) {
     final segments = p.split(path);
-    if (segments.contains('.dart_tool')) return true;
+    if (segments.contains(kDartToolDir)) return true;
     final baseName = p.basename(path);
     return baseName.endsWith('.g.dart') ||
         baseName.endsWith('.freezed.dart') ||

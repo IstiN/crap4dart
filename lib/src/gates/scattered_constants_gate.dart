@@ -4,6 +4,7 @@ import 'package:analyzer/source/line_info.dart';
 
 import '../config/config.dart';
 import 'gate.dart';
+import 'gate_ids.dart';
 import 'gate_context.dart';
 import 'literal_locations.dart';
 
@@ -55,7 +56,7 @@ class ScatteredConstantsGate implements Gate {
   const ScatteredConstantsGate();
 
   @override
-  String get id => 'scattered_constants';
+  String get id => GateIds.scatteredConstants;
 
   @override
   Future<GateResult> run(GateContext context) async {
@@ -67,6 +68,7 @@ class ScatteredConstantsGate implements Gate {
     var checked = 0;
     final literals = <String, _ScatteredLiteral>{};
     final constants = <String, List<NamedConstant>>{};
+    final aliases = <_PureAlias>[];
     for (final scanned in context.parsedCorpus(
       config.exclude,
       ignore.pathGlobs,
@@ -74,8 +76,14 @@ class ScatteredConstantsGate implements Gate {
       final parsed = scanned.parsed;
       final relative = scanned.relativePath;
       checked++;
-      parsed.unit
-          .accept(_ConstantCollector(relative, parsed.lineInfo, constants));
+      parsed.unit.accept(_ConstantCollector(
+        relative,
+        parsed.lineInfo,
+        constants,
+        aliases: aliases,
+        minValue: config.minValue,
+        ignoreValues: ignore.values,
+      ));
       final collector = _LiteralCollector(
         parsed.lineInfo,
         minLength: config.minLength,
@@ -93,17 +101,44 @@ class ScatteredConstantsGate implements Gate {
       for (final literal in literals.values)
         ..._violationsFor(literal, config, constants[literal.key]),
     ];
+    final aliasViolations = !config.flagAliases
+        ? const <GateViolation>[]
+        : [
+            for (final alias in aliases)
+              if (alias.name.startsWith('_'))
+                GateViolation(
+                  file: alias.file,
+                  line: alias.line,
+                  message: 'alias `${alias.name}` adds no information — '
+                      'reference `${alias.target}` directly',
+                ),
+          ];
+    final all = [...violations, ...aliasViolations];
     final regressions =
         violations.where((v) => v.message.contains('duplicates')).length;
     final scattered = violations.length - regressions;
-    final summary = violations.isEmpty
+    final summary = all.isEmpty
         ? '$checked files scanned, no literals repeat across files'
         : '$regressions hardcoded re-uses of existing constants, '
-            '$scattered scattered-literal occurrences';
-    return violations.isEmpty
+            '$scattered scattered-literal occurrences'
+            '${aliasViolations.isEmpty ? '' : ', '
+                '${aliasViolations.length} pure aliases'}';
+    return all.isEmpty
         ? GateResult.pass(id, summary: summary)
-        : GateResult.fail(id, violations, summary: summary);
+        : GateResult.fail(id, all, summary: summary);
   }
+}
+
+/// A pure value alias: a const declaration whose initializer is
+/// another constant's identifier — `const _x = kY;`. Only private
+/// declarations are flagged; public re-export shims are deliberate.
+class _PureAlias {
+  const _PureAlias(this.name, this.target, this.file, this.line);
+
+  final String name;
+  final String target;
+  final String file;
+  final int line;
 }
 
 /// Violations for one literal value: constant regressions first (any
@@ -193,11 +228,33 @@ class _Hit {
 /// declarations (top-level, static or instance fields) whose
 /// initializer is a plain string, int or double literal.
 class _ConstantCollector extends RecursiveAstVisitor<void> {
-  _ConstantCollector(this._file, this._lineInfo, this._constants);
+  _ConstantCollector(
+    this._file,
+    this._lineInfo,
+    this._constants, {
+    required List<_PureAlias> aliases,
+    required int minValue,
+    required Set<String> ignoreValues,
+  })  : _aliases = aliases,
+        _minValue = minValue,
+        _ignoreValues = ignoreValues;
 
   final String _file;
   final LineInfo _lineInfo;
   final Map<String, List<NamedConstant>> _constants;
+
+  /// Numbers at or below this magnitude are coincidence — they leave
+  /// the corpus, so small-int constants (exit codes, pixel codes,
+  /// versions) never collide with each other. Mirrors the literal
+  /// side's [ScatteredConstantsConfig.minValue] doctrine.
+  final int _minValue;
+
+  /// Values never flagged are also never corpus entries — an ignored
+  /// value cannot be the canonical twin that flags someone else.
+  final Set<String> _ignoreValues;
+
+  /// Pure value aliases discovered in the same pass.
+  final List<_PureAlias> _aliases;
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
@@ -205,8 +262,16 @@ class _ConstantCollector extends RecursiveAstVisitor<void> {
     final isConst = parent is VariableDeclarationList && parent.isConst;
     final initializer = node.initializer;
     if (isConst && initializer != null) {
+      if (initializer is SimpleIdentifier) {
+        _aliases.add(_PureAlias(
+          node.name.lexeme,
+          initializer.name,
+          _file,
+          _lineInfo.getLocation(node.offset).lineNumber,
+        ));
+      }
       final key = _literalKey(initializer);
-      if (key != null) {
+      if (key != null && !_coincidence(initializer, key)) {
         _constants.putIfAbsent(key, () => []).add(NamedConstant(
               node.name.lexeme,
               _file,
@@ -215,6 +280,25 @@ class _ConstantCollector extends RecursiveAstVisitor<void> {
       }
     }
     super.visitVariableDeclaration(node);
+  }
+
+  /// Whether the initializer is a coincidental value that must not
+  /// seed the corpus: small numbers (see [_minValue]) and values the
+  /// configuration ignores.
+  bool _coincidence(Expression initializer, String key) {
+    if (_numericMagnitude(initializer) case final m? when m <= _minValue) {
+      return true;
+    }
+    return _ignoreValues.contains(key.substring(2));
+  }
+
+  /// The magnitude of a plain numeric literal initializer, or null.
+  static int? _numericMagnitude(Expression initializer) {
+    return switch (initializer) {
+      IntegerLiteral(:final value) => value?.abs(),
+      DoubleLiteral(:final value) => value.abs().toInt(),
+      _ => null,
+    };
   }
 
   /// The canonical literal key of a plain constant initializer, or
@@ -274,22 +358,39 @@ class _LiteralCollector extends RecursiveAstVisitor<void> {
     if (initializer == null) return;
     final string = stringValueOf(initializer);
     if (string != null) {
-      _addString(string, initializer, isConstDecl: true);
+      if (!ignoreValues.contains(string)) {
+        _addString(string, initializer, isConstDecl: true);
+      }
       return;
     }
-    if (initializer is IntegerLiteral) {
-      _addNumber(
-          '${initializer.value}', 'i:${initializer.value}', _line(initializer),
-          isConstDecl: true);
-      return;
-    }
-    if (initializer is DoubleLiteral) {
-      _addNumber(
-          '${initializer.value}', 'd:${initializer.value}', _line(initializer),
-          isConstDecl: true);
-      return;
-    }
+    if (_addNumericConst(initializer)) return;
     initializer.accept(this);
+  }
+
+  /// Collects a numeric const-decl hit when [initializer] is an int
+  /// or double literal. Returns whether the initializer was handled —
+  /// true also means "handled, but skipped" (below [minValue] or
+  /// ignored); only a non-numeric literal returns false.
+  bool _addNumericConst(Expression initializer) {
+    final num magnitude;
+    final String display;
+    final String key;
+    if (initializer is IntegerLiteral) {
+      final value = initializer.value;
+      if (value == null) return true;
+      magnitude = value.abs();
+      display = '$value';
+      key = 'i:$value';
+    } else if (initializer is DoubleLiteral) {
+      magnitude = initializer.value.abs();
+      display = '${initializer.value}';
+      key = 'd:$display';
+    } else {
+      return false;
+    }
+    if (magnitude <= minValue || ignoreValues.contains(display)) return true;
+    _addNumber(display, key, _line(initializer), isConstDecl: true);
+    return true;
   }
 
   @override

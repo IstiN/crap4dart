@@ -5,6 +5,15 @@ part of 'config.dart';
 // project's own duplication gate.
 // ignore_for_file: annotate_overrides
 
+/// The `unary` operator category (deletes a `!` prefix).
+const String mutationCategoryUnary = 'unary';
+
+/// The `boolean` operator category (flips boolean literals).
+const String mutationCategoryBoolean = 'boolean';
+
+/// The `constant` operator category (flips integer literals).
+const String mutationCategoryConstant = 'constant';
+
 /// Operator categories of the `mutation` gate, in stable order. The
 /// `gates.mutation.operators` key accepts any subset of these names;
 /// anything else is a strict config error.
@@ -13,9 +22,9 @@ const List<String> mutationOperatorCategories = [
   'boundary',
   'equality',
   'logical',
-  'boolean',
-  'constant',
-  'unary',
+  mutationCategoryBoolean,
+  mutationCategoryConstant,
+  mutationCategoryUnary,
 ];
 
 /// Performance knobs of the `mutation` gate.

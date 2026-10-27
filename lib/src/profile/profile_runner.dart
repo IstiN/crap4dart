@@ -5,16 +5,11 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+import '../analysis/method_extractor.dart';
 import '../files/flutter_project.dart';
 import 'collector_template.dart';
 import 'source_instrumenter.dart';
 import 'workspace_pubspec.dart';
-
-/// Microseconds per millisecond (unit conversion for reported times).
-const double _microsPerMillisecond = 1000.0;
-
-/// Directories and files the profiler works with.
-const String _dartToolDirName = '.dart_tool';
 
 /// Per-method timing data collected from an instrumented test run.
 class MethodTiming {
@@ -57,13 +52,13 @@ class MethodTiming {
   double get meanMicros => calls > 0 ? totalMicros / calls : 0.0;
 
   /// Total self execution time in milliseconds.
-  double get totalSelfMillis => totalSelfMicros / _microsPerMillisecond;
+  double get totalSelfMillis => totalSelfMicros / microsPerMillisecond;
 
   /// Total execution time in milliseconds.
-  double get totalMillis => totalMicros / _microsPerMillisecond;
+  double get totalMillis => totalMicros / microsPerMillisecond;
 
   /// Mean execution time in microseconds (formatted).
-  double get meanMillis => meanMicros / _microsPerMillisecond;
+  double get meanMillis => meanMicros / microsPerMillisecond;
 }
 
 /// Merged timing result from an instrumented test run.
@@ -287,7 +282,8 @@ class ProfileRunner {
       final stats = entry.value as Map<String, dynamic>;
       final dotIndex = key.indexOf('.');
       timings.add(MethodTiming(
-        className: dotIndex > 0 ? key.substring(0, dotIndex) : '(top-level)',
+        className:
+            dotIndex > 0 ? key.substring(0, dotIndex) : topLevelClassName,
         methodName: dotIndex > 0 ? key.substring(dotIndex + 1) : key,
         calls: stats['calls'] as int? ?? 0,
         totalMicros: stats['totalMicros'] as int? ?? 0,
@@ -359,10 +355,7 @@ class ProfileRunner {
   /// Whether the top-level entry [name] is copied or instrumented instead
   /// of being symlinked into the temporary project.
   bool _isManagedCopy(String name) =>
-      name == 'lib' ||
-      name == 'build' ||
-      name == _dartToolDirName ||
-      name == kTest;
+      name == 'lib' || name == 'build' || name == kDartToolDir || name == kTest;
 
   /// Copies `test/` into [tempDir] — it must contain real files, not
   /// symlinks, because `dart test` resolves `package:` imports relative
@@ -381,8 +374,8 @@ class ProfileRunner {
     Directory tempDir,
     String packageName,
   ) {
-    final dartToolSrc = Directory(p.join(projectRoot, _dartToolDirName));
-    final dartToolDest = Directory(p.join(tempDir.path, _dartToolDirName));
+    final dartToolSrc = Directory(p.join(projectRoot, kDartToolDir));
+    final dartToolDest = Directory(p.join(tempDir.path, kDartToolDir));
     if (dartToolSrc.existsSync()) {
       _copyDartTool(dartToolSrc, dartToolDest, tempDir.path, packageName);
     }

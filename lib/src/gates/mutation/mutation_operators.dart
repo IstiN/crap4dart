@@ -31,9 +31,6 @@ const String _trueLexeme = 'true';
 const String _falseLexeme = 'false';
 const String _zeroLexeme = '0';
 const String _oneLexeme = '1';
-const String _unaryCategory = 'unary';
-const String _booleanCategory = 'boolean';
-const String _constantCategory = 'constant';
 
 /// The declarative operator table, adapted from the unclebob/mutator
 /// research conclusions. Binary rows match `BinaryExpression.operator`
@@ -57,10 +54,10 @@ const List<MutationOperator> mutationOperators = [
   MutationOperator('equality', '!=', '=='),
   MutationOperator('logical', '&&', '||'),
   MutationOperator('logical', '||', '&&'),
-  MutationOperator('boolean', _trueLexeme, _falseLexeme),
-  MutationOperator('boolean', _falseLexeme, _trueLexeme),
-  MutationOperator('constant', _zeroLexeme, _oneLexeme),
-  MutationOperator('constant', _oneLexeme, _zeroLexeme),
+  MutationOperator(mutationCategoryBoolean, _trueLexeme, _falseLexeme),
+  MutationOperator(mutationCategoryBoolean, _falseLexeme, _trueLexeme),
+  MutationOperator(mutationCategoryConstant, _zeroLexeme, _oneLexeme),
+  MutationOperator(mutationCategoryConstant, _oneLexeme, _zeroLexeme),
 ];
 
 /// A single place in a source file where one operator replacement
@@ -163,14 +160,15 @@ class _SiteVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitPrefixExpression(PrefixExpression node) {
     final operator = node.operator.lexeme;
-    if (operator == '!' && _categories.contains(_unaryCategory)) {
+    if (operator == '!' && _categories.contains(mutationCategoryUnary)) {
       // Delete the `!` prefix: the operand stays.
-      _add(_unaryCategory, '!', '', node.operator.offset, 1);
-    } else if (operator == '-' && _categories.contains(_constantCategory)) {
+      _add(mutationCategoryUnary, '!', '', node.operator.offset, 1);
+    } else if (operator == '-' &&
+        _categories.contains(mutationCategoryConstant)) {
       // `-1` becomes `0` (the whole `-1` span is replaced).
       final operand = node.operand;
       if (operand is IntegerLiteral && operand.literal.lexeme == _oneLexeme) {
-        _add(_constantCategory, '-1', _zeroLexeme, node.operator.offset,
+        _add(mutationCategoryConstant, '-1', _zeroLexeme, node.operator.offset,
             operand.end - node.operator.offset);
       }
     }
@@ -179,10 +177,10 @@ class _SiteVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
-    if (!_categories.contains(_booleanCategory)) return;
+    if (!_categories.contains(mutationCategoryBoolean)) return;
     final lexeme = node.literal.lexeme;
     _add(
-        _booleanCategory,
+        mutationCategoryBoolean,
         lexeme,
         lexeme == _trueLexeme ? _falseLexeme : _trueLexeme,
         node.literal.offset,
@@ -191,11 +189,11 @@ class _SiteVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitIntegerLiteral(IntegerLiteral node) {
-    if (!_categories.contains(_constantCategory)) return;
+    if (!_categories.contains(mutationCategoryConstant)) return;
     final lexeme = node.literal.lexeme;
     if (lexeme != _zeroLexeme && lexeme != _oneLexeme) return;
     _add(
-        _constantCategory,
+        mutationCategoryConstant,
         lexeme,
         lexeme == _zeroLexeme ? _oneLexeme : _zeroLexeme,
         node.literal.offset,

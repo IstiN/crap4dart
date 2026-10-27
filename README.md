@@ -602,7 +602,10 @@ gates:
   literal-site rules; short strings (`min_length`) and small numbers
   (`min_value`) are coincidence; an `ignore` list exempts values
   permanently (generic vocabulary) and path-glob entries (`src/**`)
-  exempt whole files. Warning severity by default.
+  exempt whole files. Also flags pure value aliases — private
+  `const _x = kY;` — "reference the constant directly" (`aliases:
+  false` opt-out; public re-export shims are exempt). Warning
+  severity by default.
 - **duplication** — detects exact copy-paste token blocks across Dart
   source files. A block counts when it is at least `min_tokens` tokens
   (default 50) and `min_lines` lines (default 5) long. `report` chooses

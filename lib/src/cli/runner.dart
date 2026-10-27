@@ -56,25 +56,10 @@ Future<String> gitTopLevel(String dir) async {
 
 /// Current crap4dart version.
 const String crap4dartVersion = '0.21.0';
-
-/// Shared CLI flag names used by multiple commands.
-const String _configFlag = kConfig;
-const String _changedFlag = 'changed';
 const String _runTestsFlag = 'run-tests';
-const String _formatFlag = kFormat;
 const String _forceFlag = 'force';
-const String _diffBaseFlag = 'diff-base';
-const String _diffFlag = 'diff';
-const String _stagedFlagName = 'staged';
 
-/// Shared `--format` option values.
-const String _consoleFormat = 'console';
-const String _jsonFormat = 'json';
-
-/// Option names used by a single command family.
-const String _thresholdFlagName = 'threshold';
 const String _lcovFlag = 'lcov';
-const String _configHelp = kConfigHelp;
 
 /// Command-line entry point of crap4dart.
 class Crap4DartRunner {
@@ -153,7 +138,7 @@ mixin CommandHelpers on Command<int> {
     try {
       return const ConfigLoader().load(
         projectRoot,
-        configPath: argResults![_configFlag] as String?,
+        configPath: argResults![kConfig] as String?,
       );
     } on ConfigException catch (e) {
       stderr.writeln(e);
@@ -166,10 +151,10 @@ mixin CommandHelpers on Command<int> {
   Future<ResolvedDiff> resolveDiff(
     String projectRoot,
   ) async {
-    final diffBase = argResults![_diffBaseFlag] as String?;
-    final diffMode = (argResults![_diffFlag] as bool) || diffBase != null;
+    final diffBase = argResults![kDiffBase] as String?;
+    final diffMode = (argResults![kDiff] as bool) || diffBase != null;
     if (!diffMode) return (map: null, base: null, ok: true);
-    final changed = argResults![_changedFlag] as bool;
+    final changed = argResults![kChanged] as bool;
     final staged = stagedFlag;
     if (changed || staged || argResults!.rest.isNotEmpty) {
       throw UsageException(
@@ -189,7 +174,7 @@ mixin CommandHelpers on Command<int> {
   ) async {
     const finder = SourceFinder();
     final paths = argResults!.rest;
-    final changed = argResults![_changedFlag] as bool;
+    final changed = argResults![kChanged] as bool;
     final staged = stagedFlag;
     if (changed && staged) {
       throw UsageException(
@@ -210,8 +195,7 @@ mixin CommandHelpers on Command<int> {
 
   /// Reads the optional `--staged` flag when the command exposes it.
   bool get stagedFlag =>
-      argResults!.options.contains(_stagedFlagName) &&
-      argResults![_stagedFlagName] as bool;
+      argResults!.options.contains(kStaged) && argResults![kStaged] as bool;
 
   /// Finds changed or staged files and keeps only those inside the project
   /// root.
@@ -300,7 +284,7 @@ mixin CommandHelpers on Command<int> {
   /// staged or explicit paths) instead of the full source set.
   bool _isPartialSelection(DiffLineMap? diffMap) =>
       diffMap != null ||
-      argResults![_changedFlag] as bool ||
+      argResults![kChanged] as bool ||
       stagedFlag ||
       argResults!.rest.isNotEmpty;
 }
@@ -311,12 +295,12 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
   AnalyzeCommand({this.projectRoot}) {
     argParser
       ..addFlag(
-        _changedFlag,
+        kChanged,
         negatable: false,
         help: 'Analyze only changed Dart files (git working tree).',
       )
       ..addOption(
-        _thresholdFlagName,
+        kThreshold,
         help: 'Maximum allowed CRAP score (overrides the config value).',
       )
       ..addOption(
@@ -329,26 +313,26 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
         help: 'Run the test suite first to generate coverage.',
       )
       ..addOption(
-        _configFlag,
-        help: _configHelp,
+        kConfig,
+        help: kConfigHelp,
       )
       ..addOption(
-        _formatFlag,
-        allowed: [_consoleFormat, _jsonFormat],
-        defaultsTo: _consoleFormat,
+        kFormat,
+        allowed: [kConsole, kJson],
+        defaultsTo: kConsole,
         help: kOutputFormatHelp,
       )
       ..addFlag(
-        _diffFlag,
+        kDiff,
         negatable: false,
         help: 'Analyze only methods on lines changed since HEAD.',
       )
       ..addOption(
-        _diffBaseFlag,
+        kDiffBase,
         help: kDiffBaseHelp,
       )
       ..addOption(
-        'badge',
+        kBadge,
         help: 'Write an SVG badge with the max CRAP score to this path.',
       );
   }
@@ -436,7 +420,7 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
   }
 
   void _printReport(CrapReport report, double threshold, String? diffBase) {
-    if (argResults![_formatFlag] == _jsonFormat) {
+    if (argResults![kFormat] == kJson) {
       stdout.writeln(
         const JsonReporter().renderAnalyze(
           report,
@@ -457,7 +441,7 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
   /// Writes the SVG badge when `--badge` is given. Always runs — also
   /// when the threshold is exceeded — and never changes the exit code.
   void _writeBadge(CrapReport report, double threshold) {
-    final badgePath = argResults!['badge'] as String?;
+    final badgePath = argResults![kBadge] as String?;
     if (badgePath == null) return;
     final hasNumeric = report.metrics.any((m) => m.crap != null);
     final message = hasNumeric ? report.maxCrap.toStringAsFixed(2) : 'N/A';
@@ -476,10 +460,10 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
   }
 
   double _resolveThreshold(Crap4DartConfig config) {
-    if (!argResults!.wasParsed(_thresholdFlagName)) {
+    if (!argResults!.wasParsed(kThreshold)) {
       return config.crap.threshold;
     }
-    final raw = argResults![_thresholdFlagName] as String;
+    final raw = argResults![kThreshold] as String;
     final value = double.tryParse(raw);
     if (value == null) {
       throw UsageException('Invalid --threshold value: "$raw"', invocation);
@@ -524,36 +508,36 @@ class CheckCommand extends Command<int> with CommandHelpers {
         help: 'Check all Dart files under lib/ and bin/ (default).',
       )
       ..addFlag(
-        _changedFlag,
+        kChanged,
         negatable: false,
         help: 'Check only changed Dart files (git working tree).',
       )
       ..addFlag(
-        _stagedFlagName,
+        kStaged,
         negatable: false,
         help: 'Check only staged Dart files (git index).',
       )
       ..addOption('only', help: 'Run only these gates (comma-separated ids).')
       ..addOption('skip', help: 'Skip these gates (comma-separated ids).')
-      ..addOption(_configFlag, help: kConfigHelp)
+      ..addOption(kConfig, help: kConfigHelp)
       ..addFlag(
         _runTestsFlag,
         negatable: false,
         help: 'Run the test suite first to generate coverage.',
       )
       ..addOption(
-        _formatFlag,
-        allowed: [_consoleFormat, _jsonFormat],
-        defaultsTo: _consoleFormat,
+        kFormat,
+        allowed: [kConsole, kJson],
+        defaultsTo: kConsole,
         help: kOutputFormatHelp,
       )
       ..addFlag(
-        _diffFlag,
+        kDiff,
         negatable: false,
         help: 'Check only lines changed since HEAD (ratchet mode).',
       )
       ..addOption(
-        _diffBaseFlag,
+        kDiffBase,
         help: kDiffBaseHelp,
       )
       ..addFlag(
@@ -636,7 +620,7 @@ class CheckCommand extends Command<int> with CommandHelpers {
   }
 
   void _printResult(GateRunner runner, GateRunResult result) {
-    if (argResults![_formatFlag] == _jsonFormat) {
+    if (argResults![kFormat] == kJson) {
       stdout.writeln(const JsonReporter().renderCheck(result));
     } else {
       stdout.writeln(runner.render(result));
@@ -720,7 +704,7 @@ class InstallCommand extends Command<int> {
         negatable: false,
         help: 'Merge into existing hooks / overwrite existing files.',
       )
-      ..addOption(_configFlag, help: _configHelp);
+      ..addOption(kConfig, help: kConfigHelp);
   }
 
   /// Project root override (default: the current working directory).
@@ -739,7 +723,7 @@ class InstallCommand extends Command<int> {
     try {
       final config = const ConfigLoader().load(
         projectRoot,
-        configPath: argResults![_configFlag] as String?,
+        configPath: argResults![kConfig] as String?,
       );
       final force = argResults![_forceFlag] as bool;
       final hookPath = await const HookInstaller().installHook(

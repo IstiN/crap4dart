@@ -3,6 +3,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../../analysis/dart_parser.dart';
 import '../file_visitor.dart';
+import '../../common/constants.dart';
 import '../gate.dart';
 import '../gate_context.dart';
 import '../gate_ids.dart';
@@ -80,7 +81,7 @@ class _DocsVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     final name = node.name?.lexeme;
-    if (name != null) _checkNamed(node, name, 'extension');
+    if (name != null) _checkNamed(node, name, kExtension);
     node.body.members.accept(this);
   }
 
