@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/line_info.dart';
 
@@ -85,10 +87,13 @@ String reorderSource(String source, {String path = ''}) {
   for (final declaration in unit.declarations) {
     final members = _classMembers(declaration);
     if (members == null || members.isEmpty) continue;
+    final body = _classBody(declaration);
+    if (body == null) continue;
     final reordered = _reorderedSpan(
       members,
       source,
       lineInfo,
+      body,
       declaration.end,
     );
     if (reordered != null) replacements.add(reordered);
@@ -111,44 +116,64 @@ List<ClassMember>? _classMembers(CompilationUnitMember declaration) {
   return null;
 }
 
+/// The offset of a class-like declaration's opening brace, or null
+/// for declarations this tool does not reorder.
+int? _classBody(CompilationUnitMember declaration) {
+  if (declaration is EnumDeclaration) return null;
+  if (declaration is ClassDeclaration) return declaration.body.offset;
+  if (declaration is MixinDeclaration) return declaration.body.offset;
+  if (declaration is ExtensionDeclaration) {
+    return declaration.body.offset;
+  }
+  return null;
+}
+
 /// Computes the reordered body span for one declaration, or null when
 /// the members already follow the canonical order.
 BodyReplacement? _reorderedSpan(
   List<ClassMember> members,
   String source,
   LineInfo lineInfo,
+  int bodyStart,
   int declarationEnd,
 ) {
   final slices = <_MemberSlice>[];
   for (var i = 0; i < members.length; i++) {
     final member = members[i];
     final end = member.endToken.end;
-    final start = _sliceStart(
-        member, source, lineInfo, i == 0 ? null : members[i - 1].endToken.end);
+    final boundary = i == 0 ? bodyStart + 1 : members[i - 1].endToken.end;
+    final start = max(
+      _sliceStart(source, lineInfo, member, boundary),
+      boundary,
+    );
     slices.add(_MemberSlice(MemberOrder.categoryOf(member), i, start, end));
   }
   final sorted = [...slices]..sort((a, b) {
       final byCategory = a.category.compareTo(b.category);
       return byCategory != 0 ? byCategory : a.index.compareTo(b.index);
     });
-  final bodyStart = slices.map((s) => s.start).reduce(_min);
-  final bodyEnd = slices.map((s) => s.end).reduce(_max);
-  final canonical = sorted.map((s) => source.substring(s.start, s.end));
-  final text = canonical.join('\n\n');
-  if (source.substring(bodyStart, bodyEnd) == text) return null;
-  final tail = source.substring(bodyEnd, declarationEnd);
-  return (start: bodyStart, end: declarationEnd, text: text + tail);
+  // Already canonical? Keep the file byte-identical whatever its
+  // member layout looks like (single-line bodies, odd spacing).
+  for (var i = 0; i < sorted.length; i++) {
+    if (sorted[i].index != i) {
+      final separator = source.contains('\r\n') ? '\r\n\r\n' : '\n\n';
+      final spanStart = slices.map((s) => s.start).reduce(min);
+      final bodyEnd = slices.map((s) => s.end).reduce(max);
+      final canonical = sorted.map((s) => source.substring(s.start, s.end));
+      final tail = source.substring(bodyEnd, declarationEnd);
+      return (
+        start: spanStart,
+        end: declarationEnd,
+        text: canonical.join(separator) + tail,
+      );
+    }
+  }
+  return null;
 }
 
-/// The inclusive start offset of a member's slice: its first token
-/// (doc comment and metadata included), extended upward over
-/// whole-line `//` comments attached directly above it.
-int _sliceStart(
-  ClassMember member,
-  String source,
-  LineInfo lineInfo,
-  int? previousEnd,
-) {
+/// The first token offset of a member: declaration start, doc comment
+/// or metadata — whichever comes first.
+int _firstTokenOffset(ClassMember member) {
   var start = member.offset;
   final doc = member.documentationComment;
   if (doc != null && doc.offset < start) start = doc.offset;
@@ -156,15 +181,45 @@ int _sliceStart(
     final meta = member.metadata.first.offset;
     if (meta < start) start = meta;
   }
+  return start;
+}
+
+/// The inclusive start offset of a member's slice: its first token
+/// (doc comment and metadata included), extended upward over
+/// whole-line `//` comments attached directly above it.
+int _sliceStart(
+  String source,
+  LineInfo lineInfo,
+  ClassMember member,
+  int previousBoundary,
+) {
+  final start = _firstTokenOffset(member);
   var line0 = lineInfo.getLocation(start).lineNumber - 1;
   // Never walk above the previous member (or the class opening).
-  final floor0 =
-      previousEnd == null ? 0 : lineInfo.getLocation(previousEnd).lineNumber;
+  final floor0 = lineInfo.getLocation(previousBoundary).lineNumber;
   while (line0 - 1 >= floor0) {
     final offset = lineInfo.getOffsetOfLine(line0 - 1);
     final lineText = source.substring(offset, _lineEnd(source, offset)).trim();
-    if (!lineText.startsWith('//')) break;
-    line0--;
+    if (lineText.startsWith('//')) {
+      line0--;
+      continue;
+    }
+    // A blank line continues the run only when the line above it is a
+    // comment: one blank line between a comment block and its member
+    // keeps them together; two (or a member boundary) detach.
+    if (lineText.isEmpty && line0 - 2 >= floor0) {
+      final above = source
+          .substring(
+            lineInfo.getOffsetOfLine(line0 - 2),
+            _lineEnd(source, lineInfo.getOffsetOfLine(line0 - 2)),
+          )
+          .trim();
+      if (above.startsWith('//')) {
+        line0 -= 2;
+        continue;
+      }
+    }
+    break;
   }
   return lineInfo.getOffsetOfLine(line0);
 }
@@ -173,6 +228,3 @@ int _lineEnd(String source, int from) {
   final newline = source.indexOf('\n', from);
   return newline == -1 ? source.length : newline;
 }
-
-int _min(int a, int b) => a < b ? a : b;
-int _max(int a, int b) => a > b ? a : b;
