@@ -125,22 +125,23 @@ bool _ignoredByLineMarker(
   String gateId,
   GateContext context,
 ) {
-  final onLine = context.line(path, line);
-  if (onLine != null) {
-    if (onLine.contains(ignoreMarker)) return true;
-    if (_parseLine(onLine, ignoreLineRule).matches(gateId)) return true;
-  }
+  if (_lineSuppresses(context.line(path, line), gateId)) return true;
   var i = line - 1;
   while (i >= 1) {
     final above = context.line(path, i);
-    if (above == null) return false;
-    if (above.contains(ignoreMarker)) return true;
-    final scope = _parseLine(above, ignoreLineRule);
-    if (scope.matches(gateId)) return true;
-    if (!_isWholeLineIgnoreMarker(above)) return false;
+    if (_lineSuppresses(above, gateId)) return true;
+    if (above == null || !_isWholeLineIgnoreMarker(above)) return false;
     i--;
   }
   return false;
+}
+
+/// Whether [source] carries any marker that suppresses [gateId] —
+/// the legacy blanket marker or a granular one naming the gate.
+bool _lineSuppresses(String? source, String gateId) {
+  if (source == null) return false;
+  return source.contains(ignoreMarker) ||
+      _parseLine(source, ignoreLineRule).matches(gateId);
 }
 
 /// Whether the line is nothing but an ignore comment — only such
