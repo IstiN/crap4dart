@@ -55,6 +55,7 @@ dart analyze                 # must report "No issues found!"
 dart format .                # apply before committing
 dart run bin/crap4dart.dart check    # self-check (dogfooding) — must pass
 dart run bin/crap4dart.dart analyze  # self CRAP — max must stay <= 8.0
+dart run bin/crap4dart.dart reorder --dry-run  # member order (fix with reorder)
 ```
 
 Coverage-dependent verification (needed before judging `analyze` output):

@@ -26,6 +26,7 @@ import '../report/json_reporter.dart';
 import 'exit_codes.dart';
 import 'goldens_command.dart';
 import 'profile_command.dart';
+import 'reorder_command.dart';
 import 'similarity_command.dart';
 import 'memory_command.dart';
 import 'skill_command.dart';
@@ -89,6 +90,7 @@ class Crap4DartRunner {
       ..addCommand(SkillCommand(projectRoot: projectRoot))
       ..addCommand(GoldensCommand(projectRoot: projectRoot))
       ..addCommand(SimilarityCommand(projectRoot: projectRoot))
+      ..addCommand(ReorderCommand(projectRoot: projectRoot))
       ..addCommand(MemoryCommand(projectRoot: projectRoot))
       ..addCommand(InitCommand(projectRoot: projectRoot))
       ..addCommand(InstallCommand(projectRoot: projectRoot));
