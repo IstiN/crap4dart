@@ -17,6 +17,8 @@ gates:
     ignorable: true
   magic_constants:
     ignorable: true
+  unused_code:
+    ignorable: true
 ''';
 
 Future<Map<String, GateResult>> _run(Map<String, String> files) async {
@@ -38,6 +40,8 @@ Future<Map<String, GateResult>> _run(Map<String, String> files) async {
 GateResult _docs(Map<String, GateResult> results) => results['public_docs']!;
 GateResult _magic(Map<String, GateResult> results) =>
     results['magic_constants']!;
+
+GateResult _unused(Map<String, GateResult> results) => results['unused_code']!;
 
 void main() {
   test('ignore:magic_constants suppresses it but not public_docs', () async {
@@ -73,6 +77,19 @@ void main() {
     });
     expect(_docs(results).passed, isTrue);
     expect(_magic(results).passed, isTrue);
+  });
+
+  test('one ignore on a three-violation line silences only its rule', () async {
+    final results = await _run({
+      'lib/a.dart': 'class Big { int color = 0xFF00FF00; '
+          'void _neverUsed() {} } // ignore:public_docs\n',
+    });
+    expect(_docs(results).passed, isTrue,
+        reason: 'the named rule is suppressed');
+    expect(_magic(results).passed, isFalse,
+        reason: 'the unnamed rule on the same line still fires');
+    expect(_unused(results).passed, isFalse,
+        reason: 'the third rule still fires too');
   });
 
   test('the marker on the line above works', () async {
