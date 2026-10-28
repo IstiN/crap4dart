@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:crap4dart/src/gates/complexity_gate.dart';
+import 'package:crap4dart/src/gates/quality/complexity_gate.dart';
 import 'package:test/test.dart';
 
 import 'gate_test_utils.dart';

@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -10,6 +11,16 @@ import 'exit_codes.dart';
 /// The `goldens` command: golden-testing helpers. Prints the runtime
 /// image-error guard snippet projects copy into their test suites.
 class GoldensCommand extends Command<int> {
+  /// Project root override (default: the current working directory).
+  final String? projectRoot;
+
+  @override
+  final String name = 'goldens';
+
+  @override
+  final String description =
+      'Golden test helpers: generate the runtime image-error guard.';
+
   /// Creates a [GoldensCommand] with an optional [projectRoot]
   /// override (used by in-process invocations and tests).
   GoldensCommand({this.projectRoot}) {
@@ -26,16 +37,6 @@ class GoldensCommand extends Command<int> {
       );
   }
 
-  /// Project root override (default: the current working directory).
-  final String? projectRoot;
-
-  @override
-  final String name = 'goldens';
-
-  @override
-  final String description =
-      'Golden test helpers: generate the runtime image-error guard.';
-
   @override
   String get invocation => 'crap4dart goldens [--print-snippet | --write]';
 
@@ -44,7 +45,7 @@ class GoldensCommand extends Command<int> {
     if (argResults!['write'] as bool) {
       final root = projectRoot ?? Directory.current.path;
       final file = File(
-        p.join(root, 'test', 'goldens_guard.dart'),
+        p.join(root, kTest, 'goldens_guard.dart'),
       );
       if (file.existsSync()) {
         stderr.writeln('${p.relative(file.path, from: root)} already '

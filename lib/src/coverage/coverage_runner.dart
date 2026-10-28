@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -18,16 +19,15 @@ typedef ProcessSpawner = Future<ProcessResult> Function(
 /// dependencies) use `flutter test --coverage`; pure Dart projects use
 /// `dart test --coverage` followed by `coverage:format_coverage`.
 class CoverageRunner {
+  final ProcessSpawner _spawn;
+
   /// Creates a [CoverageRunner].
   ///
   /// [spawn] defaults to [Process.run]; tests inject a fake instead of
   /// running real test suites.
   const CoverageRunner({ProcessSpawner spawn = Process.run}) : _spawn = spawn;
 
-  final ProcessSpawner _spawn;
-
   /// Default LCOV output path, relative to the project root.
-  static const String defaultLcovPath = 'coverage/lcov.info';
 
   /// Runs the tests of the project at [projectRoot] and returns the path to
   /// the generated `lcov.info`, or `null` when coverage could not be
@@ -45,7 +45,7 @@ class CoverageRunner {
   }
 
   Future<String?> _run(String projectRoot) async {
-    final lcovPath = p.join(projectRoot, defaultLcovPath);
+    final lcovPath = p.join(projectRoot, kDefaultLcovPath);
     final isFlutter = isFlutterProject(projectRoot);
     stderr.writeln(
       isFlutter
@@ -53,10 +53,10 @@ class CoverageRunner {
           : 'Running "dart test --coverage"...',
     );
     final testResult = await _spawn(
-      isFlutter ? 'flutter' : 'dart',
+      isFlutter ? kFlutter : kDart,
       isFlutter
-          ? const ['test', '--coverage']
-          : const ['test', '--coverage=coverage'],
+          ? const [kTest, '--coverage']
+          : const [kTest, '--coverage=coverage'],
       workingDirectory: projectRoot,
     );
     if (testResult.exitCode != 0) {
@@ -76,7 +76,7 @@ class CoverageRunner {
   Future<void> _formatCoverage(String projectRoot) async {
     stderr.writeln('Formatting coverage with "coverage:format_coverage"...');
     final result = await _spawn(
-      'dart',
+      kDart,
       const [
         'pub',
         'global',
@@ -84,9 +84,9 @@ class CoverageRunner {
         'coverage:format_coverage',
         '--lcov',
         '--in',
-        'coverage',
+        kCoverage,
         '--out',
-        'coverage/lcov.info',
+        kDefaultLcovPath,
         '--report-on',
         'lib',
       ],

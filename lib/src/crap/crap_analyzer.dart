@@ -11,15 +11,6 @@ import 'crap_score.dart';
 
 /// Full metric set for a single method.
 class MethodMetrics {
-  /// Creates a [MethodMetrics].
-  const MethodMetrics({
-    required this.method,
-    required this.complexity,
-    required this.coverage,
-    required this.branchCoverage,
-    required this.crap,
-  });
-
   /// The analyzed method.
   final MethodInfo method;
 
@@ -34,6 +25,15 @@ class MethodMetrics {
 
   /// CRAP score, or `null` when [coverage] is `null`.
   final double? crap;
+
+  /// Creates a [MethodMetrics].
+  const MethodMetrics({
+    required this.method,
+    required this.complexity,
+    required this.coverage,
+    required this.branchCoverage,
+    required this.crap,
+  });
 }
 
 /// Combines parsing, complexity and coverage into per-method CRAP metrics.

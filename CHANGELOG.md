@@ -1,5 +1,87 @@
 # Changelog
 
+## 0.23.0 — 2026-10-27
+
+- New `string_hazards` gate (warning severity by default): flags string
+  literals whose escaping or pattern usage contradicts the author's
+  almost-certain intent — (1) escaped interpolations (`\$name` /
+  `\${name}` in non-raw strings render literally) flagged only when the
+  same identifier is interpolated elsewhere in the file, (2) raw
+  `RegExp` patterns ending with `\$` (or starting with `\^`) where the
+  end/start anchor was intended, and (3) regex anchors (`^` / unescaped
+  trailing `$`) inside literal `String` patterns of
+  `replaceFirst`/`replaceAll`/`replace*Mapped`/`split`, where they can
+  only match that literal character. Config keys: `enabled`, `severity`,
+  `ignorable`.
+
+## 0.22.0 — 2026-10-27
+
+- New `reorder` command: deterministically rewrites class members into
+  the canonical Dart/Flutter order (constants, static fields, fields,
+  constructors, static methods, getters/setters, public methods,
+  private methods — same-kind members keep their relative order; a
+  stable partition, never alphabetical). Doc comments, annotations and
+  `//` comment blocks directly above a member (even separated by one
+  blank line) move with it; enum bodies are untouched; CRLF files keep
+  their line endings. Idempotent and byte-stable on canonical input —
+  including single-line class bodies and members sharing the header
+  line, which are preserved (and never corrupted) as-is.
+  `--dry-run` lists would-change files and exits 2 for CI/pre-commit
+  use.
+- Ignore comments gain Dart-lint-style granularity alongside the
+  legacy `// crap:ignore` / `// crap:ignore-file` (both unchanged):
+  `// ignore:<gate-id>` suppresses that gate on the line (trailing
+  or stacked above — several markers combine), `// ignore-file:<id>`
+  that gate file-wide. One rule per marker; `// ignore:` with no id
+  means every ignorable gate; unknown ids are inert. The
+  `ignorable: true` opt-in still applies per gate.
+- `scattered_constants` — new `aliases` rule (default on): a private
+  pure value alias (`const _x = kY;`) is flagged as adding a name
+  without information; the message says to reference the shared
+  constant directly. Public declarations (re-export shims) are
+  exempt; `aliases: false` switches the rule off.
+- `folder_structure` — `dirs` entries accept glob patterns
+  (`lib/src/*`, `packages/**`) expanding to every matching directory,
+  and generated siblings of one source file (`magic.dart` +
+  `magic.g.dart` + `magic.freezed.dart`) count as one logical unit;
+  only a directory's own files count (nested directories are the
+  organized form). New optional `config` map with per-pattern caps —
+  `config: {lib/src: 3, 'lib/src/**': 30}` — taking precedence over
+  `dirs`/`max_loose_files`, which stay fully backward compatible.
+
+## 0.21.0 — 2026-10-23
+
+- `scattered_constants` v2: new constant-regression rule — when a
+  named `const` for a value already exists in the corpus, every
+  hardcoded re-introduction flags immediately (any occurrence count),
+  naming the constant and its `file:line`; scattered literals (no
+  constant, `min_files`+ files) keep the extract-and-verify message.
+- `scattered_fragments` gate removed — too noisy in practice; parked
+  on the `feature/scattered-constants-gate` branch (0.20.0) should we
+  return to it.
+
+## 0.19.0 — 2026-10-24
+
+- Flutter memory reports no longer show a misleading `0.0` for
+  reclaimed-new-gen churn: the VM Service GC stream has no reclaimed
+  counters, so `churnNewMb` (per test/suite) and `totalChurnMb` are
+  JSON `null` there, a top-level `churnAvailable` flag says so, and
+  the console prints "new-gen churn unavailable". Use `allocatedMb` /
+  `totalAllocatedMb` (exact allocated bytes) as the churn metric on
+  both engines; `--badge` follows the same rule. Dart-engine output
+  is unchanged (numeric churn, `churnAvailable: true`).
+
+## 0.18.0 — 2026-10-23
+
+- New `record_named_fields` gate: record type annotations with unnamed
+  fields and `.$N` positional accesses are flagged.
+- New `inline_record_types` gate: inline record types in signatures
+  must move behind one named `typedef` declaration.
+- New `record_size` gate: records over `max_fields` (default 5,
+  positional plus named) should be transformed into classes.
+- `PreparedRun` (CLI run preparation) converted from a six-field
+  record typedef to a class — the first `record_size` dogfooding fix.
+
 All notable changes to this project will be documented in this file.
 
 ## Unreleased

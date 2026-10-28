@@ -1,0 +1,182 @@
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+
+import '../../analysis/dart_parser.dart';
+import '../file_visitor.dart';
+import '../../common/constants.dart';
+import '../gate.dart';
+import '../gate_context.dart';
+import '../gate_ids.dart';
+
+/// The `public_docs` gate: requires dartdoc comments on the public API.
+///
+/// Checks public classes, mixins, enums, extension types, named extensions,
+/// top-level functions and variables, and public methods/fields declared
+/// inside them. Members annotated with `@override` and members of private
+/// containers are exempt, as are files matching `gates.public_docs.exclude`
+/// (default: `test/**`).
+class PublicDocsGate implements Gate {
+  /// Creates a [PublicDocsGate].
+  const PublicDocsGate();
+
+  @override
+  String get id => GateIds.publicDocs;
+
+  @override
+  Future<GateResult> run(GateContext context) async {
+    final config = context.config.gates.publicDocs;
+    final (:checked, :violations) = visitGateFiles(
+      context,
+      config.exclude,
+      (relative, parsed) {
+        final visitor = _DocsVisitor(relative, parsed);
+        parsed.unit.accept(visitor);
+        return (checked: visitor.checked, violations: visitor.violations);
+      },
+    );
+    final summary = violations.isEmpty
+        ? '$checked public declarations documented'
+        : '${violations.length}/$checked public declarations missing dartdoc';
+    return violations.isEmpty
+        ? GateResult.pass(id, summary: summary)
+        : GateResult.fail(id, violations, summary: summary);
+  }
+}
+
+class _DocsVisitor extends RecursiveAstVisitor<void> {
+  final String _file;
+
+  final ParsedUnit _parsed;
+
+  final List<GateViolation> violations = [];
+
+  int checked = 0;
+
+  _DocsVisitor(this._file, this._parsed);
+
+  @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    _checkNamed(node, node.namePart.typeName.lexeme, 'class');
+    super.visitClassDeclaration(node);
+  }
+
+  @override
+  void visitMixinDeclaration(MixinDeclaration node) {
+    _checkNamed(node, node.name.lexeme, 'mixin');
+    super.visitMixinDeclaration(node);
+  }
+
+  @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    _checkNamed(node, node.namePart.typeName.lexeme, 'enum');
+    super.visitEnumDeclaration(node);
+  }
+
+  @override
+  // ignore: experimental_member_use
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    // ignore: experimental_member_use
+    _checkNamed(node, node.namePart.typeName.lexeme, 'extension type');
+    // ignore: experimental_member_use
+    super.visitExtensionTypeDeclaration(node);
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    final name = node.name?.lexeme;
+    if (name != null) _checkNamed(node, name, kExtension);
+    node.body.members.accept(this);
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    if (node.parent is CompilationUnit) {
+      _checkNamed(node, node.name.lexeme, 'function');
+    }
+  }
+
+  @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    for (final variable in node.variables.variables) {
+      if (_isPublic(variable.name.lexeme)) {
+        _check(node, variable.name.lexeme, 'variable');
+        break;
+      }
+    }
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    if (_isPublic(node.name.lexeme) &&
+        _enclosingIsPublic(node) &&
+        !_hasOverride(node)) {
+      _check(node, node.name.lexeme, 'method');
+    }
+  }
+
+  @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    if (node.parent is! CompilationUnit &&
+        _enclosingIsPublic(node) &&
+        !_hasOverride(node)) {
+      for (final variable in node.fields.variables) {
+        if (_isPublic(variable.name.lexeme)) {
+          _check(node, variable.name.lexeme, 'field');
+          break;
+        }
+      }
+    }
+  }
+
+  // Constructors are not part of the documented public API surface.
+  @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {}
+
+  bool _isPublic(String name) => !name.startsWith('_');
+
+  // Members of private containers are not public API.
+  bool _enclosingIsPublic(AstNode node) {
+    final clazz = node.thisOrAncestorOfType<ClassDeclaration>();
+    if (clazz != null) return _isPublic(clazz.namePart.typeName.lexeme);
+    final enumDecl = node.thisOrAncestorOfType<EnumDeclaration>();
+    if (enumDecl != null) {
+      return _isPublic(enumDecl.namePart.typeName.lexeme);
+    }
+    final mixinDecl = node.thisOrAncestorOfType<MixinDeclaration>();
+    if (mixinDecl != null) return _isPublic(mixinDecl.name.lexeme);
+    final extType = node.thisOrAncestorOfType<ExtensionTypeDeclaration>();
+    if (extType != null) {
+      return _isPublic(extType.namePart.typeName.lexeme);
+    }
+    final extension = node.thisOrAncestorOfType<ExtensionDeclaration>();
+    if (extension != null) {
+      final name = extension.name?.lexeme;
+      return name != null && _isPublic(name);
+    }
+    return true;
+  }
+
+  bool _hasOverride(AnnotatedNode node) => node.metadata.any(
+        (a) => a.name.name == 'override',
+      );
+
+  void _checkNamed(CompilationUnitMember node, String name, String kind) {
+    if (_isPublic(name)) _check(node, name, kind);
+  }
+
+  void _check(AnnotatedNode node, String name, String kind) {
+    checked++;
+    if (node.documentationComment == null) {
+      final line = _parsed.lineInfo
+          .getLocation(node.firstTokenAfterCommentAndMetadata.offset)
+          .lineNumber;
+      violations.add(
+        GateViolation(
+          file: _file,
+          line: line,
+          message: 'missing dartdoc on $kind "$name"',
+        ),
+      );
+    }
+  }
+}

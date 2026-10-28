@@ -243,6 +243,15 @@ measure every traced `flutter_tester` spawn alongside it:
   the documented cost; spawn trace paths must not contain commas (the
   tool's plain `List.toString()` trace limitation).
 
+Reclaimed-new-gen churn exists only on the Dart engine (`--verbose_gc`
+table); the VM Service GC stream has no reclaimed counters, so on the
+Flutter engine `churnNewMb` (per entry) and `totalChurnMb` are JSON
+`null`, the top-level `churnAvailable` flag is `false`, and the console
+says "new-gen churn unavailable" — never a fake `0.0`. Use
+`allocatedMb` / `totalAllocatedMb` as the allocation-volume metric on
+both engines; the `--badge` value follows the same rule (churn on Dart,
+allocated volume on Flutter).
+
 The command is informational: it exits 0 after a successful run and 1
 on usage errors (no Dart or Flutter test suite found, no tests
 executed).
@@ -500,23 +509,25 @@ threshold check) and `top` (int, default 20).
 ### 10.3 Gate Identifiers
 
 Known gate ids: `loc`, `test_coverage`, `golden`, `hardcoded_strings`,
-`accessibility`, `complexity`, `method_size`, `nesting`,
-`identical_branches`, `class_size`,
+`accessibility`, `complexity`, `method_size`, `nesting`, `class_size`,
 `weight_of_class`, `unused_code`, `unused_files`, `banned_imports`,
 `public_docs`, `duplication`, `file_naming`, `magic_constants`,
 `broken_goldens`, `test_assertions`, `folder_structure`, `external`,
-`mutation`, `similarity`.
+`mutation`, `similarity`, `string_hazards`, `record_named_fields`,
+`inline_record_types`, `record_size`, `scattered_constants`.
 
 ## 11. Quality Gates
 
 Gates shall run in the fixed order: `loc`, `test_coverage`,
-`complexity`, `method_size`, `nesting`, `identical_branches`,
-`class_size`, `duplication`,
+`complexity`, `method_size`, `nesting`, `record_named_fields`,
+`inline_record_types`, `record_size`, `class_size`, `duplication`,
+`scattered_constants`,
 `file_naming`, `magic_constants`, `broken_goldens`, `test_assertions`,
 `folder_structure`, `external`, `unused_code`, `unused_files`,
 `banned_imports`,
 `public_docs`, `hardcoded_strings`, `accessibility`, `golden`,
-`weight_of_class`, `mutation`, `similarity`. A gate disabled in the
+`weight_of_class`, `mutation`, `similarity`, `string_hazards`. A gate
+disabled in the
 config shall
 produce a skipped result. The run shall fail when at least one gate fails;
 skipped gates shall not fail the run.
@@ -531,6 +542,18 @@ line or the line above, and `// crap:ignore-file` within the first 5
 lines of a file, shall suppress violations of a gate only when that
 gate sets `ignorable: true`; by default suppression comments have no
 effect.
+
+Gate-specific markers narrow the suppression to a single gate:
+`// ignore:<id>` on the violation line (trailing) or above it, and
+`// ignore-file:<id>` within the first 5 lines, where `<id>` is a
+gate id (`loc`, `magic_constants`, ...). Dart lint style: one rule
+per marker — multiple rules stack as several markers (`// ignore:
+a` / `// ignore: b` lines directly above the code all apply to it;
+markers may also trail the code line). Markers whose id is empty
+(`// ignore:`) suppress every ignorable gate, matching the legacy
+marker's scope; an id never matches a rule (unknown ids and
+comma-lists are silently inert). The `ignorable: true` opt-in
+requirement applies unchanged.
 
 The `loc`, `complexity` and `method_size` gates accept `entries`: a
 list of `{threshold(s), paths}` overrides where the first entry whose
@@ -583,6 +606,39 @@ block or control-flow statement (`if`, `for`, `while`, `do`, `switch`,
 `try`/`catch`) adds one. An `else if` chain shall stay flat: every
 chained `if` lives at the nesting level of its originating `if`, while
 an `if` inside an `else` block keeps adding a level.
+
+### 11.5.1 record_named_fields
+
+Flags record type annotations that carry unnamed fields — fields
+readable only via `.$N` — in any scanned signature, and any positional
+field access (`.$1`, `.$2`, ...) anywhere in scanned code. A positional
+field with a name (`(int x, int y)`) is named and not flagged; the
+`{...}` group is named by construction. Record values (literals,
+locals, destructuring patterns) are not type annotations and stay
+legal. Record type aliases are the blessed declaration form: their
+internals are not scanned. Config keys: `enabled` (default true),
+`severity` (default `warning`), `ignorable`.
+
+### 11.5.2 inline_record_types
+
+Flags an inline record type annotation in a signature (return type or
+parameter type, including nested in type arguments such as
+`Future<...>`). The fix is one named declaration: declare the shape as
+a `typedef` (or a class when nominal identity is needed) and reference
+it by name. Record type aliases are not scanned; a function-type alias
+(`typedef F = int Function((int, int));`) blesses nothing — the inline
+record inside it is flagged. Config keys: `enabled` (default true),
+`severity` (default `warning`), `ignorable`.
+
+### 11.5.3 record_size
+
+Caps record arity at `max_fields` (default 5): a record type with more
+positional plus named fields than the cap is flagged with the advice
+to transform the record into a class. Both inline signature
+annotations and record type alias declarations are counted; records
+nested inside other types are counted at their own arity. Config
+keys: `enabled` (default true), `severity` (default `warning`),
+`ignorable`, `max_fields` (int, default 5).
 
 ### 11.6 class_size
 
@@ -706,6 +762,61 @@ occurrence is reported. String literals shorter than `min_length`
 Files matching the gate's `exclude` list (default generated files and
 `test/**`) are skipped.
 
+### 11.13.1 scattered_constants
+
+Cross-file aggregation over literal values (the wave-7 gap: a literal
+used once per file in K files is invisible to every per-file gate).
+The gate scans the whole corpus, counts distinct files per literal
+value, and — when the count reaches `min_files` (default 3) — flags
+one violation per occurrence (file plus line, so diff mode, baseline
+and ignore markers work unchanged). Values compare semantically:
+string literals by value, numbers by value (digit separators do not
+split a fact).
+
+Literals never counted: strings shorter than `min_length` (default 4),
+numbers with magnitude at or below `min_value` (default 100 — 0, 1,
+10, 100 happen everywhere), map keys, index expressions and case
+labels (protocol identifiers), import/export/part/part-of URIs, and
+literals inside constant declarations (already extracted). Files
+matching `exclude` (default: `**.g.dart`, `**.freezed.dart`,
+`**.mocks.dart`, `test/**`) are left out of the count entirely.
+
+The gate distinguishes two findings. *Constant regression*: the
+corpus already declares a named `const` with the value — every
+hardcoded re-introduction (bare literal or duplicate local const,
+any occurrence count, including the declaring file) is flagged
+immediately, naming the constant and its `file:line` to reference;
+no `min_files` wait. The first declaration wins when several share a
+value. *Scattered literal*: no constant exists and the value reached
+`min_files` distinct files. Both messages name the scope (files and
+occurrences) and the fix shape; the scattered message ends with the
+verification clause — all occurrences must mean the same thing.
+
+Values listed in `ignore` are never flagged: whole-literal hits by
+value, prefix hits by head, numbers by their decimal form —
+repositories in fast development can exempt generic vocabulary
+(`test`, `dart`, `flutter`) whose extraction adds churn without
+benefit. Entries containing a `/` are file-path globs instead: files
+matching them are exempt entirely (`'src/crypto/**'` for a crypto
+package, `'test/**'` for a fast-moving test tree).
+
+The message asks to extract a shared constant and verify all
+occurrences mean the same thing — the gate highlights, intent stays
+human (the same value is sometimes coincidence).
+
+*Pure alias*: a private `const` whose initializer is another
+constant's identifier — `const _appName = kName;` — is flagged as
+adding a name without information; the message says to reference the
+shared constant directly. Public declarations are exempt (re-export
+shims are a deliberate API shape), and the rule is switchable with
+`aliases` (default true).
+
+Config keys: `enabled` (default true), `severity` (default
+`warning`), `ignorable`, `min_files` (int), `min_length` (int),
+`min_value` (int), `deep_search` (bool), `ignore` (list of strings
+and integers), `exclude` (globs), `aliases` (bool). Unknown keys are
+config errors, as for every gate.
+
 ### 11.14 broken_goldens
 
 Scans golden PNG files under `dirs` (default `test`, recursively) for
@@ -743,11 +854,27 @@ none) are skipped.
 
 ### 11.16 folder_structure
 
-Flags configured `dirs` (default `lib`) containing more than
-`max_loose_files` (default 0) `.dart` files directly — a flat-file
-sprawl that should be organized into feature packages. Only direct
-children count; files in subdirectories are the organized form. Files
-matching `exclude` (default none) are not counted.
+Flags directories containing more than their cap of logical `.dart`
+units directly — a flat-file sprawl that should be organized into
+feature packages. Two configuration shapes:
+
+- **Classic** (default `dirs: lib`, `max_loose_files: 0`): every
+  `dirs` entry — a literal path or a glob pattern (`lib/src/*`,
+  `packages/**`) expanding to every matching directory — shares one
+  cap.
+- **`config`** (optional map): each key is a pattern and each value
+  its own cap — `config: {lib/src: 3, 'lib/src/**': 30}` — a
+  registry folder may hold more than a hot core directory. When
+  present, `config` takes precedence and `dirs`/`max_loose_files`
+  are not consulted. A directory matched by several patterns uses
+  the first pattern's cap.
+
+Counting rules: only a directory's OWN contents count — files in
+subdirectories are the organized form and never reach the parent's
+budget. Generated siblings of one source file collapse into a single
+logical unit — `magic.dart`, `magic.g.dart`, `magic.freezed.dart`
+share the stem `magic` and count once. Files matching `exclude`
+(default none) don't count.
 
 ### 11.17 external
 
@@ -920,38 +1047,57 @@ directories or the config's `dirs`, with `--jaccard`, `--containment`,
 `--min-shingles`, `--include`, `--exclude` overrides and
 `--format console|json`; it is informational and always exits 0.
 
-### 11.24 identical_branches
+### 11.24 The `reorder` command
 
-Fails `if`/`else if` chains that test the same condition twice: the
-repeated condition makes every later branch unreachable (the
-copy-paste-edit bug family).
+`reorder [paths]` shall rewrite each listed Dart file (default: `lib`)
+so that class, mixin and extension members appear in the canonical
+order: constants (`static const`), static fields, instance fields,
+constructors, static methods, getters and setters, public methods,
+private methods. Members within one category shall keep their original
+relative order (a stable partition — the command never sorts
+alphabetically). Doc comments, metadata annotations and whole-line
+`//` comment blocks above a member shall move with it — including a
+block separated from the member by a single blank line; two or more
+blank lines detach the block. Enum bodies shall never be reordered
+(enum value order is semantics). A file's line-ending style (LF or
+CRLF) shall be preserved.
 
-Chains are walked per `if` head; an `if` that is the `else` branch of
-another `if` is a chain link, not a new chain. Only conditions within
-one chain are compared — the same condition in separate `if`
-statements or nested branches is legal, because state may change
-between them. Links with a `case` clause (`if (x case ...)`) are
-excluded: their decision is a pattern match, not a boolean expression.
-`switch` is excluded; the analyzer already flags duplicate switch
-cases.
+The transform shall be deterministic and idempotent: the same input
+shall produce the same output, already-canonical files shall be left
+byte-identical (whatever their member layout — single-line bodies and
+members sharing the header line are preserved as written), and
+reordering an already-reordered file shall not change it. With `--dry-run` the command shall write nothing, list the
+files that would change, and exit 2 when at least one would (0
+otherwise); without it, files are written and the command exits 0.
+Files that fail to parse shall be skipped with a note and shall not
+fail the run.
 
-Conditions compare by canonical form, computed from the unresolved
-AST: token streams are whitespace- and comment-independent;
-parenthesized sub-expressions are unwrapped; operands of commutative
-operators (`==`, `!=`, `&&`, `||`, `+`, `*`, `&`, `|`, `^`) are
-sorted; same-operator nests of the associative-commutative operators
-(`&&`, `||`, `+`, `*`, `&`, `|`, `^`) are flattened. Other operators
-keep their tree shape (`a - (b - c)` never equals `a - b - c`).
-Consequently `a == b`, `b == a` and `(a == b)` all compare equal.
-The canonicalization is intentionally blind to side effects — hence
-the default `severity: warning` (default `enabled: true`). Config
-keys: `enabled`, `severity`, `ignorable` only.
+### 11.25 string_hazards
 
-Violations: one per repeated condition, reported at the line of the
-later occurrence; the message quotes the condition and names the line
-of the first occurrence (so diff mode and baseline filtering work on
-the repeat site). Summary: `N if/else-if chains checked, no duplicate
-conditions` / `M duplicate conditions in if/else-if chains`.
+The `string_hazards` gate shall flag string literal hazards from the
+parsed-unresolved AST. It shall produce three finding kinds:
+
+1. **Escaped interpolation** — inside a non-raw string literal, a `\$`
+   followed by an identifier (optionally brace-enclosed: `\${name}`)
+   renders the literal text `$name`. The gate shall flag such an
+   occurrence only when the same identifier is genuinely interpolated
+   elsewhere in the same file (sibling-interpolation evidence);
+   otherwise the escape is presumed deliberate (shell text, prices).
+2. **Raw regex with an escaped anchor** — a raw string literal passed
+   as the `source` argument of a `RegExp(...)` instance creation that
+   ends with `\$` or starts with `\^`. In a raw string the backslash
+   survives, so the pattern matches a literal dollar/caret where the
+   end/start anchor was almost certainly intended.
+3. **Regex anchors in literal String patterns** — a `String` literal
+   passed as the pattern argument of `replaceFirst`, `replaceFirstMapped`,
+   `replaceAll`, `replaceAllMapped` or `split` (the pattern is matched
+   literally) whose text starts with `^` or ends with an unescaped `$`.
+   For adjacent-string arguments the first part shall be checked for
+   the leading `^` and the last part for the trailing `$`.
+
+Default severity: warning. Default enabled: true. Configurable keys:
+`enabled`, `severity`, `ignorable`. Every violation shall carry the
+file and line of the offending literal.
 
 ## 12. Baseline
 

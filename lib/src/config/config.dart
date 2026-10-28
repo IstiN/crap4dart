@@ -1,7 +1,10 @@
 /// Typed model of the `crap4dart.yaml` configuration file.
 library;
 
+import '../common/constants.dart';
+
 part 'gate_configs.dart';
+part 'gate_configs_scattered.dart';
 part 'gate_configs_naming.dart';
 part 'gate_flags.dart';
 part 'gate_config_mutation.dart';
@@ -21,7 +24,7 @@ enum GateSeverity {
 
   /// Parses a config string ('error' or 'warning').
   static GateSeverity parse(String value) => switch (value) {
-        'error' => GateSeverity.error,
+        kError => GateSeverity.error,
         'warning' => GateSeverity.warning,
         _ => throw ArgumentError('unknown gate severity "$value"'),
       };
@@ -29,16 +32,6 @@ enum GateSeverity {
 
 /// Root configuration of crap4dart.
 class Crap4DartConfig {
-  /// Creates a [Crap4DartConfig].
-  const Crap4DartConfig({
-    this.crap = const CrapConfig(),
-    this.coverage = const CoverageConfig(),
-    this.gates = const GatesConfig(),
-    this.profile = const ProfileConfig(),
-    this.sources = const ['lib', 'bin'],
-    this.exclude = const [],
-  });
-
   /// CRAP analysis settings.
   final CrapConfig crap;
 
@@ -59,20 +52,22 @@ class Crap4DartConfig {
   /// (matched against project-relative paths).
   final List<String> exclude;
 
+  /// Creates a [Crap4DartConfig].
+  const Crap4DartConfig({
+    this.crap = const CrapConfig(),
+    this.coverage = const CoverageConfig(),
+    this.gates = const GatesConfig(),
+    this.profile = const ProfileConfig(),
+    this.sources = const ['lib', 'bin'],
+    this.exclude = const [],
+  });
+
   /// The default configuration used when no config file is present.
   factory Crap4DartConfig.defaults() => const Crap4DartConfig();
 }
 
 /// Settings of the CRAP analysis itself.
 class CrapConfig {
-  /// Creates a [CrapConfig].
-  const CrapConfig({
-    this.enabled = true,
-    this.threshold = 8.0,
-    this.runTests = false,
-    this.countLambdas = true,
-  });
-
   /// Whether CRAP analysis is enabled.
   final bool enabled;
 
@@ -85,18 +80,18 @@ class CrapConfig {
   /// Whether branches inside lambdas count towards the enclosing method's
   /// cyclomatic complexity in CRAP analysis.
   final bool countLambdas;
+
+  /// Creates a [CrapConfig].
+  const CrapConfig({
+    this.enabled = true,
+    this.threshold = 8.0,
+    this.runTests = false,
+    this.countLambdas = true,
+  });
 }
 
 /// Settings describing the coverage input.
 class CoverageConfig {
-  /// Creates a [CoverageConfig].
-  const CoverageConfig({
-    this.lcovPath = 'coverage/lcov.info',
-    this.runTests = true,
-    this.required = true,
-    this.branchCoverage = true,
-  });
-
   /// Path to the LCOV coverage file, relative to the project root.
   final String lcovPath;
 
@@ -110,36 +105,18 @@ class CoverageConfig {
 
   /// Whether branch coverage is reported in addition to line coverage.
   final bool branchCoverage;
+
+  /// Creates a [CoverageConfig].
+  const CoverageConfig({
+    this.lcovPath = kDefaultLcovPath,
+    this.runTests = true,
+    this.required = true,
+    this.branchCoverage = true,
+  });
 }
 
 /// Settings of all quality gates.
 class GatesConfig {
-  /// Creates a [GatesConfig].
-  const GatesConfig({
-    this.loc = const LocGateConfig(),
-    this.testCoverage = const TestCoverageGateConfig(),
-    this.complexity = const ComplexityGateConfig(),
-    this.methodSize = const MethodSizeGateConfig(),
-    this.nesting = const NestingGateConfig(),
-    this.identicalBranches = const IdenticalBranchesGateConfig(),
-    this.classSize = const ClassSizeGateConfig(),
-    this.weightOfClass = const WeightOfClassGateConfig(),
-    this.unusedCode = const UnusedCodeGateConfig(),
-    this.unusedFiles = const UnusedFilesGateConfig(),
-    this.bannedImports = const BannedImportsGateConfig(),
-    this.publicDocs = const PublicDocsGateConfig(),
-    this.duplication = const DuplicationGateConfig(),
-    this.fileNaming = const FileNamingGateConfig(),
-    this.magicConstants = const MagicConstantsGateConfig(),
-    this.brokenGoldens = const BrokenGoldensGateConfig(),
-    this.testAssertions = const TestAssertionsGateConfig(),
-    this.folderStructure = const FolderStructureGateConfig(),
-    this.external = const ExternalGateConfig(),
-    this.mutation = const MutationGateConfig(),
-    this.similarity = const SimilarityGateConfig(),
-    this.flutter = const FlutterGatesConfig(),
-  });
-
   /// File size gate (`loc`).
   final LocGateConfig loc;
 
@@ -155,8 +132,14 @@ class GatesConfig {
   /// Maximum nesting level gate (`nesting`).
   final NestingGateConfig nesting;
 
-  /// Identical branch conditions gate (`identical_branches`).
-  final IdenticalBranchesGateConfig identicalBranches;
+  /// Record named fields gate (`record_named_fields`).
+  final RecordNamedFieldsGateConfig recordNamedFields;
+
+  /// Inline record types gate (`inline_record_types`).
+  final InlineRecordTypesGateConfig inlineRecordTypes;
+
+  /// Record size gate (`record_size`).
+  final RecordSizeGateConfig recordSize;
 
   /// Class size gate (`class_size`).
   final ClassSizeGateConfig classSize;
@@ -185,6 +168,9 @@ class GatesConfig {
   /// Magic constants gate (`magic_constants`).
   final MagicConstantsGateConfig magicConstants;
 
+  /// Scattered constants gate (`scattered_constants`).
+  final ScatteredGateConfig scatteredConstants;
+
   /// Similarity gate (`similarity`).
   final SimilarityGateConfig similarity;
 
@@ -203,8 +189,45 @@ class GatesConfig {
   /// Mutation testing gate (`mutation`).
   final MutationGateConfig mutation;
 
+  /// String literal hazards gate (`string_hazards`).
+  final StringHazardsGateConfig stringHazards;
+
+  /// Identical branch conditions gate (`identical_branches`).
+  final IdenticalBranchesGateConfig identicalBranches;
+
   /// Flutter-specific gates grouped together.
   final FlutterGatesConfig flutter;
+
+  /// Creates a [GatesConfig].
+  const GatesConfig({
+    this.loc = const LocGateConfig(),
+    this.testCoverage = const TestCoverageGateConfig(),
+    this.complexity = const ComplexityGateConfig(),
+    this.methodSize = const MethodSizeGateConfig(),
+    this.nesting = const NestingGateConfig(),
+    this.recordNamedFields = const RecordNamedFieldsGateConfig(),
+    this.inlineRecordTypes = const InlineRecordTypesGateConfig(),
+    this.recordSize = const RecordSizeGateConfig(),
+    this.classSize = const ClassSizeGateConfig(),
+    this.weightOfClass = const WeightOfClassGateConfig(),
+    this.unusedCode = const UnusedCodeGateConfig(),
+    this.unusedFiles = const UnusedFilesGateConfig(),
+    this.bannedImports = const BannedImportsGateConfig(),
+    this.publicDocs = const PublicDocsGateConfig(),
+    this.duplication = const DuplicationGateConfig(),
+    this.fileNaming = const FileNamingGateConfig(),
+    this.magicConstants = const MagicConstantsGateConfig(),
+    this.scatteredConstants = const ScatteredGateConfig(),
+    this.brokenGoldens = const BrokenGoldensGateConfig(),
+    this.testAssertions = const TestAssertionsGateConfig(),
+    this.folderStructure = const FolderStructureGateConfig(),
+    this.external = const ExternalGateConfig(),
+    this.mutation = const MutationGateConfig(),
+    this.similarity = const SimilarityGateConfig(),
+    this.stringHazards = const StringHazardsGateConfig(),
+    this.identicalBranches = const IdenticalBranchesGateConfig(),
+    this.flutter = const FlutterGatesConfig(),
+  });
 
   /// Golden test coverage gate (`golden`).
   GoldenGateConfig get golden => flutter.golden;
@@ -218,13 +241,6 @@ class GatesConfig {
 
 /// Flutter-specific quality gates.
 class FlutterGatesConfig {
-  /// Creates a [FlutterGatesConfig].
-  const FlutterGatesConfig({
-    this.golden = const GoldenGateConfig(),
-    this.hardcodedStrings = const HardcodedStringsGateConfig(),
-    this.accessibility = const AccessibilityGateConfig(),
-  });
-
   /// Golden test coverage gate (`golden`).
   final GoldenGateConfig golden;
 
@@ -233,17 +249,17 @@ class FlutterGatesConfig {
 
   /// Accessibility gate (`accessibility`).
   final AccessibilityGateConfig accessibility;
+
+  /// Creates a [FlutterGatesConfig].
+  const FlutterGatesConfig({
+    this.golden = const GoldenGateConfig(),
+    this.hardcodedStrings = const HardcodedStringsGateConfig(),
+    this.accessibility = const AccessibilityGateConfig(),
+  });
 }
 
 /// CPU profiling settings (`profile` command).
 class ProfileConfig {
-  /// Creates a [ProfileConfig].
-  const ProfileConfig({
-    this.enabled = true,
-    this.thresholdMs,
-    this.top,
-  });
-
   /// Whether profiling is enabled.
   final bool enabled;
 
@@ -254,4 +270,11 @@ class ProfileConfig {
   /// Maximum number of methods shown in the report (sorted by total time),
   /// or `null` to show all methods.
   final int? top;
+
+  /// Creates a [ProfileConfig].
+  const ProfileConfig({
+    this.enabled = true,
+    this.thresholdMs,
+    this.top,
+  });
 }

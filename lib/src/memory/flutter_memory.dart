@@ -19,6 +19,7 @@
 //    test (counts, durations, old-gen growth).
 //
 // Cost: every test file executes twice (the tool's own run plus ours).
+import '../common/constants.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -45,6 +46,8 @@ const Map<String, Object?> _initialMetadata = {
   'forTag': <String, Object?>{},
   'languageVersionComment': null,
 };
+
+/// The VM service message type reporting a failed measurement.
 
 /// One traced `flutter_tester` spawn: its argv and environment.
 class FlutterTesterSpawn {
@@ -182,8 +185,27 @@ class FlutterSuiteDriver {
   /// Sink for progress notes (never stdout).
   final void Function(String line) note;
 
+  int _nextLiveId = 3;
+
   /// Creates a driver.
   FlutterSuiteDriver({required this.note});
+
+  /// Applies one live-channel event: `null` while the test runs, the
+  /// final result string once it completes.
+  static String? _applyTestEvent(Map<String, Object?> body) {
+    switch (body['type'] as String?) {
+      case 'state-change':
+        return body['status'] == 'complete'
+            ? (body['result'] as String? ?? _successResult)
+            : null;
+      case 'error':
+        return 'error';
+      case 'complete':
+        return _successResult;
+      default:
+        return null;
+    }
+  }
 
   /// Runs [spawn] with the VM Service enabled, drives every test, and
   /// returns the measured file.
@@ -314,7 +336,7 @@ class FlutterSuiteDriver {
       if (msg[0] != 0) continue;
       final body = msg[1] as Map<String, Object?>;
       final type = body['type'] as String?;
-      if (type == 'error') {
+      if (type == kError) {
         await channel.close();
         return MeasuredFile(
           path: label,
@@ -323,7 +345,7 @@ class FlutterSuiteDriver {
           error: 'suite failed to load: ${body['error']}',
         );
       }
-      if (type == 'success') {
+      if (type == _successResult) {
         tests.addAll(flattenGroup(body['root'] as Map<String, Object?>, ''));
         break;
       }
@@ -399,25 +421,6 @@ class FlutterSuiteDriver {
     }
     return entry;
   }
-
-  /// Applies one live-channel event: `null` while the test runs, the
-  /// final result string once it completes.
-  static String? _applyTestEvent(Map<String, Object?> body) {
-    switch (body['type'] as String?) {
-      case 'state-change':
-        return body['status'] == 'complete'
-            ? (body['result'] as String? ?? _successResult)
-            : null;
-      case 'error':
-        return 'error';
-      case 'complete':
-        return _successResult;
-      default:
-        return null;
-    }
-  }
-
-  int _nextLiveId = 3;
 }
 
 /// A minimal VM Service JSON-RPC client for the measured copy:
@@ -425,9 +428,19 @@ class FlutterSuiteDriver {
 /// collector by arrival (the running test owns whatever arrives).
 class VmServiceClient {
   final WebSocket _socket;
+
   final _pending = <int, Completer<Map<String, Object?>>>{};
+
   final void Function(GcEvent?) _gcSink;
+
   int _nextId = 1;
+
+  // The service uses opaque string ids like `isolates/123`.
+  String? _isolateIdRaw;
+
+  /// Old-gen used after the previous service event (per connection,
+  /// i.e. per measured isolate); chains `oldBefore` across events.
+  double? _lastOldAfterMb;
 
   VmServiceClient._(this._socket, this._gcSink) {
     _socket.listen((data) {
@@ -460,26 +473,6 @@ class VmServiceClient {
     return client;
   }
 
-  /// The root isolate registers with the service some time AFTER the
-  /// engine prints its URI (the listener connects, then loads) — poll
-  /// until it lists.
-  Future<void> _resolveIsolate() async {
-    for (var attempt = 0; attempt < 150; attempt++) {
-      final vm = await rpc('getVM', const {});
-      final isolates =
-          (vm['result'] as Map<String, Object?>)['isolates'] as List<Object?>?;
-      final id = (isolates?.first as Map<String, Object?>?)?['id']?.toString();
-      if (id != null) {
-        _isolateIdRaw = id;
-        return;
-      }
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    }
-  }
-
-  // The service uses opaque string ids like `isolates/123`.
-  String? _isolateIdRaw;
-
   /// One JSON-RPC call.
   Future<Map<String, Object?>> rpc(
     String method,
@@ -496,36 +489,6 @@ class VmServiceClient {
     }));
     return completer.future.timeout(const Duration(seconds: 30),
         onTimeout: () => throw TimeoutException('vm rpc $method'));
-  }
-
-  /// Old-gen used after the previous service event (per connection,
-  /// i.e. per measured isolate); chains `oldBefore` across events.
-  double? _lastOldAfterMb;
-
-  /// Maps a service GC event onto a [GcEvent] (old-gen before chains
-  /// from the previous event; new-gen reclaimed is not reported by the
-  /// service, so allocation volume comes from the profile instead).
-  GcEvent? _gcEventOf(Map<String, Object?> event) {
-    final newSpace = event['new'] as Map<String, Object?>?;
-    final oldSpace = event['old'] as Map<String, Object?>?;
-    if (newSpace == null || oldSpace == null) return null;
-    final seq = ((newSpace['collections'] as num?)?.toInt() ?? 0) +
-        ((oldSpace['collections'] as num?)?.toInt() ?? 0);
-    double mb(Object? value) => (value as num?)?.toDouble() ?? 0;
-    final oldAfter = mb(oldSpace['used']) / 1048576;
-    final chained = GcEvent(
-      isolate:
-          (event['isolate'] as Map<String, Object?>?)?['name'] as String? ??
-              'main',
-      seq: seq,
-      startSeconds: ((event['timestamp'] as num?)?.toDouble() ?? 0) / 1000,
-      newBeforeMb: 0, // not reported by the service stream
-      newAfterMb: mb(newSpace['used']) / 1048576,
-      oldBeforeMb: _lastOldAfterMb ?? oldAfter,
-      oldAfterMb: oldAfter,
-    );
-    _lastOldAfterMb = oldAfter;
-    return chained;
   }
 
   /// Bytes allocated since the last reset (whole isolate).
@@ -556,14 +519,6 @@ class VmServiceClient {
     });
   }
 
-  /// The isolate id, re-resolving if the first attempt raced the
-  /// isolate registration.
-  Future<String?> _isolate() async {
-    if (_isolateIdRaw != null) return _isolateIdRaw;
-    await _resolveIsolate();
-    return _isolateIdRaw;
-  }
-
   /// Closes the service socket.
   Future<void> close() async {
     try {
@@ -572,6 +527,58 @@ class VmServiceClient {
       // best effort
     }
     await _socket.close();
+  }
+
+  /// The root isolate registers with the service some time AFTER the
+  /// engine prints its URI (the listener connects, then loads) — poll
+  /// until it lists.
+  Future<void> _resolveIsolate() async {
+    for (var attempt = 0; attempt < 150; attempt++) {
+      final vm = await rpc('getVM', const {});
+      final isolates =
+          (vm['result'] as Map<String, Object?>)['isolates'] as List<Object?>?;
+      final id = (isolates?.first as Map<String, Object?>?)?['id']?.toString();
+      if (id != null) {
+        _isolateIdRaw = id;
+        return;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    }
+  }
+
+  /// Maps a service GC event onto a [GcEvent] (old-gen before chains
+  /// from the previous event; new-gen reclaimed is not reported by the
+  /// service, so allocation volume comes from the profile instead).
+  GcEvent? _gcEventOf(Map<String, Object?> event) {
+    final newSpace = event['new'] as Map<String, Object?>?;
+    final oldSpace = event['old'] as Map<String, Object?>?;
+    if (newSpace == null || oldSpace == null) return null;
+    final seq = ((newSpace['collections'] as num?)?.toInt() ?? 0) +
+        ((oldSpace['collections'] as num?)?.toInt() ?? 0);
+    double mb(Object? value) => (value as num?)?.toDouble() ?? 0;
+    final oldAfter = mb(oldSpace['used']) / 1048576;
+    final chained = GcEvent(
+      isolate:
+          (event['isolate'] as Map<String, Object?>?)?['name'] as String? ??
+              'main',
+      seq: seq,
+      startSeconds:
+          ((event['timestamp'] as num?)?.toDouble() ?? 0) / millisPerSecond,
+      newBeforeMb: 0, // not reported by the service stream
+      newAfterMb: mb(newSpace['used']) / 1048576,
+      oldBeforeMb: _lastOldAfterMb ?? oldAfter,
+      oldAfterMb: oldAfter,
+    );
+    _lastOldAfterMb = oldAfter;
+    return chained;
+  }
+
+  /// The isolate id, re-resolving if the first attempt raced the
+  /// isolate registration.
+  Future<String?> _isolate() async {
+    if (_isolateIdRaw != null) return _isolateIdRaw;
+    await _resolveIsolate();
+    return _isolateIdRaw;
   }
 }
 
@@ -622,12 +629,12 @@ Future<MemoryReport> runFlutterMemory(
 
   /// Overrides the tool argv (tests inject a fake `flutter` tool).
   List<String> toolArgs = const [
-    'test',
+    kTest,
     '--verbose',
     '--no-pub',
     '-j1',
     '-r',
-    'json'
+    kJson
   ],
 }) async {
   final flutter = flutterBinary ?? _defaultFlutterBinary();
@@ -723,7 +730,7 @@ File _snapshotDill(
 /// `$FLUTTER_ROOT/bin/flutter` when set, else `flutter` on PATH.
 String _defaultFlutterBinary() {
   final root = Platform.environment['FLUTTER_ROOT'];
-  return root == null ? 'flutter' : '$root/bin/flutter';
+  return root == null ? kFlutter : '$root/bin/flutter';
 }
 
 /// The `path` of a package:test json `suite` event line, or `null`.
@@ -765,6 +772,7 @@ MemoryReport _aggregate(String projectRoot, List<MeasuredFile> files) {
     totalGcs: all,
     suites: suites,
     tests: tests,
+    churnAvailable: false,
     unattributedGcs: [
       for (final file in files)
         if (file.error != null) ...file.loadingRows,

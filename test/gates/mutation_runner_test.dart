@@ -1,17 +1,19 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:crap4dart/src/gates/mutation_engine.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_engine.dart';
 import 'package:test/test.dart';
 
 /// A [Process] double with a programmable exit code; [hang] models a
 /// test suite that never finishes.
 class FakeProcess implements Process {
-  FakeProcess({this.exitCodeValue = 0, this.hang = false});
-
   final int exitCodeValue;
+
   final bool hang;
+
   var killed = false;
+
+  FakeProcess({this.exitCodeValue = 0, this.hang = false});
 
   @override
   int get pid => 0;

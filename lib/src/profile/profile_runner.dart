@@ -1,35 +1,18 @@
+import '../common/constants.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+import '../analysis/method_extractor.dart';
 import '../files/flutter_project.dart';
 import 'collector_template.dart';
 import 'source_instrumenter.dart';
 import 'workspace_pubspec.dart';
 
-/// Microseconds per millisecond (unit conversion for reported times).
-const double _microsPerMillisecond = 1000.0;
-
-/// Directories and files the profiler works with.
-const String _testDirName = 'test';
-const String _pubspecFileName = 'pubspec.yaml';
-const String _dartToolDirName = '.dart_tool';
-
 /// Per-method timing data collected from an instrumented test run.
 class MethodTiming {
-  /// Creates a [MethodTiming].
-  const MethodTiming({
-    required this.className,
-    required this.methodName,
-    required this.calls,
-    required this.totalMicros,
-    this.totalSelfMicros = 0,
-    required this.minMicros,
-    required this.maxMicros,
-  });
-
   /// Owning class name (or `(top-level)`).
   final String className;
 
@@ -54,26 +37,37 @@ class MethodTiming {
   /// Maximum single-call time in microseconds.
   final int maxMicros;
 
+  /// Creates a [MethodTiming].
+  const MethodTiming({
+    required this.className,
+    required this.methodName,
+    required this.calls,
+    required this.totalMicros,
+    this.totalSelfMicros = 0,
+    required this.minMicros,
+    required this.maxMicros,
+  });
+
   /// Mean execution time in microseconds.
   double get meanMicros => calls > 0 ? totalMicros / calls : 0.0;
 
   /// Total self execution time in milliseconds.
-  double get totalSelfMillis => totalSelfMicros / _microsPerMillisecond;
+  double get totalSelfMillis => totalSelfMicros / microsPerMillisecond;
 
   /// Total execution time in milliseconds.
-  double get totalMillis => totalMicros / _microsPerMillisecond;
+  double get totalMillis => totalMicros / microsPerMillisecond;
 
   /// Mean execution time in microseconds (formatted).
-  double get meanMillis => meanMicros / _microsPerMillisecond;
+  double get meanMillis => meanMicros / microsPerMillisecond;
 }
 
 /// Merged timing result from an instrumented test run.
 class ProfileResult {
-  /// Creates a [ProfileResult].
-  const ProfileResult({required this.timings});
-
   /// Per-method timing data, sorted by total time descending.
   final List<MethodTiming> timings;
+
+  /// Creates a [ProfileResult].
+  const ProfileResult({required this.timings});
 }
 
 /// Signature of a process run — matches [Process.run] so tests can inject
@@ -87,14 +81,6 @@ typedef ProcessRunner = Future<ProcessResult> Function(
 
 /// Test selection options forwarded to `dart test` / `flutter test`.
 class TestFilter {
-  /// Creates a [TestFilter].
-  const TestFilter({
-    this.name,
-    this.tags,
-    this.excludeTags,
-    this.paths = const [],
-  });
-
   /// Run only tests whose name matches this substring or regex.
   final String? name;
 
@@ -106,6 +92,14 @@ class TestFilter {
 
   /// Explicit test file/directory paths.
   final List<String> paths;
+
+  /// Creates a [TestFilter].
+  const TestFilter({
+    this.name,
+    this.tags,
+    this.excludeTags,
+    this.paths = const [],
+  });
 }
 
 /// Runs the project's test suite against instrumented source code and
@@ -115,13 +109,13 @@ class TestFilter {
 /// in a `Stopwatch`-based `try/finally` block. Tests are run normally; the
 /// collector accumulates timing data and writes it to a JSON file.
 class ProfileRunner {
+  final ProcessRunner _runner;
+
   /// Creates a [ProfileRunner].
   ///
   /// [runner] defaults to [Process.run]; tests inject a fake.
   const ProfileRunner({ProcessRunner? runner})
       : _runner = runner ?? Process.run;
-
-  final ProcessRunner _runner;
 
   /// Runs the tests of the project at [projectRoot] under instrumentation
   /// and returns the timing result, or `null` on failure.
@@ -189,7 +183,7 @@ class ProfileRunner {
     File outputFile,
   ) {
     return _runner(
-      isFlutterProject(projectRoot) ? 'flutter' : 'dart',
+      isFlutterProject(projectRoot) ? kFlutter : kDart,
       testArgs,
       workingDirectory: tempDir.path,
       environment: {
@@ -220,7 +214,7 @@ class ProfileRunner {
     // selector as requested, or it profiles the WHOLE suite in addition to
     // the given files.
     final args = <String>[
-      'test',
+      kTest,
       if (!isFlutter) ...<String>['--compiler', 'source'],
     ];
 
@@ -288,7 +282,8 @@ class ProfileRunner {
       final stats = entry.value as Map<String, dynamic>;
       final dotIndex = key.indexOf('.');
       timings.add(MethodTiming(
-        className: dotIndex > 0 ? key.substring(0, dotIndex) : '(top-level)',
+        className:
+            dotIndex > 0 ? key.substring(0, dotIndex) : topLevelClassName,
         methodName: dotIndex > 0 ? key.substring(dotIndex + 1) : key,
         calls: stats['calls'] as int? ?? 0,
         totalMicros: stats['totalMicros'] as int? ?? 0,
@@ -347,7 +342,7 @@ class ProfileRunner {
     for (final entity in Directory(projectRoot).listSync()) {
       final name = p.basename(entity.path);
       if (_isManagedCopy(name)) continue;
-      if (skipPubspec && name == _pubspecFileName) continue;
+      if (skipPubspec && name == kPubspec) continue;
       final target = p.join(tempDir.path, name);
       try {
         Link(target).createSync(entity.path, recursive: false);
@@ -360,18 +355,15 @@ class ProfileRunner {
   /// Whether the top-level entry [name] is copied or instrumented instead
   /// of being symlinked into the temporary project.
   bool _isManagedCopy(String name) =>
-      name == 'lib' ||
-      name == 'build' ||
-      name == _dartToolDirName ||
-      name == _testDirName;
+      name == 'lib' || name == 'build' || name == kDartToolDir || name == kTest;
 
   /// Copies `test/` into [tempDir] — it must contain real files, not
   /// symlinks, because `dart test` resolves `package:` imports relative
   /// to the test file's real path, not to the working directory.
   void _copyTestDir(String projectRoot, Directory tempDir) {
-    final testDir = Directory(p.join(projectRoot, _testDirName));
+    final testDir = Directory(p.join(projectRoot, kTest));
     if (testDir.existsSync()) {
-      _copyPath(testDir.path, p.join(tempDir.path, _testDirName));
+      _copyPath(testDir.path, p.join(tempDir.path, kTest));
     }
   }
 
@@ -382,8 +374,8 @@ class ProfileRunner {
     Directory tempDir,
     String packageName,
   ) {
-    final dartToolSrc = Directory(p.join(projectRoot, _dartToolDirName));
-    final dartToolDest = Directory(p.join(tempDir.path, _dartToolDirName));
+    final dartToolSrc = Directory(p.join(projectRoot, kDartToolDir));
+    final dartToolDest = Directory(p.join(tempDir.path, kDartToolDir));
     if (dartToolSrc.existsSync()) {
       _copyDartTool(dartToolSrc, dartToolDest, tempDir.path, packageName);
     }
@@ -429,7 +421,7 @@ class ProfileRunner {
       if (entity is Directory) {
         Directory(destPath).createSync(recursive: true);
         _instrumentDir(entity, Directory(destPath), instrumenter, projectRoot);
-      } else if (entity is File && entity.path.endsWith('.dart')) {
+      } else if (entity is File && entity.path.endsWith(kDartExtension)) {
         final source = entity.readAsStringSync();
         final instrumented =
             instrumenter.instrument(source, filePath: relative);
@@ -498,10 +490,10 @@ class ProfileRunner {
 
   /// Reads the package name from `pubspec.yaml`.
   String? _readPackageName(String root) {
-    final pubspec = File(p.join(root, _pubspecFileName));
+    final pubspec = File(p.join(root, kPubspec));
     if (!pubspec.existsSync()) return null;
     final match = RegExp(
-      r'^name:\s*(.+)$',
+      kPubspecNamePattern,
       multiLine: true,
     ).firstMatch(pubspec.readAsStringSync());
     return match?.group(1)?.trim();
@@ -511,7 +503,7 @@ class ProfileRunner {
   /// the package is a workspace member whose resolution lives in a parent
   /// workspace pubspec that does not list the profiling temp dir.
   bool _isWorkspaceMember(String root) {
-    final pubspec = File(p.join(root, _pubspecFileName));
+    final pubspec = File(p.join(root, kPubspec));
     if (!pubspec.existsSync()) return false;
     return RegExp(
       r'^resolution:\s*workspace\s*$',
@@ -524,7 +516,7 @@ class ProfileRunner {
   /// temp dir needs its own resolution before the tests can run.
   Future<bool> _runPubGet(String projectRoot, Directory tempDir) async {
     final result = await _runner(
-      isFlutterProject(projectRoot) ? 'flutter' : 'dart',
+      isFlutterProject(projectRoot) ? kFlutter : kDart,
       ['pub', 'get'],
       workingDirectory: tempDir.path,
     );

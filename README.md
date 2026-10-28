@@ -29,13 +29,14 @@ crap4dart is a Dart port of the Java tool
 ## Features
 
 - **CRAP analysis** per method, combining complexity and LCOV coverage
-- **24 quality gates**: `loc`, `test_coverage`, `golden`,
+- **28 quality gates**: `loc`, `test_coverage`, `golden`,
   `hardcoded_strings`, `accessibility`, `complexity`, `method_size`,
-  `nesting`, `identical_branches`, `class_size`, `weight_of_class`,
-  `unused_code`,
+  `nesting`, `record_named_fields`, `inline_record_types`,
+  `record_size`, `class_size`, `weight_of_class`, `unused_code`,
   `unused_files`, `banned_imports`, `public_docs`, `duplication`,
-  `file_naming`, `magic_constants`, `broken_goldens`, `test_assertions`,
-  `folder_structure`, `external`, `mutation`, `similarity`
+  `file_naming`, `magic_constants`, `scattered_constants`, `broken_goldens`,
+  `test_assertions`, `folder_structure`, `external`, `mutation`,
+  `similarity`, `string_hazards`
 - **Gate framework**: per-path thresholds (`entries`), warning
   severity, baseline mode, opt-in ignore markers
 - **Configuration** via `crap4dart.yaml` with strict validation
@@ -195,6 +196,10 @@ old generation without freeing it (leak suspects).
   remote protocol, and measured through the VM's allocation profile —
   per-test ALLOCATED bytes exactly, plus GC events and old-gen growth.
   Every file executes twice (the tool's run plus the measured copy).
+  The VM stream has no reclaimed-new-gen counters, so there
+  `churnNewMb`/`totalChurnMb` are JSON `null` (plus
+  `churnAvailable: false`) — use `allocatedMb`/`totalAllocatedMb` as
+  the churn metric on both engines; badges follow the same rule.
 
 ```sh
 crap4dart memory                  # run the suite, print both leaderboards
@@ -225,6 +230,28 @@ crap4dart similarity --min-shingles 30        # smaller files are skipped
 crap4dart similarity --include '**/*.md' --include '**/*.dart'
 crap4dart similarity --format json            # machine-readable clusters
 ```
+
+### `reorder`
+
+`crap4dart reorder [paths]` rewrites Dart files so class members follow
+the canonical Dart/Flutter order: `static const` constants, static
+fields, instance fields, constructors, static methods, getters and
+setters, public methods, private methods. Members of the same category
+keep their relative order — it is a stable partition, never an
+alphabetical sort.
+
+```sh
+crap4dart reorder              # reorder everything under lib/
+crap4dart reorder test/lib/    # explicit paths
+crap4dart reorder --dry-run    # list files that would change; exit 2 if any
+```
+
+The transform is deterministic: the same input always produces the same
+output, already-canonical files are left byte-identical, and running it
+twice changes nothing. Doc comments, annotations and directly-preceding
+`//` notes move with their member; enum bodies are never touched (value
+order is semantics). `--dry-run` is the CI/pre-commit form: it exits 2
+when any file would change.
 
 The `similarity` **gate** (in `check`) turns this into CI enforcement:
 one violation per clustered file, baseline-compatible so existing
@@ -346,6 +373,12 @@ gates:
     enabled: true
     # Widget types that must provide a semantics label.
     require_label_for: [IconButton, Image, GestureDetector, InkWell]
+  # String literal hazards: escaped interpolations rendering literally,
+  # raw RegExp patterns with an escaped anchor, and regex anchors in
+  # literal String patterns of replaceFirst/replaceAll/split.
+  string_hazards:
+    enabled: true
+    severity: warning
   # Limit cyclomatic complexity per method.
   complexity:
     enabled: true
@@ -501,7 +534,10 @@ gate also accepts two framework keys:
   (marked `[WARN]`) but does not fail the run. Useful for adopting a
   gate on a legacy codebase.
 - `ignorable: true` — opts this gate into `// crap:ignore` line
-  comments and `// crap:ignore-file` file markers. **Off by default**:
+  comments and `// crap:ignore-file` file markers, plus the
+  gate-specific `// ignore:<id>` and `// ignore-file:<id>` (one rule
+  per marker, stacked markers combine; empty id = everything).
+  **Off by default**:
   suppression is never allowed unless you explicitly enable it.
 
 `loc`, `complexity` and `method_size` support per-path threshold
@@ -555,16 +591,22 @@ gates:
   flat (a chained `if` keeps its originating `if`'s level), while an
   `if` inside an `else` block keeps adding levels. Catches complexity
   dodging via deeply nested early-return chains.
-- **identical_branches** — fails `if`/`else if` chains that test the
-  same condition twice: every later branch is unreachable, the classic
-  copy-paste-edit bug. Comparison is whitespace-, parenthesis- and
-  reorder-insensitive for commutative operators (`a == b` matches
-  `b == a`, `a && b` matches `b && a`), so formatting cannot hide a
-  duplicate. Only conditions of one chain are compared — the same
-  condition in separate `if` statements or nested branches is legal
-  (state may change between them); `switch` is excluded (the analyzer
-  already flags duplicate cases). Warning severity by default:
-  reordered operands are only equivalent when side-effect free.
+- **record_named_fields** — flags record type annotations with unnamed
+  fields (`(int, int)`) and `.$N` positional field accesses anywhere;
+  both are the fingerprint of undocumented shapes. Name the fields
+  (`({int x, int y})`), destructure, or use a class. Record values
+  (literals, destructuring patterns) stay legal; record type aliases
+  are not scanned. Warning severity by default.
+- **inline_record_types** — flags inline record type annotations in
+  signatures (return types, parameters, nested in type arguments):
+  consumers should reference one named declaration, not diff shapes
+  field-by-field. Declare a `typedef` (or a class when nominal
+  identity is needed). A function-type typedef blesses nothing.
+  Warning severity by default.
+- **record_size** — caps record arity: a record type (inline or
+  typedef) with more than `max_fields` (default 5, positional plus
+  named) fields should be transformed into a class. Warning severity
+  by default.
 - **class_size** — fails classes with more than `max_methods` (default
   25) concrete methods or a weighted-methods sum (WMC, total cyclomatic
   complexity of all methods) above `max_wmc` (default 80). Catches
@@ -574,6 +616,27 @@ gates:
   fields to public instance members exceeds `max_weight` (default 0.33):
   classes revealing more data than behavior. Disabled by default —
   data/model classes are legitimate.
+- **scattered_constants** — two finding kinds on whole literal
+  values. *Constant regression*: a named `const` for the value
+  already exists anywhere in the corpus — every hardcoded
+  re-introduction (a bare literal or a duplicate local const, even a
+  single occurrence in the declaring file) is flagged immediately,
+  naming the constant and its declaration site to reference. The
+  fact has a home; you do not get to re-hardcode it while the gate
+  waits for `min_files` again. *Scattered literal*: no constant
+  exists yet and the value appears in `min_files`+ distinct files —
+  the classic "change `86400` in every service" hazard; the message
+  asks to extract one shared constant and *verify* all occurrences
+  mean the same thing first (the same value is sometimes
+  coincidence). Expressions, case labels, directive URIs and
+  literals inside constant declarations follow the shared
+  literal-site rules; short strings (`min_length`) and small numbers
+  (`min_value`) are coincidence; an `ignore` list exempts values
+  permanently (generic vocabulary) and path-glob entries (`src/**`)
+  exempt whole files. Also flags pure value aliases — private
+  `const _x = kY;` — "reference the constant directly" (`aliases:
+  false` opt-out; public re-export shims are exempt). Warning
+  severity by default.
 - **duplication** — detects exact copy-paste token blocks across Dart
   source files. A block counts when it is at least `min_tokens` tokens
   (default 50) and `min_lines` lines (default 5) long. `report` chooses
@@ -628,10 +691,15 @@ gates:
   fewer than `min_assertions` (default 1) assertion calls (`expect`,
   `expectLater`, `fail`, `throwsA`, ...). A test without assertions
   runs green and verifies nothing — a typical AI placeholder.
-- **folder_structure** — flags directories accumulating more than
-  `max_loose_files` (default 0) `.dart` files directly, instead of
-  organizing code into feature packages (the flat-file sprawl agents
-  leave behind: `lib/src/a.dart`, `lib/src/b.dart`, ...).
+- **folder_structure** — flags directories holding more than their
+  cap of logical `.dart` units directly, instead of organizing code
+  into feature packages. Classic form: `dirs` (literal paths or
+  globs) + one shared `max_loose_files`. Alternative `config` map
+  with per-pattern caps (`{lib/src: 3, 'lib/src/**': 30}` — takes
+  precedence when present). Only a directory's own files count
+  (nested directories are the organized form); generated siblings of
+  one source file (`magic.dart` + `magic.g.dart`) count as one unit;
+  `exclude` globs exempt files.
 - **external** — wraps external static-analysis tools (detekt for
   Kotlin, ktlint, swiftlint, anything emitting a Checkstyle XML
   report) as rules `{id, executable, arguments}`; `{report}` in the
@@ -701,6 +769,23 @@ gates:
   run (`--diff` / `--diff-base`) only sites whose containing method
   intersects the changed lines are executed at all: per-PR runs pay
   only for the mutants of the changed methods.
+
+- **string_hazards** — flags string literals whose escaping or pattern
+  usage contradicts what the author almost certainly meant, from the
+  parsed-unresolved AST only. Three checks: (1) escaped interpolation —
+  `\$name` / `\${name}` inside a non-raw string renders the literal
+  text `$name`; flagged only when the same identifier is interpolated
+  elsewhere in the same file (sibling evidence), keeping deliberate
+  shell escapes quiet; (2) raw regex with an escaped anchor — a raw
+  string passed to `RegExp(...)` ending with `\$` (or starting with
+  `\^`) matches a literal dollar/caret where the end/start anchor was
+  almost certainly intended (a plain `$`/`^` is the anchor); (3) regex
+  anchors in literal String patterns — `replaceFirst`/`replaceAll`/
+  `replaceFirstMapped`/`replaceAllMapped`/`split` treat their `String`
+  pattern as literal text, so a leading `^` or unescaped trailing `$`
+  can only ever match that literal character. Warning severity by
+  default: deliberate literal dollars (shell code, price patterns) trip
+  the warnings occasionally — confirm or restructure.
 
 ## Baseline
 

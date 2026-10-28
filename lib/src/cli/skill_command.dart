@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -13,16 +14,6 @@ const String _skillFileName = 'SKILL.md';
 /// The `skill` command: prints the crap4dart profiling skill content for
 /// agents, or shows installation instructions.
 class SkillCommand extends Command<int> {
-  /// Creates a [SkillCommand].
-  SkillCommand({this.projectRoot}) {
-    argParser.addOption(
-      'format',
-      allowed: ['text', 'install'],
-      defaultsTo: 'text',
-      help: 'text: print skill content; install: show install instructions.',
-    );
-  }
-
   /// Project root override.
   final String? projectRoot;
 
@@ -33,6 +24,16 @@ class SkillCommand extends Command<int> {
   final description =
       'Print the crap4dart profiling skill for AI agents, or show '
       'installation instructions.';
+
+  /// Creates a [SkillCommand].
+  SkillCommand({this.projectRoot}) {
+    argParser.addOption(
+      kFormat,
+      allowed: ['text', 'install'],
+      defaultsTo: 'text',
+      help: 'text: print skill content; install: show install instructions.',
+    );
+  }
 
   @override
   String get invocation => 'crap4dart skill [--format text|install]';

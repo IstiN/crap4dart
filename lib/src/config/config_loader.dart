@@ -1,8 +1,10 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
+import '../gates/gate_ids.dart';
 import 'config.dart';
 
 part 'config_scalars.dart';
@@ -11,18 +13,12 @@ part 'gate_config_readers_extra.dart';
 
 /// Top-level and section keys of `crap4dart.yaml`.
 const String _crapKey = 'crap';
-const String _coverageKey = 'coverage';
-const String _profileKey = 'profile';
 const String _sourcesKey = 'sources';
 const String _runTestsKey = 'run_tests';
-const String _gatesKey = 'gates';
 const String _thresholdMsKey = 'threshold_ms';
 
 /// Error raised for malformed or invalid `crap4dart.yaml` content.
 class ConfigException implements Exception {
-  /// Creates a [ConfigException].
-  const ConfigException(this.path, this.key, this.message);
-
   /// Path of the config file that failed to load.
   final String path;
 
@@ -32,45 +28,23 @@ class ConfigException implements Exception {
   /// Human readable description of the problem.
   final String message;
 
+  /// Creates a [ConfigException].
+  const ConfigException(this.path, this.key, this.message);
+
   @override
   String toString() => 'Invalid config "$path": $key: $message';
 }
 
 /// Loads `crap4dart.yaml` with strict validation and per-key defaults.
 class ConfigLoader {
-  /// Creates a [ConfigLoader].
-  const ConfigLoader();
-
   /// Default config file name looked up in the project root.
   static const String configFileName = 'crap4dart.yaml';
 
   /// Known gate identifiers under the `gates` key.
-  static const Set<String> knownGates = {
-    'loc',
-    'test_coverage',
-    'golden',
-    'hardcoded_strings',
-    'accessibility',
-    'complexity',
-    'method_size',
-    'nesting',
-    'identical_branches',
-    'class_size',
-    'weight_of_class',
-    'unused_code',
-    'unused_files',
-    'banned_imports',
-    'public_docs',
-    'duplication',
-    'file_naming',
-    'magic_constants',
-    'broken_goldens',
-    'test_assertions',
-    'folder_structure',
-    'external',
-    'mutation',
-    'similarity',
-  };
+  static const Set<String> knownGates = {...GateIds.all};
+
+  /// Creates a [ConfigLoader].
+  const ConfigLoader();
 
   /// Loads the configuration for the project at [projectRoot].
   ///
@@ -103,27 +77,20 @@ class ConfigLoader {
     final root = _ConfigScalars.asMap(doc, path, '(root)');
     _ConfigScalars.checkKeys(
       root,
-      const {
-        _crapKey,
-        _coverageKey,
-        _gatesKey,
-        _profileKey,
-        _sourcesKey,
-        'exclude'
-      },
+      const {_crapKey, kCoverage, kGatePrefix, kProfile, _sourcesKey, kExclude},
       path,
       '',
     );
     final defaults = Crap4DartConfig.defaults();
     return Crap4DartConfig(
       crap: _readCrap(root[_crapKey], defaults.crap, path),
-      coverage: _readCoverage(root[_coverageKey], defaults.coverage, path),
-      gates: _readGates(root[_gatesKey], defaults.gates, path),
-      profile: _readProfile(root[_profileKey], defaults.profile, path),
+      coverage: _readCoverage(root[kCoverage], defaults.coverage, path),
+      gates: _readGates(root[kGatePrefix], defaults.gates, path),
+      profile: _readProfile(root[kProfile], defaults.profile, path),
       sources: _readSources(root[_sourcesKey], defaults.sources, path),
       exclude: _ConfigScalars.strList(
         root,
-        'exclude',
+        kExclude,
         defaults.exclude,
         path,
         '',
@@ -156,7 +123,7 @@ class ConfigLoader {
     final map = _ConfigScalars.asMap(node, path, _crapKey);
     _ConfigScalars.checkKeys(
       map,
-      const {_enabledKey, 'threshold', _runTestsKey, 'count_lambdas'},
+      const {_enabledKey, kThreshold, _runTestsKey, 'count_lambdas'},
       path,
       _crapKey,
     );
@@ -164,7 +131,7 @@ class ConfigLoader {
       enabled: _ConfigScalars.readBool(
           map, _enabledKey, base.enabled, path, _crapKey),
       threshold: _ConfigScalars.readNum(
-          map, 'threshold', base.threshold, path, _crapKey),
+          map, kThreshold, base.threshold, path, _crapKey),
       runTests: _ConfigScalars.readBool(
           map, _runTestsKey, base.runTests, path, _crapKey),
       countLambdas: _ConfigScalars.readBool(
@@ -174,33 +141,33 @@ class ConfigLoader {
 
   CoverageConfig _readCoverage(Object? node, CoverageConfig base, String path) {
     if (node == null) return base;
-    final map = _ConfigScalars.asMap(node, path, _coverageKey);
+    final map = _ConfigScalars.asMap(node, path, kCoverage);
     _ConfigScalars.checkKeys(
       map,
       const {'lcov_path', _runTestsKey, 'required', 'branch_coverage'},
       path,
-      _coverageKey,
+      kCoverage,
     );
     return CoverageConfig(
-      lcovPath: _ConfigScalars.str(
-          map, 'lcov_path', base.lcovPath, path, _coverageKey),
+      lcovPath:
+          _ConfigScalars.str(map, 'lcov_path', base.lcovPath, path, kCoverage),
       runTests: _ConfigScalars.readBool(
-          map, _runTestsKey, base.runTests, path, _coverageKey),
+          map, _runTestsKey, base.runTests, path, kCoverage),
       required: _ConfigScalars.readBool(
-          map, 'required', base.required, path, _coverageKey),
+          map, 'required', base.required, path, kCoverage),
       branchCoverage: _ConfigScalars.readBool(
-          map, 'branch_coverage', base.branchCoverage, path, _coverageKey),
+          map, 'branch_coverage', base.branchCoverage, path, kCoverage),
     );
   }
 
   ProfileConfig _readProfile(Object? node, ProfileConfig base, String path) {
     if (node == null) return base;
-    final map = _ConfigScalars.asMap(node, path, _profileKey);
+    final map = _ConfigScalars.asMap(node, path, kProfile);
     _ConfigScalars.checkKeys(
       map,
       const {_enabledKey, _thresholdMsKey, 'top'},
       path,
-      _profileKey,
+      kProfile,
     );
     final thresholdValue = map[_thresholdMsKey];
     double? thresholdMs;
@@ -210,90 +177,99 @@ class ConfigLoader {
         _thresholdMsKey,
         base.thresholdMs ?? 0,
         path,
-        _profileKey,
+        kProfile,
       );
     }
     final topRaw = map['top'];
     return ProfileConfig(
       enabled: _ConfigScalars.readBool(
-          map, _enabledKey, base.enabled, path, _profileKey),
+          map, _enabledKey, base.enabled, path, kProfile),
       thresholdMs: thresholdMs,
       top: topRaw == null
           ? null
-          : _ConfigScalars.readInt(
-              map, 'top', base.top ?? 20, path, _profileKey),
+          : _ConfigScalars.readInt(map, 'top', base.top ?? 20, path, kProfile),
     );
   }
 
   GatesConfig _readGates(Object? node, GatesConfig base, String path) {
     if (node == null) return base;
-    final map = _ConfigScalars.asMap(node, path, _gatesKey);
+    final map = _ConfigScalars.asMap(node, path, kGatePrefix);
     for (final key in map.keys) {
       if (!knownGates.contains(key)) {
-        throw ConfigException(path, 'gates.$key', 'unknown gate id');
+        throw ConfigException(path, '$kGatePrefix.$key', 'unknown gate id');
       }
     }
     return GatesConfig(
-      loc: _GateConfigReaders.readLoc(map['loc'], base.loc, path),
+      loc: _GateConfigReaders.readLoc(map[GateIds.loc], base.loc, path),
       testCoverage: _GateConfigReaders.readTestCoverage(
-        map['test_coverage'],
+        map[GateIds.testCoverage],
         base.testCoverage,
         path,
       ),
       complexity: _GateConfigReaders.readComplexity(
-          map['complexity'], base.complexity, path),
+          map[GateIds.complexity], base.complexity, path),
       methodSize: _GateConfigReaders.readMethodSize(
-          map['method_size'], base.methodSize, path),
-      nesting:
-          _GateConfigReaders.readNesting(map['nesting'], base.nesting, path),
-      identicalBranches: _ExtendedGateConfigReaders.readIdenticalBranches(
-          map['identical_branches'], base.identicalBranches, path),
+          map[GateIds.methodSize], base.methodSize, path),
+      nesting: _GateConfigReaders.readNesting(
+          map[GateIds.nesting], base.nesting, path),
+      recordNamedFields: _ExtendedGateConfigReaders.readRecordNamedFields(
+          map[GateIds.recordNamedFields], base.recordNamedFields, path),
+      inlineRecordTypes: _ExtendedGateConfigReaders.readInlineRecordTypes(
+          map[GateIds.inlineRecordTypes], base.inlineRecordTypes, path),
+      recordSize: _ExtendedGateConfigReaders.readRecordSize(
+          map[GateIds.recordSize], base.recordSize, path),
       classSize: _GateConfigReaders.readClassSize(
-          map['class_size'], base.classSize, path),
+          map[GateIds.classSize], base.classSize, path),
       weightOfClass: _GateConfigReaders.readWeightOfClass(
-        map['weight_of_class'],
+        map[GateIds.weightOfClass],
         base.weightOfClass,
         path,
       ),
       unusedCode: _GateConfigReaders.readUnusedCode(
-          map['unused_code'], base.unusedCode, path),
+          map[GateIds.unusedCode], base.unusedCode, path),
       unusedFiles: _GateConfigReaders.readUnusedFiles(
-          map['unused_files'], base.unusedFiles, path),
+          map[GateIds.unusedFiles], base.unusedFiles, path),
       bannedImports: _GateConfigReaders.readBannedImports(
-        map['banned_imports'],
+        map[GateIds.bannedImports],
         base.bannedImports,
         path,
       ),
       publicDocs: _GateConfigReaders.readPublicDocs(
-          map['public_docs'], base.publicDocs, path),
+          map[GateIds.publicDocs], base.publicDocs, path),
       duplication: _GateConfigReaders.readDuplication(
-          map['duplication'], base.duplication, path),
+          map[GateIds.duplication], base.duplication, path),
       fileNaming: _GateConfigReaders.readFileNaming(
-          map['file_naming'], base.fileNaming, path),
+          map[GateIds.fileNaming], base.fileNaming, path),
       magicConstants: _GateConfigReaders.readMagicConstants(
-          map['magic_constants'], base.magicConstants, path),
+          map[GateIds.magicConstants], base.magicConstants, path),
+      scatteredConstants: _ExtendedGateConfigReaders.readScatteredConstants(
+          map[GateIds.scatteredConstants], base.scatteredConstants, path),
       brokenGoldens: _ExtendedGateConfigReaders.readBrokenGoldens(
-          map['broken_goldens'], base.brokenGoldens, path),
+          map[GateIds.brokenGoldens], base.brokenGoldens, path),
       testAssertions: _ExtendedGateConfigReaders.readTestAssertions(
-          map['test_assertions'], base.testAssertions, path),
+          map[GateIds.testAssertions], base.testAssertions, path),
       folderStructure: _ExtendedGateConfigReaders.readFolderStructure(
-          map['folder_structure'], base.folderStructure, path),
+          map[GateIds.folderStructure], base.folderStructure, path),
       external: _ExtendedGateConfigReaders.readExternal(
-          map['external'], base.external, path),
+          map[GateIds.external], base.external, path),
       mutation: _ExtendedGateConfigReaders.readMutation(
-          map['mutation'], base.mutation, path),
+          map[GateIds.mutation], base.mutation, path),
       similarity: _ExtendedGateConfigReaders.readSimilarity(
-          map['similarity'], base.similarity, path),
+          map[GateIds.similarity], base.similarity, path),
+      stringHazards: _GateConfigReaders.readStringHazards(
+          map[GateIds.stringHazards], base.stringHazards, path),
+      identicalBranches: _ExtendedGateConfigReaders.readIdenticalBranches(
+          map[GateIds.identicalBranches], base.identicalBranches, path),
       flutter: FlutterGatesConfig(
         golden: _GateConfigReaders.readGolden(
-            map['golden'], base.flutter.golden, path),
+            map[GateIds.golden], base.flutter.golden, path),
         hardcodedStrings: _GateConfigReaders.readHardcodedStrings(
-          map['hardcoded_strings'],
+          map[GateIds.hardcodedStrings],
           base.flutter.hardcodedStrings,
           path,
         ),
         accessibility: _GateConfigReaders.readAccessibility(
-            map['accessibility'], base.flutter.accessibility, path),
+            map[GateIds.accessibility], base.flutter.accessibility, path),
       ),
     );
   }

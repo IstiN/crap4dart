@@ -4,6 +4,7 @@ import 'package:analyzer/source/line_info.dart';
 
 import 'gate.dart';
 import 'gate_context.dart';
+import 'gate_ids.dart';
 
 /// The `identical_branches` gate: fails `if`/`else if` chains that test
 /// the same condition twice.
@@ -27,7 +28,7 @@ class IdenticalBranchesGate implements Gate {
   const IdenticalBranchesGate();
 
   @override
-  String get id => 'identical_branches';
+  String get id => GateIds.identicalBranches;
 
   @override
   Future<GateResult> run(GateContext context) async {

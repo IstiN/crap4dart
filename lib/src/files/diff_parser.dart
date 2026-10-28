@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -9,14 +10,14 @@ import 'package:path/path.dart' as p;
 /// an empty set had only deletions (no line of it counts as changed).
 /// Deleted files are absent.
 class DiffLineMap {
-  /// Creates a [DiffLineMap].
-  DiffLineMap({required this.projectRoot, required this.addedLines});
-
   /// Project root the diff paths are relative to.
   final String projectRoot;
 
   /// Project-relative new path → set of added/changed line numbers.
   final Map<String, Set<int>> addedLines;
+
+  /// Creates a [DiffLineMap].
+  DiffLineMap({required this.projectRoot, required this.addedLines});
 
   /// Added/changed lines of [file] (absolute or project-relative), or an
   /// empty set when the file is not in the diff.
@@ -60,13 +61,13 @@ class GitDiffParser {
   Future<DiffLineMap> diff(String projectRoot, {String base = 'HEAD'}) async {
     final result = await Process.run(
       'git',
-      ['diff', '--unified=0', base, '--', '*.dart'],
+      [kDiff, '--unified=0', base, '--', '*.dart'],
       workingDirectory: projectRoot,
     );
     if (result.exitCode != 0) {
       throw ProcessException(
         'git',
-        ['diff', base],
+        [kDiff, base],
         '${result.stderr}'.trim(),
         result.exitCode,
       );

@@ -9,12 +9,12 @@ Guidance for AI agents and contributors working on crap4dart.
 1. **CRAP metric analysis** (`analyze`) — `CRAP = CC²·(1−coverage)³ + CC`
    per method, combining AST-based cyclomatic complexity with LCOV coverage.
    Port of [crap4java](https://github.com/unclebob/crap4java).
-2. **Quality gates** (`check`) — 24 configurable gates: `loc`,
+2. **Quality gates** (`check`) — 27 configurable gates: `loc`,
    `test_coverage`, `golden`, `hardcoded_strings`, `accessibility`,
-   `complexity`, `method_size`, `nesting`, `identical_branches`,
-   `class_size`,
+   `complexity`, `method_size`, `nesting`, `record_named_fields`,
+   `inline_record_types`, `record_size`, `class_size`,
    `weight_of_class`, `unused_code`, `unused_files`, `banned_imports`,
-   `public_docs`, `duplication`, `file_naming`, `magic_constants`,
+   `public_docs`, `duplication`, `file_naming`, `magic_constants`, `scattered_constants`,
    `broken_goldens`, `test_assertions`, `folder_structure`,
    `external` (Checkstyle-XML tool wrapper: detekt/ktlint/swiftlint),
    `mutation` (mutation testing: AST operator table + per-mutant test
@@ -55,6 +55,7 @@ dart analyze                 # must report "No issues found!"
 dart format .                # apply before committing
 dart run bin/crap4dart.dart check    # self-check (dogfooding) — must pass
 dart run bin/crap4dart.dart analyze  # self CRAP — max must stay <= 8.0
+dart run bin/crap4dart.dart reorder --dry-run  # member order (fix with reorder)
 ```
 
 Coverage-dependent verification (needed before judging `analyze` output):
@@ -81,6 +82,15 @@ suite in CI.
 - Do not relax thresholds in `crap4dart.yaml` to make a change pass;
   refactor or add tests instead.
 
+- Before creating a pull request, verify `crap4dart analyze` is green
+  with fresh coverage: run the coverage-dependent verification above,
+  then `dart run bin/crap4dart.dart analyze` — max CRAP must stay
+  <= 8.0. The `quality` workflow runs the same step as its last gate;
+  a PR whose self-CRAP exceeds the threshold fails its pipeline.
+  Note the asymmetry: `check` allows CC up to 12, but `analyze` needs
+  CRAP <= 8.0, so a fully covered method must have CC <= 8 — and an
+  uncovered method only CC <= 2. New/changed gates need test coverage
+  for every branch, or the CRAP score fails the PR.
 ## Architecture
 
 ```
@@ -90,7 +100,7 @@ lib/src/config/              # crap4dart.yaml model, loader (strict), template
 lib/src/analysis/            # analyzer wrappers: parser, method extractor, CC
 lib/src/coverage/            # LCOV parser, per-method coverage, test runner
 lib/src/crap/                # CRAP formula, analyzer, console report
-lib/src/gates/               # Gate framework + 24 gates
+lib/src/gates/               # Gate framework + 27 gates
 lib/src/similarity/          # shingles/Jaccard engine (similarity gate)
 lib/src/files/               # source finder, git changed files, diff parser
 lib/src/report/              # JSON reporter

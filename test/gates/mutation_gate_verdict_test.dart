@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:crap4dart/src/gates/mutation_engine.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_engine.dart';
 import 'package:test/test.dart';
 
 import 'gate_test_utils.dart';

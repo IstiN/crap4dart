@@ -6,25 +6,12 @@ part of 'config.dart';
 // ignore_for_file: annotate_overrides
 
 /// Default exclude globs for generated files, shared by gate defaults.
-const String _generatedGlob = '**.g.dart';
-const String _freezedGlob = '**.freezed.dart';
-const String _mocksGlob = '**.mocks.dart';
 
 /// Default glob excluding test sources from generated-code gates.
-const String _testGlob = 'test/**';
+const String kTestGlob = 'test/**';
 
 /// File size gate settings (`loc`).
 class LocGateConfig implements GateConfigFlags {
-  /// Creates a [LocGateConfig].
-  const LocGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.maxLines = 800,
-    this.entries = const [],
-    this.exclude = const [_generatedGlob, _freezedGlob, _mocksGlob],
-  });
-
   /// Whether the gate is enabled.
   final bool enabled;
 
@@ -44,20 +31,20 @@ class LocGateConfig implements GateConfigFlags {
 
   /// Glob patterns excluded from the gate.
   final List<String> exclude;
+
+  /// Creates a [LocGateConfig].
+  const LocGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.maxLines = 800,
+    this.entries = const [],
+    this.exclude = const [kGeneratedGlob, kFreezedGlob, kMocksGlob],
+  });
 }
 
 /// Minimum test coverage gate settings (`test_coverage`).
 class TestCoverageGateConfig implements GateConfigFlags {
-  /// Creates a [TestCoverageGateConfig].
-  const TestCoverageGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.minPercent = 80.0,
-    this.perFile = false,
-    this.dirs = const ['lib'],
-  });
-
   /// Whether the gate is enabled.
   final bool enabled;
 
@@ -77,21 +64,20 @@ class TestCoverageGateConfig implements GateConfigFlags {
   /// Directories whose files count towards the coverage aggregate
   /// (matched as LCOV path prefixes).
   final List<String> dirs;
+
+  /// Creates a [TestCoverageGateConfig].
+  const TestCoverageGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.minPercent = 80.0,
+    this.perFile = false,
+    this.dirs = const ['lib'],
+  });
 }
 
 /// Golden test coverage gate settings (`golden`).
 class GoldenGateConfig implements GateConfigFlags {
-  /// Creates a [GoldenGateConfig].
-  const GoldenGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.minWidgetCoverage = 80.0,
-    this.widgetDirs = const ['lib'],
-    this.testDirs = const ['test'],
-    this.excludeWidgets = const [],
-  });
-
   /// Whether the gate is enabled.
   final bool enabled;
 
@@ -113,19 +99,21 @@ class GoldenGateConfig implements GateConfigFlags {
 
   /// Widget class names excluded from the gate.
   final List<String> excludeWidgets;
+
+  /// Creates a [GoldenGateConfig].
+  const GoldenGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.minWidgetCoverage = 80.0,
+    this.widgetDirs = const ['lib'],
+    this.testDirs = const [kTest],
+    this.excludeWidgets = const [],
+  });
 }
 
 /// Hardcoded strings gate settings (`hardcoded_strings`).
 class HardcodedStringsGateConfig implements GateConfigFlags {
-  /// Creates a [HardcodedStringsGateConfig].
-  const HardcodedStringsGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.ignoreMarker = 'l10n:ignore',
-    this.checkParams = const ['labelText', 'hintText', 'helperText', 'tooltip'],
-  });
-
   /// Whether the gate is enabled.
   final bool enabled;
 
@@ -141,23 +129,19 @@ class HardcodedStringsGateConfig implements GateConfigFlags {
 
   /// Widget parameter names that must not contain hardcoded strings.
   final List<String> checkParams;
+
+  /// Creates a [HardcodedStringsGateConfig].
+  const HardcodedStringsGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.ignoreMarker = 'l10n:ignore',
+    this.checkParams = const ['labelText', 'hintText', 'helperText', 'tooltip'],
+  });
 }
 
 /// Accessibility gate settings (`accessibility`).
 class AccessibilityGateConfig implements GateConfigFlags {
-  /// Creates an [AccessibilityGateConfig].
-  const AccessibilityGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.requireLabelFor = const [
-      'IconButton',
-      'Image',
-      'GestureDetector',
-      'InkWell',
-    ],
-  });
-
   /// Whether the gate is enabled.
   final bool enabled;
 
@@ -170,21 +154,23 @@ class AccessibilityGateConfig implements GateConfigFlags {
 
   /// Widget types that must provide a semantics label.
   final List<String> requireLabelFor;
+
+  /// Creates an [AccessibilityGateConfig].
+  const AccessibilityGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.requireLabelFor = const [
+      'IconButton',
+      'Image',
+      'GestureDetector',
+      'InkWell',
+    ],
+  });
 }
 
 /// Cyclomatic complexity gate settings (`complexity`).
 class ComplexityGateConfig implements GateConfigFlags {
-  /// Creates a [ComplexityGateConfig].
-  const ComplexityGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.maxComplexity = 10,
-    this.entries = const [],
-    this.countLambdas = true,
-    this.metric = ComplexityMetric.cyclomatic,
-  });
-
   /// Whether the gate is enabled.
   final bool enabled;
 
@@ -208,20 +194,21 @@ class ComplexityGateConfig implements GateConfigFlags {
   /// Whether branches inside lambdas count towards the enclosing method's
   /// cyclomatic complexity in this gate.
   final bool countLambdas;
+
+  /// Creates a [ComplexityGateConfig].
+  const ComplexityGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.maxComplexity = 10,
+    this.entries = const [],
+    this.countLambdas = true,
+    this.metric = ComplexityMetric.cyclomatic,
+  });
 }
 
 /// Method size gate settings (`method_size`).
 class MethodSizeGateConfig implements GateConfigFlags {
-  /// Creates a [MethodSizeGateConfig].
-  const MethodSizeGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.maxLines = 60,
-    this.maxParams = 6,
-    this.entries = const [],
-  });
-
   /// Whether the gate is enabled.
   final bool enabled;
 
@@ -241,18 +228,20 @@ class MethodSizeGateConfig implements GateConfigFlags {
   /// Per-path threshold overrides; the first entry whose `paths` glob
   /// matches the file wins. Unset thresholds keep the gate defaults.
   final List<MethodSizePathEntry> entries;
+
+  /// Creates a [MethodSizeGateConfig].
+  const MethodSizeGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.maxLines = 60,
+    this.maxParams = 6,
+    this.entries = const [],
+  });
 }
 
 /// Maximum nesting level gate settings (`nesting`).
 class NestingGateConfig implements GateConfigFlags {
-  /// Creates a [NestingGateConfig].
-  const NestingGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.maxNesting = 5,
-  });
-
   /// Whether the gate is enabled.
   final bool enabled;
 
@@ -265,6 +254,79 @@ class NestingGateConfig implements GateConfigFlags {
 
   /// Maximum number of nested blocks inside a method body.
   final int maxNesting;
+
+  /// Creates a [NestingGateConfig].
+  const NestingGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.maxNesting = 5,
+  });
+}
+
+/// Record named fields gate settings (`record_named_fields`).
+class RecordNamedFieldsGateConfig implements GateConfigFlags {
+  /// Whether the gate is enabled.
+  final bool enabled;
+
+  /// Whether violations fail the run or are reported as warnings.
+  final GateSeverity severity;
+
+  /// Whether `// crap:ignore` comments may suppress violations of this
+  /// gate. Disabled by default — suppression must be opted into.
+  final bool ignorable;
+
+  /// Creates a [RecordNamedFieldsGateConfig].
+  const RecordNamedFieldsGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.warning,
+    this.ignorable = false,
+  });
+}
+
+/// Inline record types gate settings (`inline_record_types`).
+class InlineRecordTypesGateConfig implements GateConfigFlags {
+  /// Whether the gate is enabled.
+  final bool enabled;
+
+  /// Whether violations fail the run or are reported as warnings.
+  final GateSeverity severity;
+
+  /// Whether `// crap:ignore` comments may suppress violations of this
+  /// gate. Disabled by default — suppression must be opted into.
+  final bool ignorable;
+
+  /// Creates an [InlineRecordTypesGateConfig].
+  const InlineRecordTypesGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.warning,
+    this.ignorable = false,
+  });
+}
+
+/// Record size gate settings (`record_size`).
+class RecordSizeGateConfig implements GateConfigFlags {
+  /// Whether the gate is enabled.
+  final bool enabled;
+
+  /// Whether violations fail the run or are reported as warnings.
+  final GateSeverity severity;
+
+  /// Whether `// crap:ignore` comments may suppress violations of this
+  /// gate. Disabled by default — suppression must be opted into.
+  final bool ignorable;
+
+  /// Maximum number of fields (positional plus named) a record type
+  /// may have before it should be transformed into a class.
+  final int maxFields;
+
+  /// Creates a [RecordSizeGateConfig].
+  const RecordSizeGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.warning,
+    this.ignorable = false,
+    this.maxFields = 5,
+  });
 }
 
 /// Identical branch conditions gate settings (`identical_branches`).
@@ -291,15 +353,6 @@ class IdenticalBranchesGateConfig implements GateConfigFlags {
 
 /// Class size gate settings (`class_size`).
 class ClassSizeGateConfig implements GateConfigFlags {
-  /// Creates a [ClassSizeGateConfig].
-  const ClassSizeGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.maxMethods = 25,
-    this.maxWmc = 80,
-  });
-
   /// Whether the gate is enabled.
   final bool enabled;
 
@@ -315,19 +368,19 @@ class ClassSizeGateConfig implements GateConfigFlags {
 
   /// Maximum weighted methods per class (sum of cyclomatic complexities).
   final int maxWmc;
+
+  /// Creates a [ClassSizeGateConfig].
+  const ClassSizeGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.maxMethods = 25,
+    this.maxWmc = 80,
+  });
 }
 
 /// Weight of class gate settings (`weight_of_class`).
 class WeightOfClassGateConfig implements GateConfigFlags {
-  /// Creates a [WeightOfClassGateConfig].
-  const WeightOfClassGateConfig({
-    this.enabled = false,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.maxWeight = 0.33,
-    this.exclude = const [_generatedGlob, _freezedGlob, _mocksGlob],
-  });
-
   /// Whether the gate is enabled (off by default: data/model classes are
   /// legitimate and would be noisy).
   final bool enabled;
@@ -345,17 +398,19 @@ class WeightOfClassGateConfig implements GateConfigFlags {
 
   /// Glob patterns excluded from the gate.
   final List<String> exclude;
+
+  /// Creates a [WeightOfClassGateConfig].
+  const WeightOfClassGateConfig({
+    this.enabled = false,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.maxWeight = 0.33,
+    this.exclude = const [kGeneratedGlob, kFreezedGlob, kMocksGlob],
+  });
 }
 
 /// One architectural rule of the `banned_imports` gate.
 class BannedImportRule {
-  /// Creates a [BannedImportRule].
-  const BannedImportRule({
-    required this.from,
-    required this.forbid,
-    this.message,
-  });
-
   /// Glob the importing file must match for the rule to apply.
   final String from;
 
@@ -365,18 +420,17 @@ class BannedImportRule {
 
   /// Optional explanation appended to violations.
   final String? message;
+
+  /// Creates a [BannedImportRule].
+  const BannedImportRule({
+    required this.from,
+    required this.forbid,
+    this.message,
+  });
 }
 
 /// Banned imports gate settings (`banned_imports`).
 class BannedImportsGateConfig implements GateConfigFlags {
-  /// Creates a [BannedImportsGateConfig].
-  const BannedImportsGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.rules = const [],
-  });
-
   /// Whether the gate is enabled. With no rules the gate always passes.
   final bool enabled;
 
@@ -389,23 +443,18 @@ class BannedImportsGateConfig implements GateConfigFlags {
 
   /// Architectural rules; each maps a source glob to forbidden imports.
   final List<BannedImportRule> rules;
+
+  /// Creates a [BannedImportsGateConfig].
+  const BannedImportsGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.rules = const [],
+  });
 }
 
 /// Unused private code gate settings (`unused_code`).
 class UnusedCodeGateConfig implements GateConfigFlags {
-  /// Creates an [UnusedCodeGateConfig].
-  const UnusedCodeGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.exclude = const [
-      _generatedGlob,
-      _freezedGlob,
-      _mocksGlob,
-      'bin/**',
-    ],
-  });
-
   /// Whether the gate is enabled.
   final bool enabled;
 
@@ -419,23 +468,23 @@ class UnusedCodeGateConfig implements GateConfigFlags {
   /// Glob patterns excluded from the gate (declarations and references in
   /// excluded files are ignored entirely).
   final List<String> exclude;
+
+  /// Creates an [UnusedCodeGateConfig].
+  const UnusedCodeGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.exclude = const [
+      kGeneratedGlob,
+      kFreezedGlob,
+      kMocksGlob,
+      'bin/**',
+    ],
+  });
 }
 
 /// Unused files gate settings (`unused_files`).
 class UnusedFilesGateConfig implements GateConfigFlags {
-  /// Creates an [UnusedFilesGateConfig].
-  const UnusedFilesGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.dirs = const ['lib'],
-    this.exclude = const [
-      _generatedGlob,
-      _freezedGlob,
-      _mocksGlob,
-    ],
-  });
-
   /// Whether the gate is enabled.
   final bool enabled;
 
@@ -452,20 +501,23 @@ class UnusedFilesGateConfig implements GateConfigFlags {
 
   /// Glob patterns excluded from the gate.
   final List<String> exclude;
+
+  /// Creates an [UnusedFilesGateConfig].
+  const UnusedFilesGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.dirs = const ['lib'],
+    this.exclude = const [
+      kGeneratedGlob,
+      kFreezedGlob,
+      kMocksGlob,
+    ],
+  });
 }
 
 /// Broken goldens gate settings (`broken_goldens`).
 class BrokenGoldensGateConfig implements GateConfigFlags {
-  /// Creates a [BrokenGoldensGateConfig].
-  const BrokenGoldensGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.dirs = const ['test'],
-    this.minStripeRun = 8,
-    this.exclude = const [],
-  });
-
   /// Whether the gate is enabled.
   final bool enabled;
 
@@ -485,19 +537,20 @@ class BrokenGoldensGateConfig implements GateConfigFlags {
 
   /// Glob patterns excluded from the gate.
   final List<String> exclude;
+
+  /// Creates a [BrokenGoldensGateConfig].
+  const BrokenGoldensGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.dirs = const [kTest],
+    this.minStripeRun = 8,
+    this.exclude = const [],
+  });
 }
 
 /// Test assertions gate settings (`test_assertions`).
 class TestAssertionsGateConfig implements GateConfigFlags {
-  /// Creates a [TestAssertionsGateConfig].
-  const TestAssertionsGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.minAssertions = 1,
-    this.exclude = const [],
-  });
-
   /// Whether the gate is enabled.
   final bool enabled;
 
@@ -514,20 +567,19 @@ class TestAssertionsGateConfig implements GateConfigFlags {
 
   /// Glob patterns excluded from the gate.
   final List<String> exclude;
+
+  /// Creates a [TestAssertionsGateConfig].
+  const TestAssertionsGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.minAssertions = 1,
+    this.exclude = const [],
+  });
 }
 
 /// Folder structure gate settings (`folder_structure`).
 class FolderStructureGateConfig implements GateConfigFlags {
-  /// Creates a [FolderStructureGateConfig].
-  const FolderStructureGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.dirs = const ['lib'],
-    this.maxLooseFiles = 0,
-    this.exclude = const [],
-  });
-
   /// Whether the gate is enabled.
   final bool enabled;
 
@@ -538,35 +590,45 @@ class FolderStructureGateConfig implements GateConfigFlags {
   /// gate. Disabled by default — suppression must be opted into.
   final bool ignorable;
 
-  /// Directories checked for loose-file sprawl.
+  /// Directories checked for loose-file sprawl — literal paths or
+  /// glob patterns (`lib/src/*`, `packages/**`) expanding to every
+  /// matching directory. Ignored when `config` is present.
   final List<String> dirs;
 
-  /// Maximum number of `.dart` files allowed directly in each listed
-  /// directory before the sprawl is flagged.
+  /// Maximum number of logical `.dart` units allowed directly in
+  /// each listed directory before the sprawl is flagged. Generated
+  /// siblings of one source file (`foo.dart`, `foo.g.dart`) are one
+  /// unit; files in subdirectories never count — a directory's own
+  /// tidiness is judged on its own contents. Ignored when `config`
+  /// is present.
   final int maxLooseFiles;
 
-  /// Glob patterns excluded from the gate.
+  /// Per-pattern caps — the `config` key
+  /// (`{lib/src: 3, 'lib/src/**': 30}`). When present it takes
+  /// precedence: each matching directory is checked against its
+  /// pattern's cap (a directory matched by several patterns uses the
+  /// first pattern's), and [dirs]/[maxLooseFiles] are not consulted.
+  /// Empty — the default — means the classic list form applies.
+  final Map<String, int> caps;
+
+  /// Glob patterns excluded from the gate — matching files don't
+  /// count.
   final List<String> exclude;
+
+  /// Creates a [FolderStructureGateConfig].
+  const FolderStructureGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.dirs = const ['lib'],
+    this.maxLooseFiles = 0,
+    this.caps = const {},
+    this.exclude = const [],
+  });
 }
 
 /// Magic constants gate settings (`magic_constants`).
 class MagicConstantsGateConfig implements GateConfigFlags {
-  /// Creates a [MagicConstantsGateConfig].
-  const MagicConstantsGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.flagHexColors = true,
-    this.minDuplicates = 3,
-    this.minLength = 4,
-    this.exclude = const [
-      _generatedGlob,
-      _freezedGlob,
-      _mocksGlob,
-      _testGlob,
-    ],
-  });
-
   /// Whether the gate is enabled.
   final bool enabled;
 
@@ -591,18 +653,30 @@ class MagicConstantsGateConfig implements GateConfigFlags {
 
   /// Glob patterns excluded from the gate.
   final List<String> exclude;
+
+  /// Creates a [MagicConstantsGateConfig].
+  const MagicConstantsGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.flagHexColors = true,
+    this.minDuplicates = 3,
+    this.minLength = 4,
+    this.exclude = const [
+      kGeneratedGlob,
+      kFreezedGlob,
+      kMocksGlob,
+      kTestGlob,
+    ],
+  });
 }
+
+/// Common shape of the two scattered-literal gate configs
+/// (`scattered_constants`, `scattered_fragments`); `_readCommon`
+/// builds it and the subclass `withBase` constructors consume it.
 
 /// One external-tool rule of the `external` gate.
 class ExternalToolRule {
-  /// Creates an [ExternalToolRule].
-  const ExternalToolRule({
-    required this.id,
-    required this.executable,
-    required this.arguments,
-    this.reportPath,
-  });
-
   /// Rule id used in violations (`external.<id>` in the output).
   final String id;
 
@@ -618,18 +692,18 @@ class ExternalToolRule {
   /// [arguments] is not used and the tool's own configured output
   /// location is read.
   final String? reportPath;
+
+  /// Creates an [ExternalToolRule].
+  const ExternalToolRule({
+    required this.id,
+    required this.executable,
+    required this.arguments,
+    this.reportPath,
+  });
 }
 
 /// External tools gate settings (`external`).
 class ExternalGateConfig implements GateConfigFlags {
-  /// Creates an [ExternalGateConfig].
-  const ExternalGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.rules = const [],
-  });
-
   /// Whether the gate is enabled. With no rules the gate passes.
   final bool enabled;
 
@@ -642,4 +716,32 @@ class ExternalGateConfig implements GateConfigFlags {
 
   /// External tools to run; each produces a Checkstyle XML report.
   final List<ExternalToolRule> rules;
+
+  /// Creates an [ExternalGateConfig].
+  const ExternalGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.rules = const [],
+  });
+}
+
+/// String literal hazard gate settings (`string_hazards`).
+class StringHazardsGateConfig implements GateConfigFlags {
+  /// Whether the gate is enabled.
+  final bool enabled;
+
+  /// Whether violations fail the run or are reported as warnings.
+  final GateSeverity severity;
+
+  /// Whether `// crap:ignore` comments may suppress violations of this
+  /// gate. Disabled by default — suppression must be opted into.
+  final bool ignorable;
+
+  /// Creates a [StringHazardsGateConfig].
+  const StringHazardsGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.warning,
+    this.ignorable = false,
+  });
 }

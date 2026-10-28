@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:crap4dart/src/gates/external_gate.dart';
+import 'package:crap4dart/src/gates/content/external_gate.dart';
 import 'package:test/test.dart';
 
 import 'external_tool_fixture.dart';

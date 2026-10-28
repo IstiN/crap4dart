@@ -5,6 +5,15 @@ part of 'config.dart';
 // project's own duplication gate.
 // ignore_for_file: annotate_overrides
 
+/// The `unary` operator category (deletes a `!` prefix).
+const String mutationCategoryUnary = 'unary';
+
+/// The `boolean` operator category (flips boolean literals).
+const String mutationCategoryBoolean = 'boolean';
+
+/// The `constant` operator category (flips integer literals).
+const String mutationCategoryConstant = 'constant';
+
 /// Operator categories of the `mutation` gate, in stable order. The
 /// `gates.mutation.operators` key accepts any subset of these names;
 /// anything else is a strict config error.
@@ -13,22 +22,13 @@ const List<String> mutationOperatorCategories = [
   'boundary',
   'equality',
   'logical',
-  'boolean',
-  'constant',
-  'unary',
+  mutationCategoryBoolean,
+  mutationCategoryConstant,
+  mutationCategoryUnary,
 ];
 
 /// Performance knobs of the `mutation` gate.
 class MutationExecution {
-  /// Creates a [MutationExecution].
-  const MutationExecution({
-    this.timeoutSeconds = 60,
-    this.maxMutants = 500,
-    this.cache = true,
-    this.testArgs = const ['test'],
-    this.testScope = false,
-  });
-
   /// Per-mutant timeout in seconds; a timed-out mutant counts as
   /// survived (the suite did not kill it deterministically).
   final int timeoutSeconds;
@@ -57,27 +57,19 @@ class MutationExecution {
   /// re-confirmed once against the full invocation before it counts
   /// (a scoped run may omit the killing test). Off by default.
   final bool testScope;
+
+  /// Creates a [MutationExecution].
+  const MutationExecution({
+    this.timeoutSeconds = 60,
+    this.maxMutants = 500,
+    this.cache = true,
+    this.testArgs = const [kTest],
+    this.testScope = false,
+  });
 }
 
 /// Mutation testing gate settings (`mutation`).
 class MutationGateConfig implements GateConfigFlags {
-  /// Creates a [MutationGateConfig].
-  const MutationGateConfig({
-    this.enabled = false,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.minScore = 0.8,
-    this.maxSurvivors = 0,
-    this.execution = const MutationExecution(),
-    this.operators = mutationOperatorCategories,
-    this.exclude = const [
-      _generatedGlob,
-      _freezedGlob,
-      _mocksGlob,
-      _testGlob,
-    ],
-  });
-
   /// Whether the gate is enabled (off by default: mutation testing runs
   /// the project's test suite once per mutant, which is expensive).
   final bool enabled;
@@ -107,4 +99,21 @@ class MutationGateConfig implements GateConfigFlags {
 
   /// Glob patterns excluded from the gate.
   final List<String> exclude;
+
+  /// Creates a [MutationGateConfig].
+  const MutationGateConfig({
+    this.enabled = false,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.minScore = 0.8,
+    this.maxSurvivors = 0,
+    this.execution = const MutationExecution(),
+    this.operators = mutationOperatorCategories,
+    this.exclude = const [
+      kGeneratedGlob,
+      kFreezedGlob,
+      kMocksGlob,
+      kTestGlob,
+    ],
+  });
 }

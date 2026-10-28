@@ -5,13 +5,6 @@ import 'package:analyzer/source/line_info.dart';
 
 /// Result of parsing a single Dart source file.
 class ParsedUnit {
-  /// Creates a [ParsedUnit] wrapping the parsed [unit] and its [lineInfo].
-  const ParsedUnit({
-    required this.unit,
-    required this.lineInfo,
-    required this.path,
-  });
-
   /// The parsed (unresolved) compilation unit.
   final CompilationUnit unit;
 
@@ -20,18 +13,25 @@ class ParsedUnit {
 
   /// The path the content was parsed from (may be empty).
   final String path;
+
+  /// Creates a [ParsedUnit] wrapping the parsed [unit] and its [lineInfo].
+  const ParsedUnit({
+    required this.unit,
+    required this.lineInfo,
+    required this.path,
+  });
 }
 
 /// Exception thrown when Dart source cannot be parsed.
 class DartParseException implements Exception {
-  /// Creates a [DartParseException] for [path] with a diagnostic [message].
-  const DartParseException(this.path, this.message);
-
   /// Path of the file that failed to parse.
   final String path;
 
   /// Human readable diagnostics.
   final String message;
+
+  /// Creates a [DartParseException] for [path] with a diagnostic [message].
+  const DartParseException(this.path, this.message);
 
   @override
   String toString() => 'Failed to parse "$path": $message';

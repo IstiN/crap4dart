@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -7,9 +8,6 @@ import 'test_run_events.dart';
 
 /// Aggregated memory metrics of one test (or of a whole suite/file).
 class MemoryEntry {
-  /// Creates an empty [MemoryEntry] for [label].
-  MemoryEntry(this.label, {this.suitePath});
-
   /// Display label: test name for tests, file path for suites.
   final String label;
 
@@ -24,7 +22,17 @@ class MemoryEntry {
   /// the Dart engine reports reclaimed new-gen volume instead).
   int? allocatedBytes;
 
+  /// Creates an empty [MemoryEntry] for [label].
+  MemoryEntry(this.label, {this.suitePath});
+
+  /// Whether [churnNewMb] carries real data. The VM Service GC stream
+  /// (Flutter engine) has no reclaimed-new-gen counters, so the churn
+  /// proxy is unavailable there — serialized as `null`, never as a
+  /// misleading `0.0`; use [allocatedMb] (exact allocated bytes).
+  bool get churnAvailable => allocatedBytes == null;
+
   /// Reclaimed new-gen volume — the honest "allocated MB" proxy.
+  /// Only meaningful when [churnAvailable] is true.
   double get churnNewMb => gcs.fold(0, (sum, gc) => sum + gc.reclaimedNewMb);
 
   /// Signed old-gen growth: positive and never freed = leak suspect.
@@ -40,7 +48,8 @@ class MemoryEntry {
         'label': label,
         if (suitePath != null) 'suite': suitePath,
         'gcs': gcs.length,
-        'churnNewMb': double.parse(churnNewMb.toStringAsFixed(1)),
+        'churnNewMb':
+            churnAvailable ? double.parse(churnNewMb.toStringAsFixed(1)) : null,
         if (allocatedBytes != null)
           'allocatedMb': double.parse(allocatedMb.toStringAsFixed(1)),
         'oldGrowthMb': double.parse(oldGrowthMb.toStringAsFixed(1)),
@@ -49,19 +58,11 @@ class MemoryEntry {
 
 /// The full memory report of one suite run.
 class MemoryReport {
-  /// Total allocation volume across suites (profile-based for the
-  /// Flutter engine, reclaimed-proxy for the Dart engine).
-  double get totalAllocatedMb =>
-      suites.fold(0, (sum, suite) => sum + suite.allocatedMb);
-
-  /// Creates a [MemoryReport].
-  MemoryReport({
-    required this.testCount,
-    required this.totalGcs,
-    required this.suites,
-    required this.tests,
-    required this.unattributedGcs,
-  });
+  /// Whether [totalChurnMb] carries real data: false on the Flutter
+  /// engine (VM Service GC stream has no reclaimed-new-gen counters).
+  /// JSON/console surface `null`/unavailable instead of a fake 0.0;
+  /// [totalAllocatedMb] is the allocation-volume metric on both engines.
+  final bool churnAvailable;
 
   /// Tests executed (spans with a result).
   final int testCount;
@@ -82,6 +83,21 @@ class MemoryReport {
   /// instead of polluting file totals.
   final List<GcEvent> unattributedGcs;
 
+  /// Creates a [MemoryReport].
+  MemoryReport({
+    required this.testCount,
+    required this.totalGcs,
+    required this.suites,
+    required this.tests,
+    required this.unattributedGcs,
+    this.churnAvailable = true,
+  });
+
+  /// Total allocation volume across suites (profile-based for the
+  /// Flutter engine, reclaimed-proxy for the Dart engine).
+  double get totalAllocatedMb =>
+      suites.fold(0, (sum, suite) => sum + suite.allocatedMb);
+
   /// Tests with GC activity, sorted by allocation churn, descending.
   List<MemoryEntry> get topChurn => [
         for (final test in tests)
@@ -95,7 +111,9 @@ class MemoryReport {
           if (test.gcs.isNotEmpty) test,
       ]..sort((a, b) => b.oldGrowthMb.compareTo(a.oldGrowthMb));
 
-  /// Total reclaimed new-gen MB across all GCs.
+  /// Total reclaimed new-gen MB across all GCs. Only meaningful when
+  /// [churnAvailable] is true (0.0 on the Flutter engine by absence
+  /// of counters, not by absence of churn).
   double get totalChurnMb =>
       totalGcs.fold(0, (sum, gc) => sum + gc.reclaimedNewMb);
 
@@ -121,10 +139,10 @@ typedef SuiteRunner = Future<MemoryRunResult> Function(
 /// Runs the test suite under `--verbose_gc` and attributes GC events
 /// and reclaimed memory to tests.
 class MemoryProfiler {
+  final SuiteRunner _runner;
+
   /// Creates a [MemoryProfiler]; [runner] is injectable for tests.
   MemoryProfiler({SuiteRunner? runner}) : _runner = runner ?? _defaultRunner;
-
-  final SuiteRunner _runner;
 
   static Future<MemoryRunResult> _defaultRunner(
     String executable,
@@ -147,52 +165,6 @@ class MemoryProfiler {
       stdoutText: utf8.decode(stdoutText),
       stderrText: utf8.decode(stderrText),
     );
-  }
-
-  /// Profiles `dart test [paths]` in [projectRoot].
-  Future<MemoryReport> profile(
-    String projectRoot,
-    List<String> paths, {
-    int repeat = 1,
-  }) async {
-    final args = [
-      '--verbose_gc',
-      'test',
-      '--concurrency=1',
-      '-r',
-      'json',
-      ...paths,
-    ];
-    final run = await _runner('dart', args, workingDirectory: projectRoot);
-    return _report(run);
-  }
-
-  /// Builds the report from one raw run's streams.
-  MemoryReport reportFromStreams(MemoryRunResult run) => _report(run);
-
-  MemoryReport _report(MemoryRunResult run) {
-    final events = TestRunEvents();
-    for (final line in run.stdoutText.split('\n')) {
-      events.addLine(line);
-    }
-    final gcs = GcLogParser.parse(run.stderrText.split('\n'))
-        .where((gc) => gc.isolate.startsWith('test_suite'))
-        .toList();
-    final suitesInOrder = events.suitesById.values.toList();
-    // With --concurrency=1 the k-th spawned test isolate runs the k-th
-    // suite. The spawn index is embedded in the isolate name
-    // (`…/test.dart_N.dill`): isolate N maps onto suite N — robust
-    // against light suites that never GC at all (first-sighting order
-    // would skip them and shift every later mapping).
-    final isolateToSuite = <String, TestSuiteEvent>{};
-    for (final gc in gcs) {
-      if (isolateToSuite.containsKey(gc.isolate)) continue;
-      final index = _suiteIndexOf(gc.isolate);
-      if (index != null && index > 0 && index <= suitesInOrder.length) {
-        isolateToSuite[gc.isolate] = suitesInOrder[index - 1];
-      }
-    }
-    return _attribute(gcs, isolateToSuite, events);
   }
 
   /// The suite spawn index embedded in an isolate name
@@ -298,7 +270,7 @@ class MemoryProfiler {
   ) {
     final lastEndMs = spans.last.endOrStartMs - suiteTimeMs;
     for (final gc in suiteGcs) {
-      final gcMs = (gc.startSeconds * 1000).round();
+      final gcMs = (gc.startSeconds * millisPerSecond).round();
       // Outside every test window: isolate LOADING (kernel compile)
       // before the first start, TEARDOWN after the last end. Their
       // isolate identity is unreliable — keep them unattributed.
@@ -333,5 +305,51 @@ class MemoryProfiler {
       }
     }
     return best;
+  }
+
+  /// Profiles `dart test [paths]` in [projectRoot].
+  Future<MemoryReport> profile(
+    String projectRoot,
+    List<String> paths, {
+    int repeat = 1,
+  }) async {
+    final args = [
+      '--verbose_gc',
+      kTest,
+      '--concurrency=1',
+      '-r',
+      kJson,
+      ...paths,
+    ];
+    final run = await _runner(kDart, args, workingDirectory: projectRoot);
+    return _report(run);
+  }
+
+  /// Builds the report from one raw run's streams.
+  MemoryReport reportFromStreams(MemoryRunResult run) => _report(run);
+
+  MemoryReport _report(MemoryRunResult run) {
+    final events = TestRunEvents();
+    for (final line in run.stdoutText.split('\n')) {
+      events.addLine(line);
+    }
+    final gcs = GcLogParser.parse(run.stderrText.split('\n'))
+        .where((gc) => gc.isolate.startsWith('test_suite'))
+        .toList();
+    final suitesInOrder = events.suitesById.values.toList();
+    // With --concurrency=1 the k-th spawned test isolate runs the k-th
+    // suite. The spawn index is embedded in the isolate name
+    // (`…/test.dart_N.dill`): isolate N maps onto suite N — robust
+    // against light suites that never GC at all (first-sighting order
+    // would skip them and shift every later mapping).
+    final isolateToSuite = <String, TestSuiteEvent>{};
+    for (final gc in gcs) {
+      if (isolateToSuite.containsKey(gc.isolate)) continue;
+      final index = _suiteIndexOf(gc.isolate);
+      if (index != null && index > 0 && index <= suitesInOrder.length) {
+        isolateToSuite[gc.isolate] = suitesInOrder[index - 1];
+      }
+    }
+    return _attribute(gcs, isolateToSuite, events);
   }
 }

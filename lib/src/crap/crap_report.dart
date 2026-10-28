@@ -11,12 +11,6 @@ const _table = TableFormatter(numericColumnCount: 4);
 
 /// Renders CRAP analysis results as a console table.
 class CrapReport {
-  /// Creates a [CrapReport] for [metrics].
-  const CrapReport(this.metrics);
-
-  /// The analyzed method metrics.
-  final List<MethodMetrics> metrics;
-
   /// Column headers of the report table.
   static const List<String> headers = [
     'CRAP',
@@ -26,6 +20,17 @@ class CrapReport {
     'METHOD',
     'FILE:LINE',
   ];
+
+  /// The analyzed method metrics.
+  final List<MethodMetrics> metrics;
+
+  /// Creates a [CrapReport] for [metrics].
+  const CrapReport(this.metrics);
+
+  static String _percent(double? value) =>
+      value == null ? 'N/A' : (value * 100).toStringAsFixed(1);
+
+  static String _fmt(double value) => value.toStringAsFixed(2);
 
   /// Metrics sorted for display: numeric CRAP descending, then N/A
   /// entries ordered by file path and line (Dart's sort is unstable, so
@@ -46,12 +51,6 @@ class CrapReport {
       return bCrap.compareTo(aCrap);
     });
     return copy;
-  }
-
-  int _byLocation(MethodMetrics a, MethodMetrics b) {
-    final byFile = a.method.filePath.compareTo(b.method.filePath);
-    if (byFile != 0) return byFile;
-    return a.method.startLine.compareTo(b.method.startLine);
   }
 
   /// Maximum numeric CRAP score, or `0.0` when no numeric scores exist.
@@ -75,6 +74,12 @@ class CrapReport {
     return buffer.toString();
   }
 
+  int _byLocation(MethodMetrics a, MethodMetrics b) {
+    final byFile = a.method.filePath.compareTo(b.method.filePath);
+    if (byFile != 0) return byFile;
+    return a.method.startLine.compareTo(b.method.startLine);
+  }
+
   List<String> _rowFor(MethodMetrics m) => [
         m.crap == null ? 'N/A' : _fmt(m.crap!),
         _percent(m.coverage),
@@ -83,9 +88,4 @@ class CrapReport {
         '${m.method.className}.${m.method.methodName}',
         '${m.method.filePath}:${m.method.startLine}',
       ];
-
-  static String _percent(double? value) =>
-      value == null ? 'N/A' : (value * 100).toStringAsFixed(1);
-
-  static String _fmt(double value) => value.toStringAsFixed(2);
 }

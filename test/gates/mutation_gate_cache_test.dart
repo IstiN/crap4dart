@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:crap4dart/src/gates/mutation_cache.dart';
-import 'package:crap4dart/src/gates/mutation_engine.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_cache.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_engine.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -22,9 +22,12 @@ void main() {
   configSwitchTests();
 }
 
+/// Aggregated result of one gated mutation run.
+typedef RunResult = ({bool passed, String summary, int calls, int cached});
+
 String cacheFile() => p.join(project.path, mutationCacheFileName);
 
-Future<({bool passed, String summary, int calls, int cached})> runGate(
+Future<RunResult> runGate(
   MutantTestRunner runner, {
   String? configYaml,
 }) async {

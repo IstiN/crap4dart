@@ -26,9 +26,6 @@ Future<ProcessResult> runCli(Directory workDir, List<String> args) =>
 
 /// Outcome of an in-process CLI invocation.
 class CliResult {
-  /// Creates a [CliResult].
-  const CliResult(this.exitCode, this.stdout, this.stderr);
-
   /// The exit code returned by the runner.
   final int exitCode;
 
@@ -37,6 +34,9 @@ class CliResult {
 
   /// Everything written to stderr.
   final String stderr;
+
+  /// Creates a [CliResult].
+  const CliResult(this.exitCode, this.stdout, this.stderr);
 }
 
 /// Runs the crap4dart CLI with [args] in the current process, with
@@ -55,9 +55,9 @@ Future<CliResult> runCliInProcess(Directory workDir, List<String> args) async {
 /// A [Stdout] that appends everything to a [StringBuffer]. Members the
 /// runner never calls are silent no-ops.
 class _BufferStdout implements Stdout {
-  _BufferStdout(this._buffer);
-
   final StringBuffer _buffer;
+
+  _BufferStdout(this._buffer);
 
   @override
   void write(Object? object) => _buffer.write(object);

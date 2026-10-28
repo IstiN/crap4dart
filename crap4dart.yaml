@@ -34,30 +34,69 @@ gates:
   complexity:
     enabled: true
     max_complexity: 12
-  # Wave-1 bug-class gate: flags if/else-if chains testing the same
-  # condition twice (reorder-insensitive: `a == b` matches `b == a`).
-  # Warning severity: reordered operands are only equivalent when
-  # side-effect free.
-  identical_branches:
+  # Wave-6 type-surface gates, split by concern: inline record types
+  # must move to named typedefs, record fields must be named (no .$N),
+  # and record arity is capped (bigger records become classes).
+  # Warning severity; dogfooding cleanup accompanies the enablement.
+  inline_record_types:
     enabled: true
     severity: warning
+  record_named_fields:
+    enabled: true
+    severity: warning
+  record_size:
+    enabled: true
+    severity: warning
+    max_fields: 5
   method_size:
     enabled: true
     max_lines: 80
     max_params: 8
     # Dogfooding `entries`: config aggregate/flag classes legitimately
-    # need more params than a method — GatesConfig aggregates 23 gate
-    # configs (one param each) and SimilarityGateConfig carries the
-    # flag triplet + 6 similarity-specific keys.
+    # need more params than a method — GatesConfig aggregates 27 gate
+    # configs (one param each), SimilarityGateConfig carries the flag
+    # triplet + 6 similarity keys, ScatteredConstantsGateConfig adds
+    # the deep-search knobs.
     entries:
-      - max_params: 24
+      - max_params: 27
         paths:
           - 'lib/src/config/config.dart'
           - 'lib/src/config/similarity_gate_config.dart'
+      - max_params: 10
+        paths:
+          - 'lib/src/config/gate_configs.dart'
+          - 'lib/src/config/gate_configs_scattered.dart'
   public_docs:
     enabled: true
     exclude:
       - 'test/**'
+  # Wave-7 cross-file aggregation: one business fact hardcoded in N
+  # files (the "change 86400 in every service" hazard) is invisible to
+  # the in-file magic_constants gate. Flags one violation per
+  # occurrence; the fix is a shared constant — verify the occurrences
+  # really mean the same thing first.
+  # Cross-file literal scatter (word + prefix heads). ignore: plain
+  # words silence the value, entries with a slash exempt files
+  # (fast-moving or special domains where extraction is not wanted).
+  scattered_constants:
+    enabled: true
+    severity: warning
+    min_files: 3
+    exclude:
+      - '**.g.dart'
+      - '**.freezed.dart'
+      - '**.mocks.dart'
+      - 'test/**'
+    # The two shared help texts below are declared exactly once (the
+    # kOutputFormatHelp / kDiffBaseHelp initializers in constants.dart),
+    # but dart format wraps the initializer onto the line after the
+    # declaration name — the gate's declaration-site exemption compares
+    # the declaration's line to the literal's line, misses its own
+    # const, and reports it as a duplicate of itself. Exempt the exact
+    # values; no other occurrence of either string exists in the code.
+    ignore:
+      - 'Output format (json writes only JSON to stdout).'
+      - 'Like --diff, but diffs against the given git ref.'
   # File-level near-duplicate detection (crap4dart >=0.15.0): docs
   # corpora rot through copy-paste; this catches new near-copies.
   # Measured on this repo: md corpus clean even at jaccard 0.5 (the
@@ -79,4 +118,13 @@ gates:
       - 'test/**'
   folder_structure:
     enabled: true
-    dirs: [lib/src]
+    config:
+      lib/src: 3
+      'lib/src/**': 30
+  # Wave-1 bug-class gate: flags if/else-if chains testing the same
+  # condition twice (reorder-insensitive: `a == b` matches `b == a`).
+  # Warning severity: reordered operands are only equivalent when
+  # side-effect free.
+  identical_branches:
+    enabled: true
+    severity: warning

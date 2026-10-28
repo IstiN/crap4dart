@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:crap4dart/src/gates/mutation_cache.dart';
-import 'package:crap4dart/src/gates/mutation_operators.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_cache.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_operators.dart';
 import 'package:test/test.dart';
 
 MutationSite site({int offset = 10, String mutant = '-'}) => MutationSite(
