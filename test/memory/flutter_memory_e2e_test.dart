@@ -42,4 +42,27 @@ void main() {
     expect(report.suites.single.toJson()['churnNewMb'], isNull);
     expect(report.tests.single.toJson()['allocatedMb'], isNotNull);
   }, timeout: const Timeout(Duration(minutes: 2)));
+
+  test('positional test paths reach the flutter tool argv', () async {
+    final root = Directory.systemTemp.createTempSync('crap4dart_flmem');
+    addTearDown(() {
+      try {
+        root.deleteSync(recursive: true);
+      } on Object {
+        // best effort
+      }
+    });
+    final fixtureDir = p.absolute('test/memory/fixtures');
+    final notes = <String>[];
+    final report = await runFlutterMemory(
+      root.path,
+      notes.add,
+      flutterBinary: 'dart',
+      toolArgs: [p.join(fixtureDir, 'fake_flutter_tool.dart')],
+      testPaths: const ['test/some_path_test.dart'],
+    );
+    expect(report.suites, hasLength(1), reason: notes.join('\n'));
+    expect(notes.join('\n'), contains('test/some_path_test.dart'),
+        reason: 'the tool must receive the positional paths');
+  }, timeout: const Timeout(Duration(minutes: 2)));
 }

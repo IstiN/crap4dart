@@ -205,6 +205,7 @@ old generation without freeing it (leak suspects).
 crap4dart memory                  # run the suite, print both leaderboards
 crap4dart memory --top 5          # shorter leaderboards
 crap4dart memory --format json    # machine-readable report (JSON-only stdout)
+crap4dart memory test/foo_test.dart          # measure a subset (targeted A/B)
 crap4dart memory --badge badges/memory.svg   # shields-style churn badge
 ```
 

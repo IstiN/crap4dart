@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 Future<void> main(List<String> args) async {
+  stderr.writeln('tool argv: $args');
   final fixtureDir = p.dirname(p.fromUri(Platform.script));
   final tester = p.join(fixtureDir, 'fake_flutter_tester.dart');
   final dill = p.join(Directory.systemTemp.path, 'fake_e2e_listener.dill');
