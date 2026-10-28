@@ -112,6 +112,9 @@ class ProfileCommand extends Command<int> with CommandHelpers {
       root,
       'No Dart files to profile.',
       config: config,
+      // Positional arguments select TESTS, not source files. In particular,
+      // the common test/** exclusion must not leave us with zero sources.
+      positionalPathsAreSources: false,
     );
     if (prepared.exitCode != null) return prepared.exitCode!;
 

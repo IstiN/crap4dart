@@ -155,14 +155,17 @@ mixin CommandHelpers on Command<int> {
   /// Resolves `--diff` / `--diff-base` and returns the diff map together with
   /// the base ref.
   Future<ResolvedDiff> resolveDiff(
-    String projectRoot,
-  ) async {
+    String projectRoot, {
+    bool positionalPathsAreSources = true,
+  }) async {
     final diffBase = argResults![kDiffBase] as String?;
     final diffMode = (argResults![kDiff] as bool) || diffBase != null;
     if (!diffMode) return (map: null, base: null, ok: true);
     final changed = argResults![kChanged] as bool;
     final staged = stagedFlag;
-    if (changed || staged || argResults!.rest.isNotEmpty) {
+    if (changed ||
+        staged ||
+        (positionalPathsAreSources && argResults!.rest.isNotEmpty)) {
       throw UsageException(
         '--diff cannot be combined with --changed, --staged, or explicit paths',
         invocation,
@@ -176,10 +179,12 @@ mixin CommandHelpers on Command<int> {
   /// sources.
   Future<List<String>> selectFiles(
     String projectRoot,
-    List<String> sources,
-  ) async {
+    List<String> sources, {
+    bool positionalPathsAreSources = true,
+  }) async {
     const finder = SourceFinder();
-    final paths = argResults!.rest;
+    final paths =
+        positionalPathsAreSources ? argResults!.rest : const <String>[];
     final changed = argResults![kChanged] as bool;
     final staged = stagedFlag;
     if (changed && staged) {
@@ -252,21 +257,32 @@ mixin CommandHelpers on Command<int> {
     String projectRoot,
     String emptyMessage, {
     Crap4DartConfig? config,
+    bool positionalPathsAreSources = true,
   }) async {
     final resolvedConfig = config ?? loadConfig(projectRoot);
     if (resolvedConfig == null) {
       return const PreparedRun(exitCode: ExitCodes.usageError);
     }
-    final diff = await resolveDiff(projectRoot);
+    final diff = await resolveDiff(
+      projectRoot,
+      positionalPathsAreSources: positionalPathsAreSources,
+    );
     if (!diff.ok) {
       return const PreparedRun(exitCode: ExitCodes.usageError);
     }
-    final partial = _isPartialSelection(diff.map);
+    final partial = _isPartialSelection(
+      diff.map,
+      positionalPathsAreSources: positionalPathsAreSources,
+    );
     final files = const SourceFinder().filterByGlobs(
       projectRoot,
       diff.map != null
           ? diff.map!.existingFiles()
-          : await selectFiles(projectRoot, resolvedConfig.sources),
+          : await selectFiles(
+              projectRoot,
+              resolvedConfig.sources,
+              positionalPathsAreSources: positionalPathsAreSources,
+            ),
       resolvedConfig.exclude,
     );
     if (files.isEmpty) {
@@ -284,11 +300,14 @@ mixin CommandHelpers on Command<int> {
 
   /// Whether this run analyzes a subset of the project (diff, changed,
   /// staged or explicit paths) instead of the full source set.
-  bool _isPartialSelection(DiffLineMap? diffMap) =>
+  bool _isPartialSelection(
+    DiffLineMap? diffMap, {
+    bool positionalPathsAreSources = true,
+  }) =>
       diffMap != null ||
       argResults![kChanged] as bool ||
       stagedFlag ||
-      argResults!.rest.isNotEmpty;
+      (positionalPathsAreSources && argResults!.rest.isNotEmpty);
 }
 
 /// The `analyze` command: computes CRAP scores for Dart source files.
