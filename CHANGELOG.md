@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.23.0 — 2026-10-27
 
 - New `string_hazards` gate (warning severity by default): flags string
   literals whose escaping or pattern usage contradicts the author's
