@@ -2,6 +2,14 @@
 
 ## 0.25.0 — 2026-10-28
 
+- `memory` accepts positional test paths on the Flutter engine:
+  `crap4dart memory test/foo_test.dart` measures that subset only
+  (paths forward into both `flutter test` runs — targeted A/B without
+  the whole-package cost). From a workspace root, the package root is
+  inferred by walking up from the first path. Missing paths exit with
+  a usage error naming them. Dart-engine behavior unchanged (paths
+  already worked).
+
 - Adopt four additional lints on top of `lints/recommended` and fix all
   findings: `prefer_const_constructors` (55 sites, via `dart fix`),
   `unnecessary_ignore` (3 stale `// ignore:` comments removed — a stale

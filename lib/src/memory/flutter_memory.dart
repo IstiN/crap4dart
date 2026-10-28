@@ -625,6 +625,10 @@ class _JsonChannel {
 Future<MemoryReport> runFlutterMemory(
   String projectRoot,
   void Function(String line) note, {
+  /// Positional test paths (files or directories) forwarded to
+  /// `flutter test` — targeted measurement of a subset instead of the
+  /// whole package.
+  List<String> testPaths = const [],
   String? flutterBinary,
 
   /// Overrides the tool argv (tests inject a fake `flutter` tool).
@@ -637,10 +641,10 @@ Future<MemoryReport> runFlutterMemory(
     kJson
   ],
 }) async {
-  final flutter = flutterBinary ?? _defaultFlutterBinary();
+  final flutter = flutterBinary ?? flutterBinaryResolver();
   final tool = await Process.start(
     flutter,
-    toolArgs,
+    [...toolArgs, ...testPaths],
     workingDirectory: projectRoot,
   );
   // Never await the driver inline while reading stdout: the tool's
@@ -728,6 +732,14 @@ File _snapshotDill(
 }
 
 /// `$FLUTTER_ROOT/bin/flutter` when set, else `flutter` on PATH.
+/// Resolves the `flutter` binary for CLI invocations (FLUTTER_ROOT
+/// or PATH). Injectable so tests can drive the command end-to-end
+/// with a fake tool.
+String Function() flutterBinaryResolver = _defaultFlutterBinary;
+
+/// The production resolver (tests restore this after overriding).
+String Function() get defaultFlutterBinaryResolver => _defaultFlutterBinary;
+
 String _defaultFlutterBinary() {
   final root = Platform.environment['FLUTTER_ROOT'];
   return root == null ? kFlutter : '$root/bin/flutter';

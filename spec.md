@@ -180,7 +180,11 @@ with usage-error status.
 ### 4.7 memory Options
 
 - `[paths...]`
-  Explicit test paths forwarded to `dart test`.
+  Explicit test paths forwarded to the engine's test runner (`dart
+  test` on the Dart engine; `flutter test` on the Flutter engine).
+  When the working directory is not itself a Dart/Flutter package
+  (workspace root), the package root is inferred by walking up from
+  the first path; missing paths exit with a usage error naming them.
 
 - `--top <n>` (default 20)
   How many entries each leaderboard prints.

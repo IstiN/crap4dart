@@ -13,6 +13,9 @@ const String kDart = 'dart';
 /// The Flutter tool executable.
 const String kFlutter = 'flutter';
 
+/// Memory engine marker: no runnable suite found.
+const String kNoEngine = 'none';
+
 /// The `test` subcommand of the dart/flutter tools and the name of the
 /// directory holding a project's tests.
 const String kTest = 'test';

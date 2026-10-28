@@ -70,14 +70,21 @@ class MemoryCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final root = projectRoot ?? Directory.current.path;
-    final engine = _resolveEngine(root);
-    if (engine == 'none') {
+    var root = projectRoot ?? Directory.current.path;
+    final rest = argResults!.rest;
+    var engine = _resolveEngine(root);
+    if (engine == kNoEngine && rest.isNotEmpty) {
+      // Workspace-root invocation with explicit test paths: derive the
+      // package root from the paths themselves.
+      root = inferPackageRoot(root, rest) ?? root;
+      engine = _resolveEngine(root);
+    }
+    if (engine == kNoEngine) {
       stderr.writeln(_noSuiteMessage(root));
       return ExitCodes.usageError;
     }
     final report = engine == kFlutter
-        ? await _profileFlutter(root)
+        ? await _profileFlutter(root, rest)
         : await _profileDart(root);
     if (report.testCount == 0) {
       stderr.writeln('memory: no tests executed');
@@ -96,7 +103,7 @@ class MemoryCommand extends Command<int> {
     if (_isDartProject(root) || isFlutter) {
       return isFlutter ? kFlutter : kDart;
     }
-    return 'none';
+    return kNoEngine;
   }
 
   /// The dart-engine path (dart --verbose_gc test).
@@ -106,13 +113,22 @@ class MemoryCommand extends Command<int> {
   }
 
   /// The flutter-engine path: rides flutter test --verbose, measuring
-  /// every spawned flutter_tester (each file runs twice).
-  Future<MemoryReport> _profileFlutter(String root) async {
+  /// every spawned flutter_tester (each file runs twice). Positional
+  /// [testPaths] forward to `flutter test` for targeted measurement.
+  Future<MemoryReport> _profileFlutter(
+    String root,
+    List<String> testPaths,
+  ) async {
+    final missing = missingTestPaths(root, testPaths);
+    if (missing.isNotEmpty) {
+      stderr.writeln('memory: test path(s) not found: ${missing.join(', ')}');
+      return emptyMemoryReport();
+    }
     stderr.writeln(
       'Running flutter test (each file executes twice: the tool run '
       'plus the measured copy) — this may take a while',
     );
-    return runFlutterMemory(root, stderr.writeln);
+    return runFlutterMemory(root, stderr.writeln, testPaths: testPaths);
   }
 
   /// Whether [root] declares the Flutter SDK dependency.
@@ -228,6 +244,40 @@ class MemoryCommand extends Command<int> {
         ],
       }),
     );
+  }
+}
+
+/// Positional test paths that resolve to neither a file nor a
+/// directory (relative to [root] or absolute) — surfaced as a usage
+/// error instead of silently measuring nothing.
+List<String> missingTestPaths(String root, List<String> paths) => [
+      for (final path in paths)
+        if (!File(p.join(root, path)).existsSync() &&
+            !File(path).existsSync() &&
+            !Directory(p.join(root, path)).existsSync())
+          path,
+    ];
+
+/// An empty report for early-exit paths (nothing measured yet).
+MemoryReport emptyMemoryReport() => MemoryReport(
+      testCount: 0,
+      totalGcs: const [],
+      suites: const [],
+      tests: const [],
+      unattributedGcs: const [],
+    );
+
+/// Derives a package root from explicit test paths: walks up from the
+/// first path's directory to the nearest pubspec. Returns null when
+/// the filesystem root is reached without one.
+String? inferPackageRoot(String root, List<String> paths) {
+  var dir = File(p.join(root, paths.first)).parent.path;
+  if (!Directory(dir).existsSync()) dir = File(paths.first).parent.path;
+  for (var candidate = dir;; candidate = p.dirname(candidate)) {
+    if (File(p.join(candidate, 'pubspec.yaml')).existsSync()) {
+      return candidate;
+    }
+    if (candidate == p.dirname(candidate)) return null;
   }
 }
 
