@@ -13,7 +13,7 @@ void main() {
     for (var i = 0; i < 10; i++) {
       writeFile(project, 'lib/src/generated/g$i.g.dart', '// gen\n');
     }
-    final result = await FolderStructureGate().run(
+    final result = await const FolderStructureGate().run(
       makeContext(
         project,
         const [],
@@ -37,7 +37,7 @@ void main() {
     for (var i = 0; i < 3; i++) {
       writeFile(project, 'lib/src/f$i.dart', 'void f() {}\n');
     }
-    final result = await FolderStructureGate().run(
+    final result = await const FolderStructureGate().run(
       makeContext(
         project,
         const [],

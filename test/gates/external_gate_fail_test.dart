@@ -12,7 +12,7 @@ void main() {
     final failing = File('${project.path}/failing_tool.sh')
       ..writeAsStringSync('#!/bin/sh\nexit 3\n');
     Process.runSync('chmod', ['+x', failing.path]);
-    final result = await ExternalGate().run(
+    final result = await const ExternalGate().run(
       makeContext(
         project,
         const [],

@@ -28,7 +28,7 @@ void main() {
   });
 }
 ''');
-    final result = await TestAssertionsGate().run(
+    final result = await const TestAssertionsGate().run(
       makeContext(project, ['test/widget_test.dart']),
     );
     expect(result.passed, isFalse);
@@ -55,7 +55,7 @@ void main() {
   });
 }
 ''');
-    final result = await TestAssertionsGate().run(
+    final result = await const TestAssertionsGate().run(
       makeContext(project, ['test/grouped_test.dart']),
     );
     expect(result.passed, isFalse);

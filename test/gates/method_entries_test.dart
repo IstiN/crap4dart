@@ -15,7 +15,7 @@ int tables(int x) {
   return x;
 }
 ''');
-    final result = await ComplexityGate().run(
+    final result = await const ComplexityGate().run(
       makeContext(
         project,
         ['lib/gen/tables.dart'],
@@ -40,7 +40,7 @@ int helper(int a) {
   return a;
 }
 ''');
-    final result = await MethodSizeGate().run(
+    final result = await const MethodSizeGate().run(
       makeContext(
         project,
         ['lib/test_helpers.dart'],

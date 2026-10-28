@@ -78,7 +78,7 @@ class HookInstaller {
       }
     }
     if (!force) {
-      throw HookInstallException(
+      throw const HookInstallException(
         'hook exists without a crap4dart block, use --force',
       );
     }

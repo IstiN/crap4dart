@@ -25,7 +25,7 @@ class Service {
   int d() => 4;
 }
 ''');
-    final result = await WeightOfClassGate().run(
+    final result = await const WeightOfClassGate().run(
       makeContext(
         project,
         ['lib/dto.dart', 'lib/service.dart'],

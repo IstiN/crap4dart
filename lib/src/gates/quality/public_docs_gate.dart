@@ -73,11 +73,8 @@ class _DocsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  // ignore: experimental_member_use
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    // ignore: experimental_member_use
     _checkNamed(node, node.namePart.typeName.lexeme, 'extension type');
-    // ignore: experimental_member_use
     super.visitExtensionTypeDeclaration(node);
   }
 

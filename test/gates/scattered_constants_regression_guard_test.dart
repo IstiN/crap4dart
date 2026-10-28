@@ -16,7 +16,7 @@ void main() {
     for (final entry in files.entries) {
       writeFile(project, entry.key, entry.value);
     }
-    return ScatteredConstantsGate().run(
+    return const ScatteredConstantsGate().run(
       makeContext(
         project,
         files.keys.map((f) => p.join(project.path, f)).toList(),

@@ -21,7 +21,7 @@ void _aliveFunction() {}
 
 void caller() => _aliveFunction();
 ''');
-    final result = await UnusedCodeGate().run(
+    final result = await const UnusedCodeGate().run(
       makeContext(project, ['lib/a.dart']),
     );
     expect(result.passed, isFalse);
@@ -43,7 +43,7 @@ void caller() => _aliveFunction();
       'bin/main.dart',
       "import 'package:myapp/used.dart';\n\nvoid main() => u();\n",
     );
-    final result = await UnusedFilesGate().run(
+    final result = await const UnusedFilesGate().run(
       makeContext(
           project, ['lib/used.dart', 'lib/orphan.dart', 'bin/main.dart']),
     );

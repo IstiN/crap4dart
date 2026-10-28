@@ -11,7 +11,7 @@ void main() {
       writeFile(project, 'lib/src/f$i.dart', 'void f() {}\n');
     }
     writeFile(project, 'lib/src/huge.g.dart', '// generated\n');
-    final result = await FolderStructureGate().run(
+    final result = await const FolderStructureGate().run(
       makeContext(
         project,
         const [],

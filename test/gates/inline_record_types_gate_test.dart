@@ -9,7 +9,8 @@ void main() {
     final project = createTempProject();
     addTearDown(() => project.deleteSync(recursive: true));
     writeFile(project, 'lib/a.dart', source);
-    return InlineRecordTypesGate().run(makeContext(project, ['lib/a.dart']));
+    return const InlineRecordTypesGate()
+        .run(makeContext(project, ['lib/a.dart']));
   }
 
   test('flags an inline positional record type in a signature', () async {

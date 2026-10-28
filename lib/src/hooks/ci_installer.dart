@@ -23,7 +23,7 @@ class CiInstaller {
   String installCi(String projectRoot, {bool force = false}) {
     final file = File(p.join(projectRoot, workflowPath));
     if (file.existsSync() && !force) {
-      throw HookInstallException(
+      throw const HookInstallException(
         '$workflowPath already exists, use --force',
       );
     }
