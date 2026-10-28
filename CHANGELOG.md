@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.24.0 — 2026-10-27
+
+- New `identical_branches` gate (warning severity by default): the
+  copy-paste-edit bug family, compared by canonical form
+  (formatting-, parenthesis- and comment-independent; commutative
+  operands sorted; same-operator nests flattened) — (1) duplicate
+  conditions in one if/else-if chain, (2) duplicate branch bodies in
+  one chain (including `else` equal to its `then`; a single-statement
+  block equals the naked statement), (3) duplicate or absorbed
+  operands in one boolean chain (`a || a` collapses to `a`;
+  `a || b && a` collapses to `a` by absorption — the extra terms are
+  dead), (4) identical ternary
+  branches (`c ? x : x`), (5) duplicate positional arguments in one
+  call (`f(w, h, w)`; named arguments exempt — the name documents the
+  slot — and all-literal argument lists exempt, so uniform-value APIs
+  like `EdgeInsets.fromLTRB(8, 8, 8, 8)` stay quiet), and (6) duplicate
+  catch bodies in one try. Only pieces of the same construct are
+  compared; identical conditions in separate `if` statements are legal.
+  Config keys: `enabled`, `severity`, `ignorable`.
+- `ConfigException` file-level failures no longer render the path in
+  the key slot (`Invalid config "x": x: config file not found` →
+  `Invalid config "x": config file not found`); the duplicate-argument
+  finding that surfaced it came from the new gate's first dogfood run.
+
 ## 0.23.0 — 2026-10-27
 
 - New `string_hazards` gate (warning severity by default): flags string
@@ -83,6 +107,26 @@
   record typedef to a class — the first `record_size` dogfooding fix.
 
 All notable changes to this project will be documented in this file.
+
+## Unreleased
+
+### Added
+
+- `identical_branches` gate (24th): fails `if`/`else if` chains that
+  test the same condition twice — every later branch is unreachable,
+  the copy-paste-edit bug family. Conditions compare by canonical form:
+  whitespace-, parenthesis- and comment-independent, with operands of
+  commutative operators sorted (`a == b` matches `b == a`) and
+  `&&`/`||` nests flattened. Only conditions of one chain are compared
+  (state may change between separate statements); `if case` links and
+  `switch` are excluded. Enabled by default with `severity: warning`
+  (reordering is only equivalent for side-effect-free operands).
+
+### Fixed
+
+- `gate_runner` ran `broken_goldens`, `test_assertions`,
+  `folder_structure` and `external` twice per `check` (leftover from
+  the external-gate commit); duplicate results are gone.
 
 ## 0.17.0 — 2026-10-23
 

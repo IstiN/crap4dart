@@ -28,11 +28,14 @@ class ConfigException implements Exception {
   /// Human readable description of the problem.
   final String message;
 
-  /// Creates a [ConfigException].
-  const ConfigException(this.path, this.key, this.message);
+  /// Creates a [ConfigException]. [key] is empty for file-level
+  /// failures that have no offending key.
+  const ConfigException(this.path, [this.key = '', this.message = '']);
 
   @override
-  String toString() => 'Invalid config "$path": $key: $message';
+  String toString() => key.isEmpty
+      ? 'Invalid config "$path": $message'
+      : 'Invalid config "$path": $key: $message';
 }
 
 /// Loads `crap4dart.yaml` with strict validation and per-key defaults.
@@ -58,7 +61,7 @@ class ConfigLoader {
     final file = File(path);
     if (!file.existsSync()) {
       if (configPath != null) {
-        throw ConfigException(path, path, 'config file not found');
+        throw ConfigException(path, '', 'config file not found');
       }
       return Crap4DartConfig.defaults();
     }
@@ -71,7 +74,7 @@ class ConfigLoader {
     try {
       doc = loadYaml(content);
     } on YamlException catch (e) {
-      throw ConfigException(path, path, 'invalid YAML: ${e.message}');
+      throw ConfigException(path, '', 'invalid YAML: ${e.message}');
     }
     if (doc == null) return Crap4DartConfig.defaults();
     final root = _ConfigScalars.asMap(doc, path, '(root)');
@@ -258,17 +261,27 @@ class ConfigLoader {
           map[GateIds.similarity], base.similarity, path),
       stringHazards: _GateConfigReaders.readStringHazards(
           map[GateIds.stringHazards], base.stringHazards, path),
-      flutter: FlutterGatesConfig(
-        golden: _GateConfigReaders.readGolden(
-            map[GateIds.golden], base.flutter.golden, path),
-        hardcodedStrings: _GateConfigReaders.readHardcodedStrings(
-          map[GateIds.hardcodedStrings],
-          base.flutter.hardcodedStrings,
-          path,
-        ),
-        accessibility: _GateConfigReaders.readAccessibility(
-            map[GateIds.accessibility], base.flutter.accessibility, path),
+      identicalBranches: _ExtendedGateConfigReaders.readIdenticalBranches(
+          map[GateIds.identicalBranches], base.identicalBranches, path),
+      flutter: _readFlutterGates(map, base.flutter, path),
+    );
+  }
+
+  FlutterGatesConfig _readFlutterGates(
+    YamlMap map,
+    FlutterGatesConfig base,
+    String path,
+  ) {
+    return FlutterGatesConfig(
+      golden:
+          _GateConfigReaders.readGolden(map[GateIds.golden], base.golden, path),
+      hardcodedStrings: _GateConfigReaders.readHardcodedStrings(
+        map[GateIds.hardcodedStrings],
+        base.hardcodedStrings,
+        path,
       ),
+      accessibility: _GateConfigReaders.readAccessibility(
+          map[GateIds.accessibility], base.accessibility, path),
     );
   }
 }

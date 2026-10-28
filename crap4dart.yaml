@@ -121,3 +121,15 @@ gates:
     config:
       lib/src: 3
       'lib/src/**': 30
+  # Wave-1 bug-class gate: the copy-paste-edit family — duplicate
+  # conditions/bodies in one chain, duplicate/absorbed boolean operands,
+  # identical ternary branches, duplicate positional call arguments,
+  # duplicate catch bodies. Warning severity: equivalence assumes
+  # side-effect-free operands.
+  identical_branches:
+    enabled: true
+    severity: warning
+    # Deliberate same-expression arguments exist (one-line ranges,
+    # idempotence asserts, degenerate golden rects); suppression is
+    # per-site with a reason.
+    ignorable: true

@@ -192,6 +192,9 @@ class GatesConfig {
   /// String literal hazards gate (`string_hazards`).
   final StringHazardsGateConfig stringHazards;
 
+  /// Identical branch conditions gate (`identical_branches`).
+  final IdenticalBranchesGateConfig identicalBranches;
+
   /// Flutter-specific gates grouped together.
   final FlutterGatesConfig flutter;
 
@@ -222,6 +225,7 @@ class GatesConfig {
     this.mutation = const MutationGateConfig(),
     this.similarity = const SimilarityGateConfig(),
     this.stringHazards = const StringHazardsGateConfig(),
+    this.identicalBranches = const IdenticalBranchesGateConfig(),
     this.flutter = const FlutterGatesConfig(),
   });
 

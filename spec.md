@@ -513,7 +513,8 @@ Known gate ids: `loc`, `test_coverage`, `golden`, `hardcoded_strings`,
 `weight_of_class`, `unused_code`, `unused_files`, `banned_imports`,
 `public_docs`, `duplication`, `file_naming`, `magic_constants`,
 `broken_goldens`, `test_assertions`, `folder_structure`, `external`,
-`mutation`, `similarity`, `string_hazards`, `record_named_fields`,
+`mutation`, `similarity`, `string_hazards`, `identical_branches`,
+`record_named_fields`,
 `inline_record_types`, `record_size`, `scattered_constants`.
 
 ## 11. Quality Gates
@@ -526,7 +527,8 @@ Gates shall run in the fixed order: `loc`, `test_coverage`,
 `folder_structure`, `external`, `unused_code`, `unused_files`,
 `banned_imports`,
 `public_docs`, `hardcoded_strings`, `accessibility`, `golden`,
-`weight_of_class`, `mutation`, `similarity`, `string_hazards`. A gate
+`weight_of_class`, `mutation`, `similarity`, `string_hazards`,
+`identical_branches`. A gate
 disabled in the
 config shall
 produce a skipped result. The run shall fail when at least one gate fails;
@@ -1098,6 +1100,44 @@ parsed-unresolved AST. It shall produce three finding kinds:
 Default severity: warning. Default enabled: true. Configurable keys:
 `enabled`, `severity`, `ignorable`. Every violation shall carry the
 file and line of the offending literal.
+
+### 11.26 identical_branches
+
+The `identical_branches` gate shall flag the copy-paste-edit family —
+syntactically identical pieces inside one construct — comparing by
+canonical form: whitespace-, comment- and parenthesis-independent,
+operands of commutative operators (`==`, `!=`, `&&`, `||`, `+`, `*`,
+`&`, `|`, `^`) sorted, same-operator nests of associative operators
+flattened. Six finding kinds:
+
+1. **Duplicate conditions** — two links of one `if`/`else if` chain
+   whose conditions compare equal; every later branch is unreachable.
+   A link with a `case` clause shall be excluded. `switch` shall be
+   excluded (the analyzer already flags duplicate cases).
+2. **Duplicate branch bodies** — two bodies in one chain whose
+   statements compare equal by token text; a single-statement block
+   shall compare equal to the naked statement. The violation shall
+   point at the unwrapped statement's line.
+3. **Duplicate operands and absorbed operands** — one boolean chain
+   (`&&`/`||`) whose flattened operand list contains a repeated
+   canonical operand, or an operand that also appears standalone as
+   another top-level operand's conjunct (for `||`) or disjunct (for
+   `&&`) — the absorption law (`a || b && a` collapses to `a`). Only
+   the outermost link of a same-operator chain shall be checked.
+4. **Identical ternary branches** — a conditional expression whose then
+   and else expressions compare equal.
+5. **Duplicate positional arguments** — one call whose positional
+   argument list contains a repeated canonical argument. Named
+   arguments shall be exempt (the name documents the slot), all-literal
+   argument lists shall be exempt, and literal arguments shall never be
+   reported as the repeat.
+6. **Duplicate catch bodies** — two catch clauses of one `try` whose
+   bodies compare equal.
+
+Only pieces of the *same* construct shall be compared. Default
+severity: warning. Default enabled: true. Configurable keys:
+`enabled`, `severity`, `ignorable`. Every violation shall carry the
+file and line of the repeated occurrence.
 
 ## 12. Baseline
 

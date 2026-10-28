@@ -422,4 +422,16 @@ gates:
   string_hazards:
     enabled: true
     severity: warning
+  # Copy-paste-edit bug family, compared by canonical form
+  # (formatting-, parenthesis- and reorder-insensitive: `a == b`
+  # matches `b == a`): duplicate conditions in one if/else-if chain
+  # (every later branch becomes unreachable), duplicate branch bodies
+  # in one chain, duplicate or absorbed operands in one boolean chain
+  # (`a || a`, `a || b && a` both collapse), identical ternary branches (`c ? x : x`), duplicate positional
+  # arguments in one call (uniform all-literal lists exempt), and
+  # duplicate catch bodies in one try. Warning severity: equivalence
+  # assumes side-effect-free operands.
+  identical_branches:
+    enabled: true
+    severity: warning
 ''';

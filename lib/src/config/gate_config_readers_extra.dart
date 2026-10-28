@@ -495,4 +495,26 @@ class _ExtendedGateConfigReaders {
       },
     );
   }
+
+  static IdenticalBranchesGateConfig readIdenticalBranches(
+    Object? node,
+    IdenticalBranchesGateConfig base,
+    String path,
+  ) {
+    return _ConfigScalars.readGateConfig(
+      node,
+      base,
+      path,
+      '$kGatePrefix.${GateIds.identicalBranches}',
+      const {_enabledKey, _severityKey, _ignorableKey},
+      (map, base, path, ctx) {
+        final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
+        return IdenticalBranchesGateConfig(
+          enabled: flags.enabled,
+          severity: flags.severity,
+          ignorable: flags.ignorable,
+        );
+      },
+    );
+  }
 }

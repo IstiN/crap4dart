@@ -94,6 +94,9 @@ abstract final class GateIds {
   /// String literal hazards gate.
   static const String stringHazards = 'string_hazards';
 
+  /// Identical branch conditions gate (`identical_branches`).
+  static const String identicalBranches = 'identical_branches';
+
   /// Every gate id in runner order.
   static const List<String> all = [
     loc,
@@ -124,5 +127,6 @@ abstract final class GateIds {
     mutation,
     similarity,
     stringHazards,
+    identicalBranches,
   ];
 }

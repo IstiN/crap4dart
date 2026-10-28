@@ -88,6 +88,9 @@ void _paintOverflowStripes(Grid g) {
 /// false positive that used to read as an X signature.
 void _paintCheckmarkTile(Grid g) {
   const t0 = 18, t1 = 45;
+  // Deliberately degenerate square: the reproduced issue paints a
+  // solid tile, so left==right and top==bottom.
+  // ignore:identical_branches
   g.rect(t0, t0, t1, t1, _green);
   const cut = 3;
   for (var c = 0; c < cut; c++) {
