@@ -513,8 +513,8 @@ Known gate ids: `loc`, `test_coverage`, `golden`, `hardcoded_strings`,
 `weight_of_class`, `unused_code`, `unused_files`, `banned_imports`,
 `public_docs`, `duplication`, `file_naming`, `magic_constants`,
 `broken_goldens`, `test_assertions`, `folder_structure`, `external`,
-`mutation`, `similarity`, `record_named_fields`, `inline_record_types`,
-`record_size`, `scattered_constants`.
+`mutation`, `similarity`, `string_hazards`, `record_named_fields`,
+`inline_record_types`, `record_size`, `scattered_constants`.
 
 ## 11. Quality Gates
 
@@ -526,7 +526,8 @@ Gates shall run in the fixed order: `loc`, `test_coverage`,
 `folder_structure`, `external`, `unused_code`, `unused_files`,
 `banned_imports`,
 `public_docs`, `hardcoded_strings`, `accessibility`, `golden`,
-`weight_of_class`, `mutation`, `similarity`. A gate disabled in the
+`weight_of_class`, `mutation`, `similarity`, `string_hazards`. A gate
+disabled in the
 config shall
 produce a skipped result. The run shall fail when at least one gate fails;
 skipped gates shall not fail the run.
@@ -1070,6 +1071,33 @@ files that would change, and exit 2 when at least one would (0
 otherwise); without it, files are written and the command exits 0.
 Files that fail to parse shall be skipped with a note and shall not
 fail the run.
+
+### 11.25 string_hazards
+
+The `string_hazards` gate shall flag string literal hazards from the
+parsed-unresolved AST. It shall produce three finding kinds:
+
+1. **Escaped interpolation** — inside a non-raw string literal, a `\$`
+   followed by an identifier (optionally brace-enclosed: `\${name}`)
+   renders the literal text `$name`. The gate shall flag such an
+   occurrence only when the same identifier is genuinely interpolated
+   elsewhere in the same file (sibling-interpolation evidence);
+   otherwise the escape is presumed deliberate (shell text, prices).
+2. **Raw regex with an escaped anchor** — a raw string literal passed
+   as the `source` argument of a `RegExp(...)` instance creation that
+   ends with `\$` or starts with `\^`. In a raw string the backslash
+   survives, so the pattern matches a literal dollar/caret where the
+   end/start anchor was almost certainly intended.
+3. **Regex anchors in literal String patterns** — a `String` literal
+   passed as the pattern argument of `replaceFirst`, `replaceFirstMapped`,
+   `replaceAll`, `replaceAllMapped` or `split` (the pattern is matched
+   literally) whose text starts with `^` or ends with an unescaped `$`.
+   For adjacent-string arguments the first part shall be checked for
+   the leading `^` and the last part for the trailing `$`.
+
+Default severity: warning. Default enabled: true. Configurable keys:
+`enabled`, `severity`, `ignorable`. Every violation shall carry the
+file and line of the offending literal.
 
 ## 12. Baseline
 

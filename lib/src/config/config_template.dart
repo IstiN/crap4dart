@@ -350,8 +350,7 @@ gates:
   # that file" — reuse, generate or delete, not extract-method.
   # Explore with `crap4dart similarity`, tune, then enable — typically
   # with `check --save-baseline` so only NEW near-duplicates fail.
-  similarity:
-    # Disabled by default: corpora differ wildly; opt in deliberately.
+  similarity:    # Disabled by default: corpora differ wildly; opt in deliberately.
     enabled: false
     # Directories recursively scanned for text files.
     dirs: ['.']
@@ -412,4 +411,15 @@ gates:
     # Glob patterns excluded from the gate.
     exclude:
       - 'test/**'
+  # String literal hazards: escaped interpolations that render
+  # literally ('\$name' where '\$name' was interpolated elsewhere in the
+  # file), raw RegExp patterns with an escaped anchor (r'...\\\$'
+  # matches a literal dollar, not the end anchor), and regex anchors
+  # (^ / \$) inside literal String patterns of replaceFirst/replaceAll/
+  # split, where they can only match that literal character. Warning
+  # severity: deliberate literal dollars (shell code, prices) trip it
+  # occasionally.
+  string_hazards:
+    enabled: true
+    severity: warning
 ''';

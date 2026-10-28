@@ -91,6 +91,9 @@ abstract final class GateIds {
   /// Similarity gate.
   static const String similarity = 'similarity';
 
+  /// String literal hazards gate.
+  static const String stringHazards = 'string_hazards';
+
   /// Every gate id in runner order.
   static const List<String> all = [
     loc,
@@ -120,5 +123,6 @@ abstract final class GateIds {
     weightOfClass,
     mutation,
     similarity,
+    stringHazards,
   ];
 }

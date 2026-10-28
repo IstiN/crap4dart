@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.23.0 — 2026-10-27
+
+- New `string_hazards` gate (warning severity by default): flags string
+  literals whose escaping or pattern usage contradicts the author's
+  almost-certain intent — (1) escaped interpolations (`\$name` /
+  `\${name}` in non-raw strings render literally) flagged only when the
+  same identifier is interpolated elsewhere in the file, (2) raw
+  `RegExp` patterns ending with `\$` (or starting with `\^`) where the
+  end/start anchor was intended, and (3) regex anchors (`^` / unescaped
+  trailing `$`) inside literal `String` patterns of
+  `replaceFirst`/`replaceAll`/`replace*Mapped`/`split`, where they can
+  only match that literal character. Config keys: `enabled`, `severity`,
+  `ignorable`.
+
 ## 0.22.0 — 2026-10-27
 
 - New `reorder` command: deterministically rewrites class members into
