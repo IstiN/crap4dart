@@ -29,14 +29,14 @@ crap4dart is a Dart port of the Java tool
 ## Features
 
 - **CRAP analysis** per method, combining complexity and LCOV coverage
-- **28 quality gates**: `loc`, `test_coverage`, `golden`,
+- **29 quality gates**: `loc`, `test_coverage`, `golden`,
   `hardcoded_strings`, `accessibility`, `complexity`, `method_size`,
   `nesting`, `record_named_fields`, `inline_record_types`,
   `record_size`, `class_size`, `weight_of_class`, `unused_code`,
   `unused_files`, `banned_imports`, `public_docs`, `duplication`,
   `file_naming`, `magic_constants`, `scattered_constants`, `broken_goldens`,
   `test_assertions`, `folder_structure`, `external`, `mutation`,
-  `similarity`, `string_hazards`
+  `similarity`, `string_hazards`, `identical_branches`
 - **Gate framework**: per-path thresholds (`entries`), warning
   severity, baseline mode, opt-in ignore markers
 - **Configuration** via `crap4dart.yaml` with strict validation
@@ -377,6 +377,13 @@ gates:
   # raw RegExp patterns with an escaped anchor, and regex anchors in
   # literal String patterns of replaceFirst/replaceAll/split.
   string_hazards:
+    enabled: true
+    severity: warning
+  # Copy-paste-edit family: duplicate conditions/bodies in one
+  # if/else-if chain, duplicate operands in one boolean chain,
+  # identical ternary branches, duplicate positional call arguments,
+  # duplicate catch bodies — all compared by canonical form.
+  identical_branches:
     enabled: true
     severity: warning
   # Limit cyclomatic complexity per method.
@@ -786,6 +793,24 @@ gates:
   can only ever match that literal character. Warning severity by
   default: deliberate literal dollars (shell code, price patterns) trip
   the warnings occasionally — confirm or restructure.
+
+- **identical_branches** — the copy-paste-edit bug family, compared by
+  canonical form (whitespace-, parenthesis- and comment-independent;
+  operands of commutative operators sorted; same-operator nests
+  flattened): (1) duplicate conditions in one `if`/`else if` chain —
+  every later branch is unreachable; (2) duplicate branch bodies in one
+  chain, including an `else` equal to its `then` (a single-statement
+  block equals the naked statement); (3) duplicate operands in one
+  boolean chain (`a || a` collapses to `a`); (4) identical ternary
+  branches (`c ? x : x` — the condition is dead); (5) duplicate
+  positional arguments in one call (`f(w, h, w)`) — named arguments are
+  exempt (the name documents the slot) and so are all-literal argument
+  lists (uniform-value APIs like `EdgeInsets.fromLTRB(8, 8, 8, 8)`);
+  (6) duplicate catch bodies in one `try`. Only pieces of the *same*
+  construct are compared; identical conditions in separate `if`
+  statements are legal. `switch` is excluded — the analyzer already
+  flags duplicate cases. Warning severity by default: equivalence
+  assumes side-effect-free operands.
 
 ## Baseline
 

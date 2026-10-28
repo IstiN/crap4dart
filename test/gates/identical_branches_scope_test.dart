@@ -17,7 +17,7 @@ String classify(int x) {
 }
 ''');
     expect(result.passed, isTrue, reason: result.violations.toString());
-    expect(result.summary, contains('no duplicate conditions'));
+    expect(result.summary, contains('no identical-branch findings'));
   });
 
   test('the same condition in two separate if statements passes', () async {
@@ -62,7 +62,7 @@ String classify(int x) {
     if (x == 0) {
       return 'zero';
     } else if (x == 0) {
-      return 'zero';
+      return 'zero!';
     }
   }
   return 'neg';

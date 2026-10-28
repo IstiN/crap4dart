@@ -56,7 +56,7 @@ Future<String> gitTopLevel(String dir) async {
 }
 
 /// Current crap4dart version.
-const String crap4dartVersion = '0.23.0';
+const String crap4dartVersion = '0.24.0';
 const String _runTestsFlag = 'run-tests';
 const String _forceFlag = 'force';
 
@@ -743,7 +743,8 @@ class InstallCommand extends Command<int> {
       return ExitCodes.success;
     } on ConfigException catch (e) {
       stderr.writeln(e);
-      return ExitCodes.usageError;
+      return ExitCodes
+          .usageError; // ignore:identical_branches — two distinct exception types, identical handling on purpose
     } on HookInstallException catch (e) {
       stderr.writeln(e);
       return ExitCodes.usageError;

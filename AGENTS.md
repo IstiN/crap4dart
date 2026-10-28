@@ -9,13 +9,14 @@ Guidance for AI agents and contributors working on crap4dart.
 1. **CRAP metric analysis** (`analyze`) — `CRAP = CC²·(1−coverage)³ + CC`
    per method, combining AST-based cyclomatic complexity with LCOV coverage.
    Port of [crap4java](https://github.com/unclebob/crap4java).
-2. **Quality gates** (`check`) — 27 configurable gates: `loc`,
+2. **Quality gates** (`check`) — 29 configurable gates: `loc`,
    `test_coverage`, `golden`, `hardcoded_strings`, `accessibility`,
    `complexity`, `method_size`, `nesting`, `record_named_fields`,
    `inline_record_types`, `record_size`, `class_size`,
    `weight_of_class`, `unused_code`, `unused_files`, `banned_imports`,
    `public_docs`, `duplication`, `file_naming`, `magic_constants`, `scattered_constants`,
    `broken_goldens`, `test_assertions`, `folder_structure`,
+   `string_hazards`, `identical_branches`,
    `external` (Checkstyle-XML tool wrapper: detekt/ktlint/swiftlint),
    `mutation` (mutation testing: AST operator table + per-mutant test
    re-runs with a digest-incremental killed-stays-killed cache —

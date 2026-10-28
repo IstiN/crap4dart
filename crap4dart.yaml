@@ -128,3 +128,7 @@ gates:
   identical_branches:
     enabled: true
     severity: warning
+    # Deliberate same-expression arguments exist (one-line ranges,
+    # idempotence asserts, degenerate golden rects); suppression is
+    # per-site with a reason.
+    ignorable: true

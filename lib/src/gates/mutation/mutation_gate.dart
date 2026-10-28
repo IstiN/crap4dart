@@ -191,6 +191,9 @@ class MutationGate implements Gate {
     if (method != null) {
       return diff.intersects(relative, method.startLine, method.endLine);
     }
+    // Single-line site: a one-line range is the intent, not a
+    // duplicated variable.
+    // ignore:identical_branches
     return diff.intersects(relative, site.line, site.line);
   }
 

@@ -6,23 +6,44 @@ import 'gate.dart';
 import 'gate_context.dart';
 import 'gate_ids.dart';
 
-/// The `identical_branches` gate: fails `if`/`else if` chains that test
-/// the same condition twice.
+/// The `(operator, left, right)` parts of a binary expression.
+typedef _BinaryParts = ({String op, AstNode left, AstNode right});
+
+/// The canonical body key plus the line of the unwrapped statement.
+typedef _BodyKey = ({String key, int line});
+
+/// The `identical_branches` gate: flags the copy-paste-edit bug family —
+/// syntactically identical pieces inside one construct where a second,
+/// slightly different piece was intended.
 ///
-/// A duplicated condition makes every later branch unreachable — the
-/// classic copy-paste-edit bug where one arm was supposed to be edited.
-/// Conditions compare by canonical form, so formatting, redundant
-/// parentheses and operand order of commutative operators
-/// (`==`, `!=`, `&&`, `||`, `+`, `*`, `&`, `|`, `^`) do not hide a
-/// duplicate: `a == b` matches `b == a`, and `a && b` matches `b && a`.
+/// Five checks, all comparing by canonical form (whitespace-, comment-,
+/// parenthesis-independent, operands of commutative operators sorted,
+/// same-operator nests flattened): `a == b` matches `b == a`, `a && b`
+/// matches `b && a`.
 ///
-/// Only conditions of the *same* chain are compared; identical
+/// 1. **Duplicate conditions** in one `if`/`else if` chain — every later
+///    branch becomes unreachable.
+/// 2. **Duplicate branch bodies** in one chain (`if (a) return x; else
+///    if (b) return x;`) — one arm was supposed to be edited. Also
+///    covers an `else` equal to its `then`.
+/// 3. **Duplicate operands in one boolean chain** (`a || a`, `a && a`)
+///    — the operand collapses to itself; `f() || f()` double-calls by
+///    accident.
+/// 4. **Identical ternary branches** (`c ? x : x`) — the condition is
+///    dead.
+/// 5. **Duplicate arguments in one call** (`f(w, h, w)`) and
+///    **duplicate catch bodies** in one `try` — the wrong-variable /
+///    copy-paste-handling bugs. All-identical argument lists
+///    (`EdgeInsets.fromLTRB(8, 8, 8, 8)`) and pure-literal repeats are
+///    exempt: uniform-value APIs legitimately repeat.
+///
+/// Only pieces of the *same* construct are compared; identical
 /// conditions in separate `if` statements or nested branches are legal
 /// (the state may change between them). `switch` is excluded — the
-/// analyzer already flags duplicate switch cases.
+/// analyzer already flags duplicate cases.
 ///
-/// Default severity is `warning`: reordering is only equivalent when
-/// the operands are side-effect free, which pure syntax cannot prove.
+/// Default severity is `warning`: equivalence assumes side-effect-free
+/// operands, which pure syntax cannot prove.
 class IdenticalBranchesGate implements Gate {
   /// Creates an [IdenticalBranchesGate].
   const IdenticalBranchesGate();
@@ -33,107 +54,79 @@ class IdenticalBranchesGate implements Gate {
   @override
   Future<GateResult> run(GateContext context) async {
     final violations = <GateViolation>[];
-    var chains = 0;
+    var constructs = 0;
     for (final file in context.files) {
       final parsed = context.parsed(file);
-      final scanner = _ChainScanner(parsed.lineInfo);
+      final scanner = _DuplicationScanner(parsed.lineInfo);
       parsed.unit.accept(scanner);
-      chains += scanner.chains;
-      for (final duplicate in scanner.duplicates) {
+      constructs += scanner.constructs;
+      for (final finding in scanner.findings) {
         violations.add(
           GateViolation(
             file: context.relativePath(file),
-            line: duplicate.line,
-            message: "duplicate condition in if/else-if chain: "
-                "'${duplicate.condition}' (same as line "
-                '${duplicate.firstLine})',
+            line: finding.line,
+            message: finding.message,
           ),
         );
       }
     }
     final summary = violations.isEmpty
-        ? '$chains if/else-if chains checked, no duplicate conditions'
-        : '${violations.length} duplicate conditions in if/else-if chains';
+        ? '$constructs constructs checked, no identical-branch findings'
+        : '${violations.length} identical-branch findings '
+            '($constructs constructs checked)';
     return violations.isEmpty
         ? GateResult.pass(id, summary: summary)
         : GateResult.fail(id, violations, summary: summary);
   }
 }
 
-/// One duplicated condition inside a chain.
-class _DuplicateCondition {
-  /// Creates a duplicate record.
-  const _DuplicateCondition(this.condition, this.line, this.firstLine);
-
-  /// The condition as written in the source.
-  final String condition;
+/// One finding: a ready-to-render message plus the violation line.
+class _Finding {
+  /// The violation message.
+  final String message;
 
   /// 1-based line of the repeated occurrence (the violation site).
   final int line;
 
-  /// 1-based line of the first occurrence in the chain.
-  final int firstLine;
+  /// Creates a finding.
+  const _Finding(this.message, this.line);
 }
 
-/// Walks every `if`/`else if` chain of a compilation unit and collects
-/// duplicated conditions. Each chain is visited once, from its head:
-/// an `if` that is the `else` branch of another `if` is a chain link,
-/// not a head. Nested `if` statements inside bodies start their own
-/// chains.
-class _ChainScanner extends RecursiveAstVisitor<void> {
-  _ChainScanner(this._lineInfo);
+/// Walks a compilation unit and collects the identical-branch family.
+class _DuplicationScanner extends RecursiveAstVisitor<void> {
+  /// Operators whose same-operator nests may be flattened.
+  static const Set<String> _flattenable = {
+    '&&',
+    '||',
+    '+',
+    '*',
+    '&',
+    '|',
+    '^',
+  };
+
+  /// Operators whose operand order may be canonicalized (sorted).
+  static const Set<String> _commutative = {
+    '==',
+    '!=',
+    '&&',
+    '||',
+    '+',
+    '*',
+    '&',
+    '|',
+    '^',
+  };
 
   final LineInfo _lineInfo;
 
-  /// Number of chains scanned.
-  int chains = 0;
+  /// Number of scanned constructs (chains, calls, tries, ternaries).
+  int constructs = 0;
 
-  /// Duplicated conditions, in source order.
-  final List<_DuplicateCondition> duplicates = [];
+  /// Findings, in source order.
+  final List<_Finding> findings = [];
 
-  @override
-  void visitIfStatement(IfStatement node) {
-    if (_isChainHead(node)) {
-      chains++;
-      _scanChain(node);
-    }
-    super.visitIfStatement(node);
-  }
-
-  /// Whether [node] starts a chain instead of extending one: its parent
-  /// is not an `if` whose `else` branch it is.
-  bool _isChainHead(IfStatement node) {
-    final parent = node.parent;
-    return parent is! IfStatement || parent.elseStatement != node;
-  }
-
-  void _scanChain(IfStatement head) {
-    final firstLineByKey = <String, int>{};
-    Statement? current = head;
-    while (current is IfStatement) {
-      // `if (x case ...)` decides by pattern match, not by a boolean
-      // expression — the matched value alone says nothing, so such
-      // links are excluded from the comparison.
-      if (current.caseClause == null) {
-        // ignore: experimental_member_use
-        final condition = current.expression2;
-        final key = _canonicalForm(condition);
-        final line = _line(condition);
-        final firstLine = firstLineByKey[key];
-        if (firstLine == null) {
-          firstLineByKey[key] = line;
-        } else {
-          duplicates.add(
-            _DuplicateCondition(condition.toSource(), line, firstLine),
-          );
-        }
-      }
-      current = current.elseStatement;
-    }
-  }
-
-  int _line(AstNode node) =>
-      _lineInfo.getLocation(node.beginToken.offset).lineNumber;
+  _DuplicationScanner(this._lineInfo);
 
   /// The canonical form of [node]: whitespace- and parenthesis-
   /// independent, with operands of commutative operators sorted and
@@ -148,21 +141,19 @@ class _ChainScanner extends RecursiveAstVisitor<void> {
     final expr = _unwrap(node);
     final binary = _binaryParts(expr);
     if (binary != null) {
-      final (op, left, right) = binary;
-      _writeBinary(op, left, right, buffer);
-      // ignore: experimental_member_use
-    } else if (expr is LogicalNot) {
+      _writeBinary(binary.op, binary.left, binary.right, buffer);
+    } else if (
+        // ignore: experimental_member_use
+        expr is LogicalNot ||
+        // ignore: experimental_member_use
+        expr is UnaryOperatorInvocation) {
+      // Both unary shapes expose the same operator/operand surface;
+      // one body keeps them from drifting apart.
+      final dynamic unary = expr;
       buffer
-        ..write(expr.operator.lexeme)
+        ..write(unary.operator.lexeme as String)
         ..write('(');
-      _writeCanonical(expr.operand, buffer);
-      buffer.write(')');
-      // ignore: experimental_member_use
-    } else if (expr is UnaryOperatorInvocation) {
-      buffer
-        ..write(expr.operator.lexeme)
-        ..write('(');
-      _writeCanonical(expr.operand, buffer);
+      _writeCanonical(unary.operand as AstNode, buffer);
       buffer.write(')');
     } else {
       buffer.write(_tokenText(expr));
@@ -174,22 +165,29 @@ class _ChainScanner extends RecursiveAstVisitor<void> {
   /// binary operator its own node class — but a parenthesized operand
   /// can hold the v1 `BinaryExpression` wrapper instead, so both
   /// shapes are matched here.
-  static (String, AstNode, AstNode)? _binaryParts(AstNode node) =>
-      switch (node) {
+  static _BinaryParts? _binaryParts(AstNode node) => switch (node) {
         // ignore: experimental_member_use
-        LogicalAnd e => (e.operator.lexeme, e.leftOperand, e.rightOperand),
+        LogicalAnd e => (
+            op: e.operator.lexeme,
+            left: e.leftOperand,
+            right: e.rightOperand,
+          ),
         // ignore: experimental_member_use
-        LogicalOr e => (e.operator.lexeme, e.leftOperand, e.rightOperand),
+        LogicalOr e => (
+            op: e.operator.lexeme,
+            left: e.leftOperand,
+            right: e.rightOperand,
+          ),
         // ignore: experimental_member_use
         BinaryOperatorInvocation e => (
-            e.operator.lexeme,
-            e.leftOperand,
-            e.rightOperand,
+            op: e.operator.lexeme,
+            left: e.leftOperand,
+            right: e.rightOperand,
           ),
         BinaryExpression e => (
-            e.operator.lexeme,
-            e.leftOperand,
-            e.rightOperand,
+            op: e.operator.lexeme,
+            left: e.leftOperand,
+            right: e.rightOperand,
           ),
         _ => null,
       };
@@ -220,39 +218,14 @@ class _ChainScanner extends RecursiveAstVisitor<void> {
     final expr = _unwrap(node);
     final binary = _binaryParts(expr);
     if (_flattenable.contains(op) && binary != null) {
-      final (childOp, left, right) = binary;
-      if (childOp == op) {
-        _flatten(op, left, out);
-        _flatten(op, right, out);
+      if (binary.op == op) {
+        _flatten(op, binary.left, out);
+        _flatten(op, binary.right, out);
         return;
       }
     }
     out.add(_canonicalForm(expr));
   }
-
-  /// Operators whose same-operator nests may be flattened.
-  static const Set<String> _flattenable = {
-    '&&',
-    '||',
-    '+',
-    '*',
-    '&',
-    '|',
-    '^',
-  };
-
-  /// Operators whose operand order may be canonicalized (sorted).
-  static const Set<String> _commutative = {
-    '==',
-    '!=',
-    '&&',
-    '||',
-    '+',
-    '*',
-    '&',
-    '|',
-    '^',
-  };
 
   static AstNode _unwrap(AstNode node) =>
       node is ParenthesizedExpression ? _unwrap(node.expression) : node;
@@ -269,4 +242,232 @@ class _ChainScanner extends RecursiveAstVisitor<void> {
     }
     return buffer.toString();
   }
+
+  @override
+  void visitIfStatement(IfStatement node) {
+    if (_isChainHead(node)) {
+      constructs++;
+      _scanChain(node);
+    }
+    super.visitIfStatement(node);
+  }
+
+  @override
+  void visitConditionalExpression(ConditionalExpression node) {
+    constructs++;
+    final thenKey = _expressionKey(node.thenExpression);
+    final elseKey = _expressionKey(node.elseExpression);
+    if (thenKey == elseKey) {
+      findings.add(
+        _Finding(
+          'identical then/else branches of conditional expression: '
+          "'${_snippet(node.thenExpression)}' — the condition is dead",
+          _line(node.thenExpression),
+        ),
+      );
+    }
+    super.visitConditionalExpression(node);
+  }
+
+  @override
+  void visitBinaryExpression(BinaryExpression node) {
+    // Only the outermost link of a same-operator chain checks operand
+    // duplicates; the flatten step sees the whole chain. Parenthesized
+    // links are transparent: a || (a || b) is one chain.
+    var parent = node.parent;
+    while (parent is ParenthesizedExpression) {
+      parent = parent.parent;
+    }
+    final isChainLink = parent is BinaryExpression &&
+        parent.operator.lexeme == node.operator.lexeme;
+    if (!isChainLink) _checkBooleanChain(node);
+    super.visitBinaryExpression(node);
+  }
+
+  @override
+  void visitTryStatement(TryStatement node) {
+    constructs++;
+    _checkCatchBodies(node);
+    super.visitTryStatement(node);
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    _checkCallArguments(node.argumentList, node.methodName.name);
+    super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    final name = node.constructorName.type.name.lexeme;
+    _checkCallArguments(node.argumentList, name);
+    super.visitInstanceCreationExpression(node);
+  }
+
+  /// Whether [node] starts a chain instead of extending one: its parent
+  /// is not an `if` whose `else` branch it is.
+  bool _isChainHead(IfStatement node) {
+    final parent = node.parent;
+    return parent is! IfStatement || parent.elseStatement != node;
+  }
+
+  void _scanChain(IfStatement head) {
+    final conditionLines = <String, int>{};
+    final bodyLines = <String, int>{};
+    Statement? current = head;
+    while (current is IfStatement) {
+      final (:key, :line) = _bodyKey(current.thenStatement);
+      _reportRepeat(
+        bodyLines,
+        key,
+        line,
+        'duplicate branch body '
+        "in if/else-if chain: '${_snippet(current.thenStatement)}'",
+      );
+      // `if (x case ...)` decides by pattern match, not by a boolean
+      // expression — such links are excluded from condition comparison.
+      if (current.caseClause == null) {
+        // ignore: experimental_member_use
+        final condition = current.expression2;
+        final conditionLine = _line(condition);
+        _reportRepeat(
+          conditionLines,
+          _expressionKey(condition),
+          conditionLine,
+          "duplicate condition in if/else-if chain: "
+          "'${_snippet(condition)}'",
+        );
+      }
+      final elseStatement = current.elseStatement;
+      if (elseStatement != null && elseStatement is! IfStatement) {
+        final (:key, :line) = _bodyKey(elseStatement);
+        _reportRepeat(
+          bodyLines,
+          key,
+          line,
+          "duplicate branch body in if/else-if chain: "
+          "'${_snippet(elseStatement)}'",
+        );
+      }
+      current = elseStatement;
+    }
+  }
+
+  void _checkBooleanChain(BinaryExpression node) {
+    final op = node.operator.lexeme;
+    if (op != '&&' && op != '||') return;
+    constructs++;
+    final operands = <String>[];
+    _flatten(op, node.leftOperand, operands);
+    _flatten(op, node.rightOperand, operands);
+    final seen = <String>{};
+    for (final operand in operands) {
+      if (!seen.add(operand)) {
+        findings.add(
+          _Finding(
+            "duplicate operand in '$op' chain: '$operand' repeats — "
+            "the chain collapses to the single operand",
+            _line(node),
+          ),
+        );
+        return;
+      }
+    }
+  }
+
+  void _checkCatchBodies(TryStatement node) {
+    final bodyLines = <String, int>{};
+    for (final clause in node.catchClauses) {
+      final (:key, :line) = _bodyKey(clause.body);
+      _reportRepeat(
+          bodyLines,
+          key,
+          line,
+          'duplicate catch '
+          "body in try statement: '${_snippet(clause.body)}'");
+    }
+  }
+
+  void _checkCallArguments(ArgumentList arguments, String? callee) {
+    if (arguments.arguments.length < 2) return;
+    constructs++;
+    // Positional slots only: a named argument names its slot, so a
+    // repeated value there is self-documenting (a: x, b: x), while a
+    // repeated positional value is indistinguishable from a
+    // wrong-variable bug.
+    final positional = [
+      for (final argument in arguments.arguments)
+        if (argument is! NamedArgument) argument,
+    ];
+    if (positional.length < 2) return;
+    final keys = [
+      for (final argument in positional)
+        (key: _expressionKey(argument), node: argument),
+    ];
+    final allLiteral = keys.every((pair) => _isLiteralExpr(pair.node));
+    if (allLiteral) return;
+    final seen = <String, int>{};
+    for (var i = 0; i < keys.length; i++) {
+      final (:key, :node) = keys[i];
+      if (_isLiteralExpr(node)) continue;
+      final first = seen[key];
+      if (first == null) {
+        seen[key] = i;
+      } else {
+        findings.add(
+          _Finding(
+            "duplicate argument in call to '$callee': "
+            "'${_snippet(node)}' (same as argument ${first + 1})",
+            _line(node),
+          ),
+        );
+      }
+    }
+  }
+
+  /// Whether [expr] is a literal (`null`, bool, number or string) —
+  /// repeated literals are exempt from the argument check.
+  bool _isLiteralExpr(AstNode expr) => switch (_unwrap(expr)) {
+        NullLiteral() || BooleanLiteral() => true,
+        StringLiteral() || IntegerLiteral() || DoubleLiteral() => true,
+        _ => false,
+      };
+
+  void _reportRepeat(
+    Map<String, int> seen,
+    String key,
+    int line,
+    String messagePrefix,
+  ) {
+    final first = seen[key];
+    if (first == null) {
+      seen[key] = line;
+      return;
+    }
+    findings.add(_Finding('$messagePrefix (same as line $first)', line));
+  }
+
+  /// The canonical key of an expression: the commutative/sorted
+  /// canonical form.
+  String _expressionKey(AstNode node) => _canonicalForm(node);
+
+  /// The canonical key of a statement body plus the line of the
+  /// statement itself: a single-statement block unwraps to its
+  /// statement, so `{ return 1; }` equals `return 1;` and the violation
+  /// points at the code, not the brace.
+  _BodyKey _bodyKey(Statement statement) {
+    var node = statement;
+    while (node is Block && node.statements.length == 1) {
+      node = node.statements.first;
+    }
+    return (key: _tokenText(node), line: _line(node));
+  }
+
+  String _snippet(AstNode node) {
+    final text = node.toSource();
+    return text.length > 40 ? '${text.substring(0, 37)}...' : text;
+  }
+
+  int _line(AstNode node) =>
+      _lineInfo.getLocation(node.beginToken.offset).lineNumber;
 }

@@ -422,12 +422,15 @@ gates:
   string_hazards:
     enabled: true
     severity: warning
-  # Flag if/else-if chains that test the same condition twice
+  # Copy-paste-edit bug family, compared by canonical form
   # (formatting-, parenthesis- and reorder-insensitive: `a == b`
-  # matches `b == a`, `a && b` matches `b && a`). A repeated condition
-  # makes every later branch unreachable — the copy-paste-edit bug.
-  # Warning severity by default: reordered operands are only
-  # equivalent when they are side-effect free.
+  # matches `b == a`): duplicate conditions in one if/else-if chain
+  # (every later branch becomes unreachable), duplicate branch bodies
+  # in one chain, duplicate operands in one boolean chain (`a || a`),
+  # identical ternary branches (`c ? x : x`), duplicate positional
+  # arguments in one call (uniform all-literal lists exempt), and
+  # duplicate catch bodies in one try. Warning severity: equivalence
+  # assumes side-effect-free operands.
   identical_branches:
     enabled: true
     severity: warning

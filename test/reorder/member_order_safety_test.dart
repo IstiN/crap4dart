@@ -60,6 +60,8 @@ class A {
   int a = 0;
 }
 ''';
+    // Idempotence contract: two runs of the same input must agree.
+    // ignore:identical_branches
     expect(reorderSource(src), reorderSource(src));
   });
 }

@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.24.0 — 2026-10-27
+
+- New `identical_branches` gate (warning severity by default): the
+  copy-paste-edit bug family, compared by canonical form
+  (formatting-, parenthesis- and comment-independent; commutative
+  operands sorted; same-operator nests flattened) — (1) duplicate
+  conditions in one if/else-if chain, (2) duplicate branch bodies in
+  one chain (including `else` equal to its `then`; a single-statement
+  block equals the naked statement), (3) duplicate operands in one
+  boolean chain (`a || a` collapses to `a`), (4) identical ternary
+  branches (`c ? x : x`), (5) duplicate positional arguments in one
+  call (`f(w, h, w)`; named arguments exempt — the name documents the
+  slot — and all-literal argument lists exempt, so uniform-value APIs
+  like `EdgeInsets.fromLTRB(8, 8, 8, 8)` stay quiet), and (6) duplicate
+  catch bodies in one try. Only pieces of the same construct are
+  compared; identical conditions in separate `if` statements are legal.
+  Config keys: `enabled`, `severity`, `ignorable`.
+- `ConfigException` file-level failures no longer render the path in
+  the key slot (`Invalid config "x": x: config file not found` →
+  `Invalid config "x": config file not found`); the duplicate-argument
+  finding that surfaced it came from the new gate's first dogfood run.
+
 ## 0.23.0 — 2026-10-27
 
 - New `string_hazards` gate (warning severity by default): flags string

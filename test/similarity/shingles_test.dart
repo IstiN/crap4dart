@@ -45,6 +45,8 @@ void main() {
 
     test('jaccard is intersection over union', () {
       expect(jaccard(a, b), closeTo(2 / 4, 1e-9));
+      // Identity property: a set vs itself is 1.0 by definition.
+      // ignore:identical_branches
       expect(jaccard(a, a), 1.0);
       expect(jaccard(a, {}), 0.0);
     });

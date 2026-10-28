@@ -331,13 +331,6 @@ class RecordSizeGateConfig implements GateConfigFlags {
 
 /// Identical branch conditions gate settings (`identical_branches`).
 class IdenticalBranchesGateConfig implements GateConfigFlags {
-  /// Creates an [IdenticalBranchesGateConfig].
-  const IdenticalBranchesGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.warning,
-    this.ignorable = false,
-  });
-
   /// Whether the gate is enabled.
   final bool enabled;
 
@@ -349,6 +342,13 @@ class IdenticalBranchesGateConfig implements GateConfigFlags {
   /// Whether `// crap:ignore` comments may suppress violations of this
   /// gate. Disabled by default — suppression must be opted into.
   final bool ignorable;
+
+  /// Creates an [IdenticalBranchesGateConfig].
+  const IdenticalBranchesGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.warning,
+    this.ignorable = false,
+  });
 }
 
 /// Class size gate settings (`class_size`).

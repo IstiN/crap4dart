@@ -21,7 +21,7 @@ String classify(int x) {
     expect(violation.line, 6);
     expect(violation.message, contains("'x == 0'"));
     expect(violation.message, contains('same as line 4'));
-    expect(result.summary, contains('1 duplicate conditions'));
+    expect(result.summary, contains('1 identical-branch findings'));
   });
 
   test('two repeats of the same condition produce two violations', () async {
