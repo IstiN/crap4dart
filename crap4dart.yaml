@@ -121,10 +121,11 @@ gates:
     config:
       lib/src: 3
       'lib/src/**': 30
-  # Wave-1 bug-class gate: flags if/else-if chains testing the same
-  # condition twice (reorder-insensitive: `a == b` matches `b == a`).
-  # Warning severity: reordered operands are only equivalent when
-  # side-effect free.
+  # Wave-1 bug-class gate: the copy-paste-edit family — duplicate
+  # conditions/bodies in one chain, duplicate/absorbed boolean operands,
+  # identical ternary branches, duplicate positional call arguments,
+  # duplicate catch bodies. Warning severity: equivalence assumes
+  # side-effect-free operands.
   identical_branches:
     enabled: true
     severity: warning

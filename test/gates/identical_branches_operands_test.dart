@@ -41,10 +41,20 @@ bool f(bool a, bool b, bool c) {
     expect(result.passed, isTrue, reason: result.summary);
   });
 
-  test('a nested different-operator chain is not a duplicate', () async {
+  test('an absorbed operand is flagged, not flattened', () async {
     final result = await runOn('''
 bool f(bool a, bool b) {
   return a && (b || a);
+}
+''');
+    expect(result.passed, isFalse, reason: result.summary);
+    expect(result.violations.single.message, contains('absorption'));
+  });
+
+  test('a nested different-operator chain without overlap is clean', () async {
+    final result = await runOn('''
+bool f(bool a, bool b, bool c) {
+  return a && (b || c);
 }
 ''');
     expect(result.passed, isTrue, reason: result.summary);

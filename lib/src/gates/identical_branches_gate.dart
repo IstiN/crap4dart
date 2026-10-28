@@ -12,6 +12,9 @@ typedef _BinaryParts = ({String op, AstNode left, AstNode right});
 /// The canonical body key plus the line of the unwrapped statement.
 typedef _BodyKey = ({String key, int line});
 
+/// A top-level chain operand: canonical key plus its source node.
+typedef _OperandRef = ({String key, AstNode node});
+
 /// The `identical_branches` gate: flags the copy-paste-edit bug family —
 /// syntactically identical pieces inside one construct where a second,
 /// slightly different piece was intended.
@@ -92,8 +95,10 @@ class _Finding {
   const _Finding(this.message, this.line);
 }
 
-/// Walks a compilation unit and collects the identical-branch family.
-class _DuplicationScanner extends RecursiveAstVisitor<void> {
+/// Canonical-form builder for expression/statement comparison:
+/// whitespace-, comment- and parenthesis-independent; operands of
+/// commutative operators sorted; same-operator nests flattened.
+abstract final class _Canon {
   /// Operators whose same-operator nests may be flattened.
   static const Set<String> _flattenable = {
     '&&',
@@ -118,45 +123,35 @@ class _DuplicationScanner extends RecursiveAstVisitor<void> {
     '^',
   };
 
-  final LineInfo _lineInfo;
-
-  /// Number of scanned constructs (chains, calls, tries, ternaries).
-  int constructs = 0;
-
-  /// Findings, in source order.
-  final List<_Finding> findings = [];
-
-  _DuplicationScanner(this._lineInfo);
-
   /// The canonical form of [node]: whitespace- and parenthesis-
   /// independent, with operands of commutative operators sorted and
   /// same-operator nests of associative operators flattened.
   static String _canonicalForm(AstNode node) {
     final buffer = StringBuffer();
-    _writeCanonical(node, buffer);
+    _Canon._writeCanonical(node, buffer);
     return buffer.toString();
   }
 
   static void _writeCanonical(AstNode node, StringBuffer buffer) {
-    final expr = _unwrap(node);
-    final binary = _binaryParts(expr);
+    final expr = _Canon._unwrap(node);
+    final binary = _Canon._binaryParts(expr);
     if (binary != null) {
-      _writeBinary(binary.op, binary.left, binary.right, buffer);
+      _Canon._writeBinary(binary.op, binary.left, binary.right, buffer);
     } else if (
         // ignore: experimental_member_use
         expr is LogicalNot ||
-        // ignore: experimental_member_use
-        expr is UnaryOperatorInvocation) {
+            // ignore: experimental_member_use
+            expr is UnaryOperatorInvocation) {
       // Both unary shapes expose the same operator/operand surface;
       // one body keeps them from drifting apart.
       final dynamic unary = expr;
       buffer
         ..write(unary.operator.lexeme as String)
         ..write('(');
-      _writeCanonical(unary.operand as AstNode, buffer);
+      _Canon._writeCanonical(unary.operand as AstNode, buffer);
       buffer.write(')');
     } else {
-      buffer.write(_tokenText(expr));
+      buffer.write(_Canon._tokenText(expr));
     }
   }
 
@@ -199,9 +194,9 @@ class _DuplicationScanner extends RecursiveAstVisitor<void> {
     StringBuffer buffer,
   ) {
     final operands = <String>[];
-    _flatten(op, left, operands);
-    _flatten(op, right, operands);
-    if (_commutative.contains(op)) operands.sort();
+    _Canon._flatten(op, left, operands);
+    _Canon._flatten(op, right, operands);
+    if (_Canon._commutative.contains(op)) operands.sort();
     buffer
       ..write(op)
       ..write('(')
@@ -215,20 +210,20 @@ class _DuplicationScanner extends RecursiveAstVisitor<void> {
   /// operators keep their tree shape because flattening would merge
   /// semantically different expressions (`a - (b - c)`).
   static void _flatten(String op, AstNode node, List<String> out) {
-    final expr = _unwrap(node);
-    final binary = _binaryParts(expr);
-    if (_flattenable.contains(op) && binary != null) {
+    final expr = _Canon._unwrap(node);
+    final binary = _Canon._binaryParts(expr);
+    if (_Canon._flattenable.contains(op) && binary != null) {
       if (binary.op == op) {
-        _flatten(op, binary.left, out);
-        _flatten(op, binary.right, out);
+        _Canon._flatten(op, binary.left, out);
+        _Canon._flatten(op, binary.right, out);
         return;
       }
     }
-    out.add(_canonicalForm(expr));
+    out.add(_Canon._canonicalForm(expr));
   }
 
   static AstNode _unwrap(AstNode node) =>
-      node is ParenthesizedExpression ? _unwrap(node.expression) : node;
+      node is ParenthesizedExpression ? _Canon._unwrap(node.expression) : node;
 
   /// The tokens of [node] joined without separators: whitespace- and
   /// comment-independent, so `a==b` compares equal to `a == b`.
@@ -242,6 +237,19 @@ class _DuplicationScanner extends RecursiveAstVisitor<void> {
     }
     return buffer.toString();
   }
+}
+
+/// Walks a compilation unit and collects the identical-branch family.
+class _DuplicationScanner extends RecursiveAstVisitor<void> {
+  final LineInfo _lineInfo;
+
+  /// Number of scanned constructs (chains, calls, tries, ternaries).
+  int constructs = 0;
+
+  /// Findings, in source order.
+  final List<_Finding> findings = [];
+
+  _DuplicationScanner(this._lineInfo);
 
   @override
   void visitIfStatement(IfStatement node) {
@@ -358,8 +366,8 @@ class _DuplicationScanner extends RecursiveAstVisitor<void> {
     if (op != '&&' && op != '||') return;
     constructs++;
     final operands = <String>[];
-    _flatten(op, node.leftOperand, operands);
-    _flatten(op, node.rightOperand, operands);
+    _Canon._flatten(op, node.leftOperand, operands);
+    _Canon._flatten(op, node.rightOperand, operands);
     final seen = <String>{};
     for (final operand in operands) {
       if (!seen.add(operand)) {
@@ -373,6 +381,52 @@ class _DuplicationScanner extends RecursiveAstVisitor<void> {
         return;
       }
     }
+    _checkAbsorption(node, op);
+  }
+
+  /// Absorption law: an operand of the chain that is also a conjunct
+  /// (for `||`) or disjunct (for `&&`) of a sibling operand makes the
+  /// sibling's extra terms dead — `a || b && a` collapses to `a`.
+  /// Same law both ways: `a && (b || a)` collapses to `a`.
+  void _checkAbsorption(BinaryExpression node, String op) {
+    final siblings = _chainOperands(op, node);
+    final standalone = {for (final sibling in siblings) sibling.key};
+    final nestedOp = op == '||' ? '&&' : '||';
+    for (final sibling in siblings) {
+      for (final conjunct in _chainOperands(nestedOp, sibling.node)) {
+        if (conjunct.key == sibling.key) continue;
+        if (!standalone.contains(conjunct.key)) continue;
+        findings.add(
+          _Finding(
+            "operand of '$op' is implied by another operand "
+            "(absorption): '${_snippet(conjunct.node)}' also appears "
+            'standalone — the extra terms are dead',
+            _line(conjunct.node),
+          ),
+        );
+        return;
+      }
+    }
+  }
+
+  /// The top-level operands of an [op] chain rooted at [root], as
+  /// canonical keys paired with their source nodes. A non-chain root
+  /// yields the root itself.
+  List<_OperandRef> _chainOperands(String op, AstNode root) {
+    final out = <_OperandRef>[];
+    void add(AstNode node) {
+      final unwrapped = _Canon._unwrap(node);
+      final binary = _Canon._binaryParts(unwrapped);
+      if (binary != null && binary.op == op) {
+        add(binary.left);
+        add(binary.right);
+      } else {
+        out.add((key: _Canon._canonicalForm(unwrapped), node: unwrapped));
+      }
+    }
+
+    add(root);
+    return out;
   }
 
   void _checkCatchBodies(TryStatement node) {
@@ -427,7 +481,7 @@ class _DuplicationScanner extends RecursiveAstVisitor<void> {
 
   /// Whether [expr] is a literal (`null`, bool, number or string) —
   /// repeated literals are exempt from the argument check.
-  bool _isLiteralExpr(AstNode expr) => switch (_unwrap(expr)) {
+  bool _isLiteralExpr(AstNode expr) => switch (_Canon._unwrap(expr)) {
         NullLiteral() || BooleanLiteral() => true,
         StringLiteral() || IntegerLiteral() || DoubleLiteral() => true,
         _ => false,
@@ -449,7 +503,7 @@ class _DuplicationScanner extends RecursiveAstVisitor<void> {
 
   /// The canonical key of an expression: the commutative/sorted
   /// canonical form.
-  String _expressionKey(AstNode node) => _canonicalForm(node);
+  String _expressionKey(AstNode node) => _Canon._canonicalForm(node);
 
   /// The canonical key of a statement body plus the line of the
   /// statement itself: a single-statement block unwraps to its
@@ -460,7 +514,7 @@ class _DuplicationScanner extends RecursiveAstVisitor<void> {
     while (node is Block && node.statements.length == 1) {
       node = node.statements.first;
     }
-    return (key: _tokenText(node), line: _line(node));
+    return (key: _Canon._tokenText(node), line: _line(node));
   }
 
   String _snippet(AstNode node) {

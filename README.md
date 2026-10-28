@@ -800,8 +800,10 @@ gates:
   flattened): (1) duplicate conditions in one `if`/`else if` chain —
   every later branch is unreachable; (2) duplicate branch bodies in one
   chain, including an `else` equal to its `then` (a single-statement
-  block equals the naked statement); (3) duplicate operands in one
-  boolean chain (`a || a` collapses to `a`); (4) identical ternary
+  block equals the naked statement); (3) duplicate
+  operands in one boolean chain (`a || a` collapses to `a`) and
+  absorbed operands (`a || b && a` collapses to `a` — the extra terms
+  are dead); (4) identical ternary
   branches (`c ? x : x` — the condition is dead); (5) duplicate
   positional arguments in one call (`f(w, h, w)`) — named arguments are
   exempt (the name documents the slot) and so are all-literal argument

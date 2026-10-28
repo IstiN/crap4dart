@@ -1118,8 +1118,11 @@ flattened. Six finding kinds:
    statements compare equal by token text; a single-statement block
    shall compare equal to the naked statement. The violation shall
    point at the unwrapped statement's line.
-3. **Duplicate operands** — one boolean chain (`&&`/`||`) whose
-   flattened operand list contains a repeated canonical operand. Only
+3. **Duplicate operands and absorbed operands** — one boolean chain
+   (`&&`/`||`) whose flattened operand list contains a repeated
+   canonical operand, or an operand that also appears standalone as
+   another top-level operand's conjunct (for `||`) or disjunct (for
+   `&&`) — the absorption law (`a || b && a` collapses to `a`). Only
    the outermost link of a same-operator chain shall be checked.
 4. **Identical ternary branches** — a conditional expression whose then
    and else expressions compare equal.

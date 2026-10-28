@@ -8,8 +8,10 @@
   operands sorted; same-operator nests flattened) — (1) duplicate
   conditions in one if/else-if chain, (2) duplicate branch bodies in
   one chain (including `else` equal to its `then`; a single-statement
-  block equals the naked statement), (3) duplicate operands in one
-  boolean chain (`a || a` collapses to `a`), (4) identical ternary
+  block equals the naked statement), (3) duplicate or absorbed
+  operands in one boolean chain (`a || a` collapses to `a`;
+  `a || b && a` collapses to `a` by absorption — the extra terms are
+  dead), (4) identical ternary
   branches (`c ? x : x`), (5) duplicate positional arguments in one
   call (`f(w, h, w)`; named arguments exempt — the name documents the
   slot — and all-literal argument lists exempt, so uniform-value APIs
