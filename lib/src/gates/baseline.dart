@@ -21,7 +21,7 @@ class Baseline {
   /// when no baseline file exists.
   factory Baseline.load(String projectRoot) {
     final file = File(p.join(projectRoot, baselineFileName));
-    if (!file.existsSync()) return Baseline(const {});
+    if (!file.existsSync()) return const Baseline({});
     try {
       final json = jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
       final entries = json['violations'] as List<dynamic>? ?? const [];
@@ -36,7 +36,7 @@ class Baseline {
             ),
       });
     } on FormatException {
-      return Baseline(const {});
+      return const Baseline({});
     }
   }
 
@@ -64,7 +64,7 @@ int writeBaseline(String projectRoot, List<GateResult> results) {
   }
   final file = File(p.join(projectRoot, baselineFileName));
   file.writeAsStringSync(
-    JsonEncoder.withIndent('  ').convert({
+    const JsonEncoder.withIndent('  ').convert({
       'version': 1,
       'violations': violations,
     }),

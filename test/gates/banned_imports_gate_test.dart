@@ -20,7 +20,7 @@ import 'package:myapp/src/data/repo.dart';
 
 void x() {}
 ''');
-    final result = await BannedImportsGate().run(
+    final result = await const BannedImportsGate().run(
       makeContext(
         project,
         ['lib/ui/page.dart', 'lib/data/other.dart'],
@@ -52,8 +52,8 @@ gates:
     final project = createTempProject();
     addTearDown(() => project.deleteSync(recursive: true));
     writeFile(project, 'lib/a.dart', "import 'dart:io';\nvoid a() {}\n");
-    final result =
-        await BannedImportsGate().run(makeContext(project, ['lib/a.dart']));
+    final result = await const BannedImportsGate()
+        .run(makeContext(project, ['lib/a.dart']));
     expect(result.passed, isTrue);
   });
 
@@ -119,7 +119,7 @@ $importLine
 void build() {}
 ''');
   final forbidYaml = [for (final f in forbid) '          - \'$f\''].join('\n');
-  return BannedImportsGate().run(
+  return const BannedImportsGate().run(
     makeContext(
       project,
       ['lib/ui/page.dart'],

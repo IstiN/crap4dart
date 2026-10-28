@@ -1,3 +1,17 @@
+include: package:lints/recommended.yaml
+
+linter:
+  rules:
+    # Perf/idiom: StringBuffer for string accumulation in loops.
+    - use_string_buffers
+    # Idiom: tear-offs over identity lambdas.
+    - unnecessary_lambdas
+    # Ignore-comment freshness: a stale ignore silently eats the next
+    # occurrence of the real diagnostic.
+    - unnecessary_ignore
+    # Const discipline: canonical, zero-allocation instances.
+    - prefer_const_constructors
+
 analyzer:
   exclude:
     - build/**
@@ -7,4 +21,3 @@ analyzer:
     - windows/**
     - macos/**
     - linux/**
-include: package:lints/recommended.yaml

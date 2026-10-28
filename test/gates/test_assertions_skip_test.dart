@@ -29,7 +29,7 @@ void main() {
   }, timeout: const Timeout(Duration(seconds: 30)));
 }
 ''');
-    final result = await TestAssertionsGate().run(
+    final result = await const TestAssertionsGate().run(
       makeContext(project, ['test/skip_test.dart']),
     );
     expect(result.passed, isFalse);

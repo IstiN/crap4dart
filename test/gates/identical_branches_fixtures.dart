@@ -12,11 +12,12 @@ Future<GateResult> runOn(String source) async {
   final project = createTempProject();
   addTearDown(() => project.deleteSync(recursive: true));
   writeFile(project, 'lib/a.dart', source);
-  return IdenticalBranchesGate().run(makeContext(project, ['lib/a.dart']));
+  return const IdenticalBranchesGate()
+      .run(makeContext(project, ['lib/a.dart']));
 }
 
 /// Runs the identical-branches gate over the given absolute file paths
 /// of a fresh temp project (torn down with the test).
 Future<GateResult> runOnFiles(List<String> absolutePaths, Directory root) {
-  return IdenticalBranchesGate().run(makeContext(root, absolutePaths));
+  return const IdenticalBranchesGate().run(makeContext(root, absolutePaths));
 }

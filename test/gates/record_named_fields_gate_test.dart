@@ -9,7 +9,8 @@ void main() {
     final project = createTempProject();
     addTearDown(() => project.deleteSync(recursive: true));
     writeFile(project, 'lib/a.dart', source);
-    return RecordNamedFieldsGate().run(makeContext(project, ['lib/a.dart']));
+    return const RecordNamedFieldsGate()
+        .run(makeContext(project, ['lib/a.dart']));
   }
 
   test('flags positional record fields in a signature', () async {

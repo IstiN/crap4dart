@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.25.0 — 2026-10-28
+
+- Adopt four additional lints on top of `lints/recommended` and fix all
+  findings: `prefer_const_constructors` (55 sites, via `dart fix`),
+  `unnecessary_ignore` (3 stale `// ignore:` comments removed — a stale
+  ignore silently eats the next occurrence of the real diagnostic),
+  `unnecessary_lambdas` and `use_string_buffers` (zero findings today;
+  adopted for the shapes they prevent — callback over-wrapping and
+  O(n²) string concatenation in loops).
+
 ## 0.24.0 — 2026-10-27
 
 - New `identical_branches` gate (warning severity by default): the

@@ -133,7 +133,7 @@ void unavailableTests() {
         dir.path,
         const Duration(seconds: 5),
         spawn: (_, __, {workingDirectory}) =>
-            throw ProcessException('dart', const ['test']),
+            throw const ProcessException('dart', ['test']),
       ),
       throwsA(isA<MutationTestUnavailableException>()),
     );

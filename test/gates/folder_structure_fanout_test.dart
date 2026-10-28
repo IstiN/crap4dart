@@ -10,7 +10,7 @@ void main() {
     for (var i = 0; i < 5; i++) {
       writeFile(project, 'lib/src/f$i.dart', 'void f() {}\n');
     }
-    final result = await FolderStructureGate().run(
+    final result = await const FolderStructureGate().run(
       makeContext(
         project,
         const [],
@@ -32,7 +32,7 @@ void main() {
     writeFile(project, 'lib/src/magic.dart', 'void m() {}\n');
     writeFile(project, 'lib/src/magic.g.dart', '// generated\n');
     writeFile(project, 'lib/src/magic.freezed.dart', '// generated\n');
-    final result = await FolderStructureGate().run(
+    final result = await const FolderStructureGate().run(
       makeContext(
         project,
         const [],
@@ -54,7 +54,7 @@ void main() {
     for (var i = 0; i < 3; i++) {
       writeFile(project, 'lib/src/two/g$i.dart', 'void g() {}\n');
     }
-    final result = await FolderStructureGate().run(
+    final result = await const FolderStructureGate().run(
       makeContext(
         project,
         const [],

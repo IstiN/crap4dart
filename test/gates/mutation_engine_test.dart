@@ -50,7 +50,8 @@ void main() {
 
   test('restores the file when the runner throws', () async {
     final engine = MutationEngine(
-      runner: (root, timeout, args) => throw MutationTestUnavailableException(
+      runner: (root, timeout, args) =>
+          throw const MutationTestUnavailableException(
         'dart not found on PATH: no such file',
       ),
     );

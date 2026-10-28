@@ -40,7 +40,7 @@ class SourceInstrumenter {
     if (parsed.unit.directives.any((d) => d is PartOfDirective)) {
       return source;
     }
-    final extracted = MethodExtractor().extractWithNodes(
+    final extracted = const MethodExtractor().extractWithNodes(
       parsed.unit,
       parsed.lineInfo,
       filePath: filePath,

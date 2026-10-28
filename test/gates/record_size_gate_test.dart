@@ -12,7 +12,7 @@ void main() {
     final project = createTempProject();
     addTearDown(() => project.deleteSync(recursive: true));
     writeFile(project, 'lib/a.dart', source);
-    return RecordSizeGate().run(
+    return const RecordSizeGate().run(
       makeContext(project, ['lib/a.dart'], configYaml: configYaml),
     );
   }

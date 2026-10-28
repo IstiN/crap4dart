@@ -91,7 +91,7 @@ class ProfileReport {
       'total ${_fmtTotal(totalMicros / 1000.0)})',
     );
     buffer.writeln(
-      TableFormatter(numericColumnCount: 7).renderTable(headers, rows),
+      const TableFormatter(numericColumnCount: 7).renderTable(headers, rows),
     );
     buffer.writeln();
 

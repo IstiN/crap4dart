@@ -368,7 +368,7 @@ void integrityTests() {
       MutationEngine(
         runner: (root, timeout, args) async => ++call == 1
             ? MutantOutcome.killed
-            : throw MutationTestUnavailableException('gone'),
+            : throw const MutationTestUnavailableException('gone'),
       ).run(
         projectRoot: dir.path,
         sites: sites,

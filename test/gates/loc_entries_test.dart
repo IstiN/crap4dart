@@ -10,7 +10,7 @@ void main() {
     final filler = List.filled(120, '// filler\n').join();
     writeFile(project, 'lib/legacy/big.dart', filler);
     writeFile(project, 'lib/new.dart', '// small\n');
-    final result = await LocGate().run(
+    final result = await const LocGate().run(
       makeContext(
         project,
         ['lib/legacy/big.dart', 'lib/new.dart'],
@@ -32,7 +32,7 @@ gates:
     addTearDown(() => project.deleteSync(recursive: true));
     final filler = List.filled(120, '// filler\n').join();
     writeFile(project, 'lib/src/strict.dart', filler);
-    final result = await LocGate().run(
+    final result = await const LocGate().run(
       makeContext(
         project,
         ['lib/src/strict.dart'],

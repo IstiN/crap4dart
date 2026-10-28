@@ -17,7 +17,7 @@ void main() {
     final project = createTempProject();
     addTearDown(() => project.deleteSync(recursive: true));
     files.forEach((relative, content) => writeFile(project, relative, content));
-    return ScatteredConstantsGate().run(
+    return const ScatteredConstantsGate().run(
       makeContext(
         project,
         files.keys.map((f) => p.join(project.path, f)).toList(),

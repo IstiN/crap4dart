@@ -32,7 +32,7 @@ void deep() {
   }
 }
 ''');
-    final result = await NestingGate().run(
+    final result = await const NestingGate().run(
       makeContext(
         project,
         ['lib/shallow.dart', 'lib/deep.dart'],
@@ -61,7 +61,7 @@ class Ok {
   }
 }
 ''');
-    final result = await ClassSizeGate().run(
+    final result = await const ClassSizeGate().run(
       makeContext(
         project,
         ['lib/god.dart', 'lib/ok.dart'],

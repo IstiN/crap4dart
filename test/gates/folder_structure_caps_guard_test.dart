@@ -10,7 +10,7 @@ void main() {
     for (var i = 0; i < 3; i++) {
       writeFile(project, 'lib/src/tools/f$i.dart', 'void f() {}\n');
     }
-    final result = await FolderStructureGate().run(
+    final result = await const FolderStructureGate().run(
       makeContext(
         project,
         const [],
@@ -29,7 +29,7 @@ void main() {
     final project = createTempProject();
     addTearDown(() => project.deleteSync(recursive: true));
     writeFile(project, 'lib/src/a.dart', 'void a() {}\n');
-    final result = await FolderStructureGate().run(
+    final result = await const FolderStructureGate().run(
       makeContext(
         project,
         const [],
