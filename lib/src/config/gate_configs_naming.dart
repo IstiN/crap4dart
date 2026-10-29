@@ -169,17 +169,24 @@ class DuplicationMatching {
 enum DuplicationReport {
   /// One violation per file whose duplicated-line percentage exceeds
   /// `threshold` (the historical behavior).
-  percentage,
+  percentage('percentage'),
 
   /// One violation per clone group (PMD CPD style): every non-overlapping
   /// block of at least `min_tokens` tokens / `min_lines` lines occurring
   /// two or more times, with all its locations in the message.
-  clones;
+  clones('clones');
+
+  const DuplicationReport(this.value);
+
+  /// The persisted `report:` spelling of this report mode — the contract
+  /// value that survives identifier renames (the built-in `.name`
+  /// changes with them).
+  final String value;
 
   /// Parses a `report:` config value, `null` when unrecognized.
   static DuplicationReport? tryParse(String value) {
     for (final report in values) {
-      if (report.name == value) return report;
+      if (report.value == value) return report;
     }
     return null;
   }

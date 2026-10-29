@@ -5,16 +5,23 @@ part of 'config.dart';
 enum ComplexityMetric {
   /// Classic cyclomatic complexity — a path count; also feeds the CRAP
   /// score of the `analyze` command regardless of this setting.
-  cyclomatic,
+  cyclomatic('cyclomatic'),
 
   /// SonarSource-style cognitive complexity — flow breaks weighted by
   /// their nesting depth; flat `else if` chains stay cheap.
-  cognitive;
+  cognitive('cognitive');
+
+  const ComplexityMetric(this.value);
+
+  /// The persisted `metric:` spelling of this metric — the contract
+  /// value that survives identifier renames (the built-in `.name`
+  /// changes with them).
+  final String value;
 
   /// Parses a `metric:` config value, `null` when unrecognized.
   static ComplexityMetric? tryParse(String value) {
     for (final metric in values) {
-      if (metric.name == value) return metric;
+      if (metric.value == value) return metric;
     }
     return null;
   }
