@@ -11,12 +11,12 @@ enum ComplexityMetric {
   /// their nesting depth; flat `else if` chains stay cheap.
   cognitive('cognitive');
 
-  const ComplexityMetric(this.value);
-
   /// The persisted `metric:` spelling of this metric — the contract
   /// value that survives identifier renames (the built-in `.name`
   /// changes with them).
   final String value;
+
+  const ComplexityMetric(this.value);
 
   /// Parses a `metric:` config value, `null` when unrecognized.
   static ComplexityMetric? tryParse(String value) {

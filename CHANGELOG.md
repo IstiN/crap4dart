@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.27.0 — 2026-10-29
+## 0.28.0 — 2026-10-29
 
 - New `collapsible_flow` gate (warning severity by default): flags
   control-flow nesting that a semantics-preserving mechanical rewrite
@@ -21,6 +21,17 @@
   `GatesConfig` constructor under the `method_size` parameter cap.
   YAML keys are unchanged (still top-level `gates.string_hazards` etc.
   — no `quality` nesting in the file).
+
+## 0.27.0 — 2026-10-29
+
+- `reorder` now covers enum member sections: the constants block (enum
+  value order — `values`, `.index`, ordinal persistence) is never
+  touched, while fields, constructors, getters and methods after the
+  constants are reordered into the canonical order exactly like a class
+  body. Previously the entire enum body was skipped, so a constructor
+  above its field survived in enhanced enums. Byte-identical for
+  enums without a member section; constants are copied verbatim
+  (spacing included), so `.index`/`values` semantics cannot drift.
 
 ## 0.26.0 — 2026-10-29
 
