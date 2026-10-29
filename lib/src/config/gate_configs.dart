@@ -351,6 +351,26 @@ class IdenticalBranchesGateConfig implements GateConfigFlags {
   });
 }
 
+/// Enum name contract gate settings (`enum_name_contract`).
+class EnumNameContractGateConfig implements GateConfigFlags {
+  /// Whether the gate is enabled.
+  final bool enabled;
+
+  /// Whether violations fail the run or are reported as warnings.
+  final GateSeverity severity;
+
+  /// Whether `// crap:ignore` comments may suppress violations of this
+  /// gate. Disabled by default — suppression must be opted into.
+  final bool ignorable;
+
+  /// Creates an [EnumNameContractGateConfig].
+  const EnumNameContractGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.warning,
+    this.ignorable = false,
+  });
+}
+
 /// Class size gate settings (`class_size`).
 class ClassSizeGateConfig implements GateConfigFlags {
   /// Whether the gate is enabled.

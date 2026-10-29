@@ -263,6 +263,8 @@ class ConfigLoader {
           map[GateIds.stringHazards], base.stringHazards, path),
       identicalBranches: _ExtendedGateConfigReaders.readIdenticalBranches(
           map[GateIds.identicalBranches], base.identicalBranches, path),
+      enumNameContract: _ExtendedGateConfigReaders.readEnumNameContract(
+          map[GateIds.enumNameContract], base.enumNameContract, path),
       flutter: _readFlutterGates(map, base.flutter, path),
     );
   }

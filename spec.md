@@ -518,7 +518,7 @@ Known gate ids: `loc`, `test_coverage`, `golden`, `hardcoded_strings`,
 `public_docs`, `duplication`, `file_naming`, `magic_constants`,
 `broken_goldens`, `test_assertions`, `folder_structure`, `external`,
 `mutation`, `similarity`, `string_hazards`, `identical_branches`,
-`record_named_fields`,
+`enum_name_contract`, `record_named_fields`,
 `inline_record_types`, `record_size`, `scattered_constants`.
 
 ## 11. Quality Gates
@@ -532,7 +532,7 @@ Gates shall run in the fixed order: `loc`, `test_coverage`,
 `banned_imports`,
 `public_docs`, `hardcoded_strings`, `accessibility`, `golden`,
 `weight_of_class`, `mutation`, `similarity`, `string_hazards`,
-`identical_branches`. A gate
+`identical_branches`, `enum_name_contract`. A gate
 disabled in the
 config shall
 produce a skipped result. The run shall fail when at least one gate fails;
@@ -1152,6 +1152,30 @@ violations covered by the baseline file before deciding the run
 outcome: a gate fails only when it has at least one violation not in
 the baseline. A missing baseline file is not an error and leaves the
 run unchanged.
+
+### 11.27 enum_name_contract
+
+The `enum_name_contract` gate shall flag usages of the built-in
+`.name`/`.index` members inside enum declaration bodies, resolved from
+the parsed-unresolved AST only. A receiver is provably enum-typed when
+it is: `this`; a bare `name`/`index` identifier read inside an instance
+member body with no local shadowing of that name (implicit `this`);
+one of the enum's own constants, qualified (`Color.red`) or bare
+(`red`); a loop variable introduced by iterating the implicit or
+qualified `values` list; an index access over that list (`values[i]`);
+or a parameter explicitly typed with the enclosing enum's name.
+
+Names the enum body declares itself (`name`/`index` fields, getters,
+setters or methods) shadow the built-ins and shall not be flagged.
+Identifiers in property-name position (`x.name`'s `name`), invocation
+position (`x.name()`), assignment-target position, and static member
+bodies shall not be treated as implicit-`this` reads. Usages outside
+enum bodies are out of scope.
+
+Default severity: warning. Default enabled: true. Configurable keys:
+`enabled`, `severity`, `ignorable`. Every violation shall carry the
+file and line of the offending access, and the message shall state the
+rename-drift hazard and the `final String value` fix.
 
 ## 13. Threshold
 

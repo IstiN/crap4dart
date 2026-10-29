@@ -16,7 +16,7 @@ Guidance for AI agents and contributors working on crap4dart.
    `weight_of_class`, `unused_code`, `unused_files`, `banned_imports`,
    `public_docs`, `duplication`, `file_naming`, `magic_constants`, `scattered_constants`,
    `broken_goldens`, `test_assertions`, `folder_structure`,
-   `string_hazards`, `identical_branches`,
+   `string_hazards`, `identical_branches`, `enum_name_contract`,
    `external` (Checkstyle-XML tool wrapper: detekt/ktlint/swiftlint),
    `mutation` (mutation testing: AST operator table + per-mutant test
    re-runs with a digest-incremental killed-stays-killed cache —

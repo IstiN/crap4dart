@@ -195,6 +195,9 @@ class GatesConfig {
   /// Identical branch conditions gate (`identical_branches`).
   final IdenticalBranchesGateConfig identicalBranches;
 
+  /// Enum name contract gate (`enum_name_contract`).
+  final EnumNameContractGateConfig enumNameContract;
+
   /// Flutter-specific gates grouped together.
   final FlutterGatesConfig flutter;
 
@@ -226,6 +229,7 @@ class GatesConfig {
     this.similarity = const SimilarityGateConfig(),
     this.stringHazards = const StringHazardsGateConfig(),
     this.identicalBranches = const IdenticalBranchesGateConfig(),
+    this.enumNameContract = const EnumNameContractGateConfig(),
     this.flutter = const FlutterGatesConfig(),
   });
 
