@@ -1064,8 +1064,11 @@ relative order (a stable partition — the command never sorts
 alphabetically). Doc comments, metadata annotations and whole-line
 `//` comment blocks above a member shall move with it — including a
 block separated from the member by a single blank line; two or more
-blank lines detach the block. Enum bodies shall never be reordered
-(enum value order is semantics). A file's line-ending style (LF or
+blank lines detach the block. Enum constant order shall never be
+reordered (enum value order is semantics — `values`, `.index` and
+ordinal persistence depend on it); the enum member section after the
+constants shall be reordered into the canonical order exactly like a
+class body. A file's line-ending style (LF or
 CRLF) shall be preserved.
 
 The transform shall be deterministic and idempotent: the same input

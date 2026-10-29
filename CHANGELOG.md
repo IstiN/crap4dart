@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.26.0 — 2026-10-29
+
+- `reorder` now covers enum member sections: the constants block (enum
+  value order — `values`, `.index`, ordinal persistence) is never
+  touched, while fields, constructors, getters and methods after the
+  constants are reordered into the canonical order exactly like a class
+  body. Previously the entire enum body was skipped, so a constructor
+  above its field survived in enhanced enums. Byte-identical for
+  enums without a member section; constants are copied verbatim
+  (spacing included), so `.index`/`values` semantics cannot drift.
+
 ## 0.25.0 — 2026-10-28
 
 - `memory` accepts positional test paths on the Flutter engine:
