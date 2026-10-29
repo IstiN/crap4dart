@@ -518,7 +518,7 @@ Known gate ids: `loc`, `test_coverage`, `golden`, `hardcoded_strings`,
 `public_docs`, `duplication`, `file_naming`, `magic_constants`,
 `broken_goldens`, `test_assertions`, `folder_structure`, `external`,
 `mutation`, `similarity`, `string_hazards`, `identical_branches`,
-`enum_name_contract`, `record_named_fields`,
+`enum_name_contract`, `collapsible_flow`, `record_named_fields`,
 `inline_record_types`, `record_size`, `scattered_constants`.
 
 ## 11. Quality Gates
@@ -532,7 +532,7 @@ Gates shall run in the fixed order: `loc`, `test_coverage`,
 `banned_imports`,
 `public_docs`, `hardcoded_strings`, `accessibility`, `golden`,
 `weight_of_class`, `mutation`, `similarity`, `string_hazards`,
-`identical_branches`, `enum_name_contract`. A gate
+`identical_branches`, `enum_name_contract`, `collapsible_flow`. A gate
 disabled in the
 config shall
 produce a skipped result. The run shall fail when at least one gate fails;
@@ -1176,6 +1176,35 @@ Default severity: warning. Default enabled: true. Configurable keys:
 `enabled`, `severity`, `ignorable`. Every violation shall carry the
 file and line of the offending access, and the message shall state the
 rename-drift hazard and the `final String value` fix.
+
+### 11.28 collapsible_flow
+
+The `collapsible_flow` gate shall flag control-flow nesting that a
+semantics-preserving mechanical rewrite can flatten, resolved from the
+parsed-unresolved AST only. Three checks:
+
+1. **Collapsible if** — an `if` without `else` and without a pattern
+   condition (`case` clause) whose then-branch contains only one
+   statement that is itself an `if` without `else` and without a
+   pattern condition. The two conditions merge into a single `&&`
+   condition; short-circuit evaluation preserves order, so the merge
+   is always equivalent.
+2. **Redundant else** — an `if`/`else` whose then-branch always exits:
+   ends with `return`, `break`, `continue`, `throw`, `rethrow`, a
+   block whose last statement exits, an `if`/`else` pair whose both
+   branches exit, or a `try` whose body exits and whose finally is
+   absent, empty, or exits. The `else` is redundant and its body
+   dedents. An inner `if` without an `else` shall never count as
+   exiting (control falls through when its condition is false);
+   `switch` bodies shall not be analyzed (case fall-through).
+3. **Chain after terminal then** — an `else if` following an
+   always-exiting then-branch, flagged as a flattening hint (guard
+   sequence or dispatch table); the rewrite is not mechanical, so the
+   message shall not promise a specific fix.
+
+Default severity: warning. Default enabled: true. Configurable keys:
+`enabled`, `severity`, `ignorable`. Every violation shall carry the
+file and line of the offending construct.
 
 ## 13. Threshold
 
