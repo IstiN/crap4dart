@@ -251,9 +251,10 @@ crap4dart reorder --dry-run    # list files that would change; exit 2 if any
 The transform is deterministic: the same input always produces the same
 output, already-canonical files are left byte-identical, and running it
 twice changes nothing. Doc comments, annotations and directly-preceding
-`//` notes move with their member; enum bodies are never touched (value
-order is semantics). `--dry-run` is the CI/pre-commit form: it exits 2
-when any file would change.
+`//` notes move with their member. Enums: the constants block (value
+order) is never touched, while the member section after the constants
+is reordered like a class body. `--dry-run` is the CI/pre-commit form:
+it exits 2 when any file would change.
 
 The `similarity` **gate** (in `check`) turns this into CI enforcement:
 one violation per clustered file, baseline-compatible so existing

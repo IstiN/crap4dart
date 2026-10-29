@@ -85,8 +85,11 @@ class _MemberSlice {
 ///
 /// Pure function: the same input always produces the same output, and
 /// already-canonical input is returned unchanged. Classes, mixins and
-/// extensions are reordered; enums are left untouched (value order is
-/// semantics). Comments directly above a member move with it.
+/// extensions are reordered. Enums: the member section after the
+/// constants is reordered by the same canonical order, while the
+/// constants themselves are never touched (enum value order is
+/// semantics — `values[i]`, `.index` and ordinal persistence depend on
+/// it). Comments directly above a member move with it.
 String reorderSource(String source, {String path = ''}) {
   final parsed = DartParser().parse(content: source, path: path);
   final unit = parsed.unit;
@@ -116,20 +119,31 @@ String reorderSource(String source, {String path = ''}) {
   return result;
 }
 
-/// The members of a class-like declaration, or null for non-class or
-/// enum declarations (enum value order is semantics).
+/// The members of a class-like declaration body, or null for
+/// declarations this tool does not reorder. For enums this is the
+/// member section after the constants — the constants themselves are
+/// never part of the reorderable list (enum value order is semantics).
 List<ClassMember>? _classMembers(CompilationUnitMember declaration) {
-  if (declaration is EnumDeclaration) return null;
+  if (declaration is EnumDeclaration) return declaration.body.members;
   if (declaration is ClassDeclaration) return declaration.body.members;
   if (declaration is MixinDeclaration) return declaration.body.members;
   if (declaration is ExtensionDeclaration) return declaration.body.members;
   return null;
 }
 
-/// The offset of a class-like declaration's opening brace, or null
-/// for declarations this tool does not reorder.
+/// The offset whose +1 bounds the first member slice of a declaration,
+/// or null for declarations this tool does not reorder. For classes
+/// that is the opening brace; for enums the end of the constants'
+/// semicolon (or of the last constant) — so the constants block is
+/// never crossed, let alone reordered.
 int? _classBody(CompilationUnitMember declaration) {
-  if (declaration is EnumDeclaration) return null;
+  if (declaration is EnumDeclaration) {
+    final lastConstant = declaration.body.constants.last;
+    final body = declaration.body;
+    return body is BlockEnumBody
+        ? (body.semicolon?.end ?? lastConstant.end)
+        : lastConstant.end;
+  }
   if (declaration is ClassDeclaration) return declaration.body.offset;
   if (declaration is MixinDeclaration) return declaration.body.offset;
   if (declaration is ExtensionDeclaration) {

@@ -176,12 +176,12 @@ enum DuplicationReport {
   /// two or more times, with all its locations in the message.
   clones('clones');
 
-  const DuplicationReport(this.value);
-
   /// The persisted `report:` spelling of this report mode — the contract
   /// value that survives identifier renames (the built-in `.name`
   /// changes with them).
   final String value;
+
+  const DuplicationReport(this.value);
 
   /// Parses a `report:` config value, `null` when unrecognized.
   static DuplicationReport? tryParse(String value) {
