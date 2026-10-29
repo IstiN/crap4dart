@@ -29,6 +29,7 @@ import 'scattered_constants_gate.dart';
 import 'similarity/similarity_gate.dart';
 import 'content/string_hazards_gate.dart';
 import 'identical_branches_gate.dart';
+import 'quality/enum_name_contract_gate.dart';
 import 'content/test_assertions_gate.dart';
 import 'usage/unused_code_gate.dart';
 import 'usage/unused_files_gate.dart';
@@ -98,6 +99,7 @@ class GateRunner {
         const SimilarityGate(),
         const StringHazardsGate(),
         const IdenticalBranchesGate(),
+        const EnumNameContractGate(),
       ];
 
   /// Runs every enabled gate against [context].
@@ -243,6 +245,7 @@ class GateRunner {
         GateIds.similarity: gates.similarity,
         GateIds.stringHazards: gates.stringHazards,
         GateIds.identicalBranches: gates.identicalBranches,
+        GateIds.enumNameContract: gates.enumNameContract,
       };
 
   bool _isEnabled(String id, GatesConfig gates) =>

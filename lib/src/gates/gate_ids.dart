@@ -97,6 +97,9 @@ abstract final class GateIds {
   /// Identical branch conditions gate (`identical_branches`).
   static const String identicalBranches = 'identical_branches';
 
+  /// Enum name contract gate (`enum_name_contract`).
+  static const String enumNameContract = 'enum_name_contract';
+
   /// Every gate id in runner order.
   static const List<String> all = [
     loc,
@@ -128,5 +131,6 @@ abstract final class GateIds {
     similarity,
     stringHazards,
     identicalBranches,
+    enumNameContract,
   ];
 }

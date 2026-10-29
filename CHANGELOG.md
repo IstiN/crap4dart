@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.26.0 — 2026-10-29
+## 0.27.0 — 2026-10-29
 
 - `reorder` now covers enum member sections: the constants block (enum
   value order — `values`, `.index`, ordinal persistence) is never
@@ -10,6 +10,23 @@
   above its field survived in enhanced enums. Byte-identical for
   enums without a member section; constants are copied verbatim
   (spacing included), so `.index`/`values` semantics cannot drift.
+
+## 0.26.0 — 2026-10-29
+
+- New `enum_name_contract` gate (warning severity by default): flags
+  usages of the built-in `.name`/`.index` members inside enum
+  declaration bodies — the persisted YAML/JSON value changes when a
+  Dart identifier is renamed (`Color.red.name` is `"red"` until the
+  constant is renamed). Provable receivers only: `this`, implicit
+  `this` (bare `name`/`index` in instance members without local
+  shadowing), the enum's own constants, `values` loop variables and
+  index accesses, and parameters explicitly typed with the enum.
+  Self-shadowing (`name`/`index` members declared by the enum) is
+  respected; usages outside enum bodies are out of scope. Fix hint:
+  declare a `final String value` field and contract on `.value`.
+  Dogfooded: the gate found and this release fixes the two shipped
+  violations (`ComplexityMetric.tryParse`, `DuplicationReport.tryParse`
+  — both now contract on an explicit `value` field).
 
 ## 0.25.0 — 2026-10-28
 

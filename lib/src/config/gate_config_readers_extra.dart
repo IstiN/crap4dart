@@ -517,4 +517,26 @@ class _ExtendedGateConfigReaders {
       },
     );
   }
+
+  static EnumNameContractGateConfig readEnumNameContract(
+    Object? node,
+    EnumNameContractGateConfig base,
+    String path,
+  ) {
+    return _ConfigScalars.readGateConfig(
+      node,
+      base,
+      path,
+      '$kGatePrefix.${GateIds.enumNameContract}',
+      const {_enabledKey, _severityKey, _ignorableKey},
+      (map, base, path, ctx) {
+        final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
+        return EnumNameContractGateConfig(
+          enabled: flags.enabled,
+          severity: flags.severity,
+          ignorable: flags.ignorable,
+        );
+      },
+    );
+  }
 }

@@ -29,14 +29,15 @@ crap4dart is a Dart port of the Java tool
 ## Features
 
 - **CRAP analysis** per method, combining complexity and LCOV coverage
-- **29 quality gates**: `loc`, `test_coverage`, `golden`,
+- **30 quality gates**: `loc`, `test_coverage`, `golden`,
   `hardcoded_strings`, `accessibility`, `complexity`, `method_size`,
   `nesting`, `record_named_fields`, `inline_record_types`,
   `record_size`, `class_size`, `weight_of_class`, `unused_code`,
   `unused_files`, `banned_imports`, `public_docs`, `duplication`,
   `file_naming`, `magic_constants`, `scattered_constants`, `broken_goldens`,
   `test_assertions`, `folder_structure`, `external`, `mutation`,
-  `similarity`, `string_hazards`, `identical_branches`
+  `similarity`, `string_hazards`, `identical_branches`,
+  `enum_name_contract`
 - **Gate framework**: per-path thresholds (`entries`), warning
   severity, baseline mode, opt-in ignore markers
 - **Configuration** via `crap4dart.yaml` with strict validation
@@ -386,6 +387,11 @@ gates:
   # identical ternary branches, duplicate positional call arguments,
   # duplicate catch bodies — all compared by canonical form.
   identical_branches:
+    enabled: true
+    severity: warning
+  # Flag built-in .name/.index contracts inside enum bodies (persisted
+  # values drift when an identifier is renamed).
+  enum_name_contract:
     enabled: true
     severity: warning
   # Limit cyclomatic complexity per method.
@@ -815,6 +821,20 @@ gates:
   statements are legal. `switch` is excluded — the analyzer already
   flags duplicate cases. Warning severity by default: equivalence
   assumes side-effect-free operands.
+
+- **enum_name_contract** — flags usages of the built-in `.name`/`.index`
+  members *inside enum declaration bodies* on provable enum receivers:
+  `this`, implicit `this` (a bare `name`/`index` in an instance member
+  with no local shadowing), the enum's own constants (qualified or not),
+  `values` loop variables, `values[i]` index accesses, and parameters
+  explicitly typed with the enum. `Color.red.name` is `"red"` today;
+  rename the constant and every persisted YAML/JSON/DB row written from
+  it drifts. The fix is an explicit contract field — `final String
+  value;` (enhanced enum) contracted on as `.value`. Names the enum body
+  declares itself shadow the built-ins and are skipped; usages *outside*
+  enum bodies are out of scope (they need type matching). Warning
+  severity by default: `.name` in log/display labels is legal — the
+  message asks to confirm the usage is not a persisted contract.
 
 ## Baseline
 

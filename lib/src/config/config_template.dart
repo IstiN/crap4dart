@@ -434,4 +434,10 @@ gates:
   identical_branches:
     enabled: true
     severity: warning
+  # Flag built-in `.name`/`.index` contracts inside enum bodies: the
+  # persisted YAML/JSON value changes when a Dart identifier is renamed.
+  # Fix: declare a `final String value` field and contract on `.value`.
+  enum_name_contract:
+    enabled: true
+    severity: warning
 ''';
