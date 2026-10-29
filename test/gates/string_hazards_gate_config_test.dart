@@ -27,16 +27,16 @@ gates:
     ignorable: true
 ''';
     final config = const ConfigLoader().loadString(yaml);
-    expect(config.gates.stringHazards.enabled, isTrue);
-    expect(config.gates.stringHazards.severity, GateSeverity.warning);
-    expect(config.gates.stringHazards.ignorable, isTrue);
+    expect(config.gates.quality.stringHazards.enabled, isTrue);
+    expect(config.gates.quality.stringHazards.severity, GateSeverity.warning);
+    expect(config.gates.quality.stringHazards.ignorable, isTrue);
   });
 
   test('defaults to enabled warning', () {
     final config = Crap4DartConfig.defaults();
-    expect(config.gates.stringHazards.enabled, isTrue);
-    expect(config.gates.stringHazards.severity, GateSeverity.warning);
-    expect(config.gates.stringHazards.ignorable, isFalse);
+    expect(config.gates.quality.stringHazards.enabled, isTrue);
+    expect(config.gates.quality.stringHazards.severity, GateSeverity.warning);
+    expect(config.gates.quality.stringHazards.ignorable, isFalse);
   });
 
   test('rejects unknown keys', () {

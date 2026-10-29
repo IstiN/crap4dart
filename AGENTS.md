@@ -17,6 +17,7 @@ Guidance for AI agents and contributors working on crap4dart.
    `public_docs`, `duplication`, `file_naming`, `magic_constants`, `scattered_constants`,
    `broken_goldens`, `test_assertions`, `folder_structure`,
    `string_hazards`, `identical_branches`, `enum_name_contract`,
+   `collapsible_flow`,
    `external` (Checkstyle-XML tool wrapper: detekt/ktlint/swiftlint),
    `mutation` (mutation testing: AST operator table + per-mutant test
    re-runs with a digest-incremental killed-stays-killed cache —
@@ -101,7 +102,7 @@ lib/src/config/              # crap4dart.yaml model, loader (strict), template
 lib/src/analysis/            # analyzer wrappers: parser, method extractor, CC
 lib/src/coverage/            # LCOV parser, per-method coverage, test runner
 lib/src/crap/                # CRAP formula, analyzer, console report
-lib/src/gates/               # Gate framework + 27 gates
+lib/src/gates/               # Gate framework + 29 gates
 lib/src/similarity/          # shingles/Jaccard engine (similarity gate)
 lib/src/files/               # source finder, git changed files, diff parser
 lib/src/report/              # JSON reporter

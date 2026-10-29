@@ -9,9 +9,10 @@ void main() {
   group('identical_branches config', () {
     test('defaults: enabled, warning severity', () {
       final config = loader.loadString('sources: [lib]\n');
-      expect(config.gates.identicalBranches.enabled, isTrue);
-      expect(config.gates.identicalBranches.severity, GateSeverity.warning);
-      expect(config.gates.identicalBranches.ignorable, isFalse);
+      expect(config.gates.quality.identicalBranches.enabled, isTrue);
+      expect(config.gates.quality.identicalBranches.severity,
+          GateSeverity.warning);
+      expect(config.gates.quality.identicalBranches.ignorable, isFalse);
     });
 
     test('known gate id with explicit values loads', () {
@@ -22,9 +23,10 @@ gates:
     severity: error
     ignorable: true
 ''');
-      expect(config.gates.identicalBranches.enabled, isTrue);
-      expect(config.gates.identicalBranches.severity, GateSeverity.error);
-      expect(config.gates.identicalBranches.ignorable, isTrue);
+      expect(config.gates.quality.identicalBranches.enabled, isTrue);
+      expect(
+          config.gates.quality.identicalBranches.severity, GateSeverity.error);
+      expect(config.gates.quality.identicalBranches.ignorable, isTrue);
     });
 
     test('disabled explicitly', () {
@@ -33,7 +35,7 @@ gates:
   identical_branches:
     enabled: false
 ''');
-      expect(config.gates.identicalBranches.enabled, isFalse);
+      expect(config.gates.quality.identicalBranches.enabled, isFalse);
     });
 
     test('unknown key inside the gate is a config error', () {
@@ -72,8 +74,9 @@ gates:
 
     test('generated template round-trips the gate', () {
       final config = loader.loadString(defaultConfigTemplate);
-      expect(config.gates.identicalBranches.enabled, isTrue);
-      expect(config.gates.identicalBranches.severity, GateSeverity.warning);
+      expect(config.gates.quality.identicalBranches.enabled, isTrue);
+      expect(config.gates.quality.identicalBranches.severity,
+          GateSeverity.warning);
     });
   });
 }

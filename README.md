@@ -37,7 +37,7 @@ crap4dart is a Dart port of the Java tool
   `file_naming`, `magic_constants`, `scattered_constants`, `broken_goldens`,
   `test_assertions`, `folder_structure`, `external`, `mutation`,
   `similarity`, `string_hazards`, `identical_branches`,
-  `enum_name_contract`
+  `enum_name_contract`, `collapsible_flow`
 - **Gate framework**: per-path thresholds (`entries`), warning
   severity, baseline mode, opt-in ignore markers
 - **Configuration** via `crap4dart.yaml` with strict validation
@@ -391,6 +391,13 @@ gates:
   # Flag built-in .name/.index contracts inside enum bodies (persisted
   # values drift when an identifier is renamed).
   enum_name_contract:
+    enabled: true
+    severity: warning
+  # Flag control-flow nesting that a mechanical rewrite can flatten:
+  # collapsible `if (a) { if (b) X }`, redundant `else` after an
+  # always-exiting then-branch, and else-if chains worth a dispatch
+  # table.
+  collapsible_flow:
     enabled: true
     severity: warning
   # Limit cyclomatic complexity per method.
@@ -834,6 +841,19 @@ gates:
   enum bodies are out of scope (they need type matching). Warning
   severity by default: `.name` in log/display labels is legal — the
   message asks to confirm the usage is not a persisted contract.
+
+- **collapsible_flow** — flags control-flow nesting a mechanical
+  rewrite can flatten: `if (a) { if (b) X }` merges into
+  `if (a && b) X` (short-circuit `&&` preserves order — always
+  equivalent, even with `await`ed conditions); `if (c) { return X; }
+  else { Y }` dedents the `else` when the then-branch always exits
+  (`return`/`break`/`continue`/`throw`/`rethrow` or a block/if-chain
+  ending in one — an inner `if` *without* an `else` never counts,
+  control falls through); and an `else if` after an always-exiting
+  then-branch is a chain-flattening hint (guard sequence or dispatch
+  table). Pattern conditions (`if (x case P)`) are never merged. Every
+  finding is correct code — warning severity by default. Independently
+  validated by DCM's `avoid-collapsible-if`/`avoid-redundant-else`.
 
 ## Baseline
 

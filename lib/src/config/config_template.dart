@@ -440,4 +440,7 @@ gates:
   enum_name_contract:
     enabled: true
     severity: warning
+  collapsible_flow:
+    enabled: true
+    severity: warning
 ''';

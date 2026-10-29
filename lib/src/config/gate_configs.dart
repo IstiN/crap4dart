@@ -329,48 +329,6 @@ class RecordSizeGateConfig implements GateConfigFlags {
   });
 }
 
-/// Identical branch conditions gate settings (`identical_branches`).
-class IdenticalBranchesGateConfig implements GateConfigFlags {
-  /// Whether the gate is enabled.
-  final bool enabled;
-
-  /// Whether violations fail the run or are reported as warnings.
-  /// Defaults to `warning`: reordered operands compare equal only when
-  /// they are side-effect free, which pure syntax cannot prove.
-  final GateSeverity severity;
-
-  /// Whether `// crap:ignore` comments may suppress violations of this
-  /// gate. Disabled by default — suppression must be opted into.
-  final bool ignorable;
-
-  /// Creates an [IdenticalBranchesGateConfig].
-  const IdenticalBranchesGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.warning,
-    this.ignorable = false,
-  });
-}
-
-/// Enum name contract gate settings (`enum_name_contract`).
-class EnumNameContractGateConfig implements GateConfigFlags {
-  /// Whether the gate is enabled.
-  final bool enabled;
-
-  /// Whether violations fail the run or are reported as warnings.
-  final GateSeverity severity;
-
-  /// Whether `// crap:ignore` comments may suppress violations of this
-  /// gate. Disabled by default — suppression must be opted into.
-  final bool ignorable;
-
-  /// Creates an [EnumNameContractGateConfig].
-  const EnumNameContractGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.warning,
-    this.ignorable = false,
-  });
-}
-
 /// Class size gate settings (`class_size`).
 class ClassSizeGateConfig implements GateConfigFlags {
   /// Whether the gate is enabled.
@@ -743,25 +701,5 @@ class ExternalGateConfig implements GateConfigFlags {
     this.severity = GateSeverity.error,
     this.ignorable = false,
     this.rules = const [],
-  });
-}
-
-/// String literal hazard gate settings (`string_hazards`).
-class StringHazardsGateConfig implements GateConfigFlags {
-  /// Whether the gate is enabled.
-  final bool enabled;
-
-  /// Whether violations fail the run or are reported as warnings.
-  final GateSeverity severity;
-
-  /// Whether `// crap:ignore` comments may suppress violations of this
-  /// gate. Disabled by default — suppression must be opted into.
-  final bool ignorable;
-
-  /// Creates a [StringHazardsGateConfig].
-  const StringHazardsGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.warning,
-    this.ignorable = false,
   });
 }

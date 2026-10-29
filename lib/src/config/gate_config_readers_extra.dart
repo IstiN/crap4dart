@@ -539,4 +539,26 @@ class _ExtendedGateConfigReaders {
       },
     );
   }
+
+  static CollapsibleFlowGateConfig readCollapsibleFlow(
+    Object? node,
+    CollapsibleFlowGateConfig base,
+    String path,
+  ) {
+    return _ConfigScalars.readGateConfig(
+      node,
+      base,
+      path,
+      '$kGatePrefix.${GateIds.collapsibleFlow}',
+      const {_enabledKey, _severityKey, _ignorableKey},
+      (map, base, path, ctx) {
+        final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
+        return CollapsibleFlowGateConfig(
+          enabled: flags.enabled,
+          severity: flags.severity,
+          ignorable: flags.ignorable,
+        );
+      },
+    );
+  }
 }
