@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.29.0 — 2026-10-30
+
+- New `non_null_assertion` gate (warning severity by default): flags
+  every non-null assertion — the postfix `!` operator (`x!`,
+  `map['k']!`, chains `a!.b!`) and the null-assert pattern
+  (`case var x!`). A bang crashes on unexpected null where the
+  null-safe alternatives carry the same intent with a readable check:
+  `?.`/`??` (the check-then-bang ternary `E != null ? E!.m() : f`
+  collapses to `E?.m() ?? f`; getters and record fields do not
+  promote, so the collapse is the only bang-free form) and the
+  null-check pattern (`case var x?`). `!=`, logical-not `!x`,
+  `++`/`--`, `?.` and `??` are not flagged. Zero thresholds; every
+  violation carries the file and line of the `!` token. Existing
+  codebases adopt via baseline ratchet (`check --save-baseline`) or
+  warning severity. Independently validated by DCM's
+  `avoid-non-null-assertion`.
+
 ## 0.28.0 — 2026-10-29
 
 - New `collapsible_flow` gate (warning severity by default): flags

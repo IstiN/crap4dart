@@ -29,7 +29,7 @@ crap4dart is a Dart port of the Java tool
 ## Features
 
 - **CRAP analysis** per method, combining complexity and LCOV coverage
-- **30 quality gates**: `loc`, `test_coverage`, `golden`,
+- **32 quality gates**: `loc`, `test_coverage`, `golden`,
   `hardcoded_strings`, `accessibility`, `complexity`, `method_size`,
   `nesting`, `record_named_fields`, `inline_record_types`,
   `record_size`, `class_size`, `weight_of_class`, `unused_code`,
@@ -37,7 +37,7 @@ crap4dart is a Dart port of the Java tool
   `file_naming`, `magic_constants`, `scattered_constants`, `broken_goldens`,
   `test_assertions`, `folder_structure`, `external`, `mutation`,
   `similarity`, `string_hazards`, `identical_branches`,
-  `enum_name_contract`, `collapsible_flow`
+  `enum_name_contract`, `collapsible_flow`, `non_null_assertion`
 - **Gate framework**: per-path thresholds (`entries`), warning
   severity, baseline mode, opt-in ignore markers
 - **Configuration** via `crap4dart.yaml` with strict validation
@@ -399,6 +399,12 @@ gates:
   # always-exiting then-branch, and else-if chains worth a dispatch
   # table.
   collapsible_flow:
+    enabled: true
+    severity: warning
+  # Flag every non-null assertion (`x!`, `case var x!`) — crashes on
+  # null where `?.`/`??` or a null-check pattern carries the same
+  # intent with a readable check.
+  non_null_assertion:
     enabled: true
     severity: warning
   # Limit cyclomatic complexity per method.
@@ -855,6 +861,21 @@ gates:
   table). Pattern conditions (`if (x case P)`) are never merged. Every
   finding is correct code — warning severity by default. Independently
   validated by DCM's `avoid-collapsible-if`/`avoid-redundant-else`.
+
+- **non_null_assertion** — flags every non-null assertion: the postfix
+  `!` operator (`x!`, `map['k']!`, chains `a!.b!`) and the null-assert
+  pattern (`case var x!`). A bang crashes on unexpected null; the
+  null-safe alternatives carry the same intent with a readable check:
+  `?.`/`??` — the check-then-bang ternary `E != null ? E!.m() : f`
+  collapses to `E?.m() ?? f` (single receiver evaluation, no bang;
+  getters and record fields don't promote, so the collapse is the only
+  bang-free form) — and a null-check pattern (`case var x?`) skips
+  nulls instead of crashing. `!=`, logical-not `!x`, `++`/`--`, `?.`
+  and `??` are not flagged. Zero thresholds — any `!` is a finding;
+  warning severity by default (existing codebases: adopt via
+  `--save-baseline` ratchet or per-path `entries`/exclude for
+  `json['x']!`-heavy decode boundaries). Independently validated by
+  DCM's `avoid-non-null-assertion`.
 
 ## Baseline
 

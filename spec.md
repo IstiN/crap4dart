@@ -518,8 +518,9 @@ Known gate ids: `loc`, `test_coverage`, `golden`, `hardcoded_strings`,
 `public_docs`, `duplication`, `file_naming`, `magic_constants`,
 `broken_goldens`, `test_assertions`, `folder_structure`, `external`,
 `mutation`, `similarity`, `string_hazards`, `identical_branches`,
-`enum_name_contract`, `collapsible_flow`, `record_named_fields`,
-`inline_record_types`, `record_size`, `scattered_constants`.
+`enum_name_contract`, `collapsible_flow`, `non_null_assertion`,
+`record_named_fields`, `inline_record_types`, `record_size`,
+`scattered_constants`.
 
 ## 11. Quality Gates
 
@@ -532,7 +533,8 @@ Gates shall run in the fixed order: `loc`, `test_coverage`,
 `banned_imports`,
 `public_docs`, `hardcoded_strings`, `accessibility`, `golden`,
 `weight_of_class`, `mutation`, `similarity`, `string_hazards`,
-`identical_branches`, `enum_name_contract`, `collapsible_flow`. A gate
+`identical_branches`, `enum_name_contract`, `collapsible_flow`,
+`non_null_assertion`. A gate
 disabled in the
 config shall
 produce a skipped result. The run shall fail when at least one gate fails;
@@ -1208,6 +1210,27 @@ parsed-unresolved AST only. Three checks:
 Default severity: warning. Default enabled: true. Configurable keys:
 `enabled`, `severity`, `ignorable`. Every violation shall carry the
 file and line of the offending construct.
+
+### 11.29 non_null_assertion
+
+The `non_null_assertion` gate shall flag every non-null assertion,
+resolved from the parsed-unresolved AST only. Two shapes:
+
+1. **Postfix `!` expression** — `x!`, `map['k']!`, chains (`a!.b!`).
+   The comparison `!=`, the logical-not prefix `!x`, other postfix
+   operators (`++`, `--`), null-aware access (`?.`), and the `??`
+   operator shall not be flagged.
+2. **Null-assert pattern** — `case var x!:`. The null-check pattern
+   (`case var x?:`) shall not be flagged.
+
+The gate shall apply zero thresholds: any occurrence is a finding, and
+every violation shall carry the file and line of the `!` token. The
+message shall point at the null-safe alternative (`?.`/`??` or a null
+check on a local variable for expressions; a null-check pattern for
+matches).
+
+Default severity: warning. Default enabled: true. Configurable keys:
+`enabled`, `severity`, `ignorable`.
 
 ## 13. Threshold
 
