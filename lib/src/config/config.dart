@@ -6,6 +6,7 @@ import '../common/constants.dart';
 part 'gate_configs.dart';
 part 'gate_configs_scattered.dart';
 part 'gate_configs_naming.dart';
+part 'gate_configs_quality.dart';
 part 'gate_flags.dart';
 part 'gate_config_mutation.dart';
 part 'similarity_gate_config.dart';
@@ -189,14 +190,9 @@ class GatesConfig {
   /// Mutation testing gate (`mutation`).
   final MutationGateConfig mutation;
 
-  /// String literal hazards gate (`string_hazards`).
-  final StringHazardsGateConfig stringHazards;
-
-  /// Identical branch conditions gate (`identical_branches`).
-  final IdenticalBranchesGateConfig identicalBranches;
-
-  /// Enum name contract gate (`enum_name_contract`).
-  final EnumNameContractGateConfig enumNameContract;
+  /// The quality-gate subgroup (`string_hazards`, `identical_branches`,
+  /// `enum_name_contract`, `collapsible_flow`).
+  final QualityGatesConfig quality;
 
   /// Flutter-specific gates grouped together.
   final FlutterGatesConfig flutter;
@@ -227,9 +223,7 @@ class GatesConfig {
     this.external = const ExternalGateConfig(),
     this.mutation = const MutationGateConfig(),
     this.similarity = const SimilarityGateConfig(),
-    this.stringHazards = const StringHazardsGateConfig(),
-    this.identicalBranches = const IdenticalBranchesGateConfig(),
-    this.enumNameContract = const EnumNameContractGateConfig(),
+    this.quality = const QualityGatesConfig(),
     this.flutter = const FlutterGatesConfig(),
   });
 

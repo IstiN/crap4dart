@@ -100,6 +100,9 @@ abstract final class GateIds {
   /// Enum name contract gate (`enum_name_contract`).
   static const String enumNameContract = 'enum_name_contract';
 
+  /// Collapsible flow gate (`collapsible_flow`).
+  static const String collapsibleFlow = 'collapsible_flow';
+
   /// Every gate id in runner order.
   static const List<String> all = [
     loc,
@@ -132,5 +135,6 @@ abstract final class GateIds {
     stringHazards,
     identicalBranches,
     enumNameContract,
+    collapsibleFlow,
   ];
 }

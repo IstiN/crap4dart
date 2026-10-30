@@ -259,13 +259,25 @@ class ConfigLoader {
           map[GateIds.mutation], base.mutation, path),
       similarity: _ExtendedGateConfigReaders.readSimilarity(
           map[GateIds.similarity], base.similarity, path),
+      quality: _readQualityGates(map, base.quality, path),
+      flutter: _readFlutterGates(map, base.flutter, path),
+    );
+  }
+
+  QualityGatesConfig _readQualityGates(
+    YamlMap map,
+    QualityGatesConfig base,
+    String path,
+  ) {
+    return QualityGatesConfig(
       stringHazards: _GateConfigReaders.readStringHazards(
           map[GateIds.stringHazards], base.stringHazards, path),
       identicalBranches: _ExtendedGateConfigReaders.readIdenticalBranches(
           map[GateIds.identicalBranches], base.identicalBranches, path),
       enumNameContract: _ExtendedGateConfigReaders.readEnumNameContract(
           map[GateIds.enumNameContract], base.enumNameContract, path),
-      flutter: _readFlutterGates(map, base.flutter, path),
+      collapsibleFlow: _ExtendedGateConfigReaders.readCollapsibleFlow(
+          map[GateIds.collapsibleFlow], base.collapsibleFlow, path),
     );
   }
 

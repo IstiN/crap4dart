@@ -212,12 +212,10 @@ abstract final class _Canon {
   static void _flatten(String op, AstNode node, List<String> out) {
     final expr = _Canon._unwrap(node);
     final binary = _Canon._binaryParts(expr);
-    if (_Canon._flattenable.contains(op) && binary != null) {
-      if (binary.op == op) {
-        _Canon._flatten(op, binary.left, out);
-        _Canon._flatten(op, binary.right, out);
-        return;
-      }
+    if (binary != null && _Canon._flattenable.contains(op) && binary.op == op) {
+      _Canon._flatten(op, binary.left, out);
+      _Canon._flatten(op, binary.right, out);
+      return;
     }
     out.add(_Canon._canonicalForm(expr));
   }

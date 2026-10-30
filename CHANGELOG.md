@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.28.0 — 2026-10-29
+
+- New `collapsible_flow` gate (warning severity by default): flags
+  control-flow nesting that a semantics-preserving mechanical rewrite
+  can flatten. Three checks: collapsible `if (a) { if (b) X }` merges
+  into `if (a && b) X` (short-circuit preserves order — always
+  equivalent, pattern `case` conditions never merge); redundant
+  `else` after an always-exiting then-branch dedents (an inner `if`
+  without `else` never counts as exiting — control falls through;
+  `switch` bodies are not analyzed for case fall-through); and an
+  `else if` after an always-exiting then is a chain-flattening hint
+  (guard sequence or dispatch table — report-only). Independently
+  validated by DCM's `avoid-collapsible-if`/`avoid-redundant-else`.
+  Dogfooded: the gate's first self-scan found a collapsible if inside
+  the `identical_branches` gate's own canonicalizer — fixed here.
+- Config model: the post-0.25 gates (`string_hazards`,
+  `identical_branches`, `enum_name_contract`, `collapsible_flow`) are
+  grouped into a `QualityGatesConfig` subgroup to keep the
+  `GatesConfig` constructor under the `method_size` parameter cap.
+  YAML keys are unchanged (still top-level `gates.string_hazards` etc.
+  — no `quality` nesting in the file).
+
 ## 0.27.0 — 2026-10-29
 
 - `reorder` now covers enum member sections: the constants block (enum

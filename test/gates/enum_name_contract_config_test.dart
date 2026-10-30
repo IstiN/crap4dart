@@ -27,16 +27,18 @@ gates:
     ignorable: true
 ''';
     final config = const ConfigLoader().loadString(yaml);
-    expect(config.gates.enumNameContract.enabled, isTrue);
-    expect(config.gates.enumNameContract.severity, GateSeverity.warning);
-    expect(config.gates.enumNameContract.ignorable, isTrue);
+    expect(config.gates.quality.enumNameContract.enabled, isTrue);
+    expect(
+        config.gates.quality.enumNameContract.severity, GateSeverity.warning);
+    expect(config.gates.quality.enumNameContract.ignorable, isTrue);
   });
 
   test('defaults to enabled warning', () {
     final config = Crap4DartConfig.defaults();
-    expect(config.gates.enumNameContract.enabled, isTrue);
-    expect(config.gates.enumNameContract.severity, GateSeverity.warning);
-    expect(config.gates.enumNameContract.ignorable, isFalse);
+    expect(config.gates.quality.enumNameContract.enabled, isTrue);
+    expect(
+        config.gates.quality.enumNameContract.severity, GateSeverity.warning);
+    expect(config.gates.quality.enumNameContract.ignorable, isFalse);
   });
 
   test('rejects unknown keys', () {
