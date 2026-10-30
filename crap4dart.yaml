@@ -133,3 +133,14 @@ gates:
     # idempotence asserts, degenerate golden rects); suppression is
     # per-site with a reason.
     ignorable: true
+  # Wave-3 simple ban: every non-null assertion — postfix `!` and the
+  # null-assert pattern (`case var x!`). The census is live: 150 legacy
+  # bangs in 41 files at enablement (runner.dart 33, profile_command 10,
+  # memory_command 8 lead). Warning severity is the roadmap's ratchet
+  # posture for an existing codebase: freeze with `check --save-baseline`
+  # and gate only new bangs, or burn down per file; flip to error once
+  # the count hits zero. The null-safe forms (`?.`/`??`, null-check
+  # pattern) carry the same intent without the crash.
+  non_null_assertion:
+    enabled: true
+    severity: warning
