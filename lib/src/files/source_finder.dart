@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import 'package:glob/glob.dart';
@@ -5,20 +6,30 @@ import 'package:path/path.dart' as p;
 
 /// Finds Dart source files to analyze.
 class SourceFinder {
-  /// Creates a [SourceFinder].
-  const SourceFinder();
-
   /// Glob patterns excluded from default source discovery.
   static const List<String> defaultExcludes = [
-    '**.g.dart',
-    '**.freezed.dart',
-    '**.mocks.dart',
+    kGeneratedGlob,
+    kFreezedGlob,
+    kMocksGlob,
     '.dart_tool/**',
   ];
 
   /// Directories scanned when no explicit paths are given. Only existing
   /// directories are scanned.
   static const List<String> defaultRoots = ['lib', 'bin'];
+
+  /// Creates a [SourceFinder].
+  const SourceFinder();
+
+  /// Whether [path] matches any of the [defaultExcludes] patterns.
+  static bool isExcluded(String path) {
+    final segments = p.split(path);
+    if (segments.contains(kDartToolDir)) return true;
+    final baseName = p.basename(path);
+    return baseName.endsWith('.g.dart') ||
+        baseName.endsWith('.freezed.dart') ||
+        baseName.endsWith('.mocks.dart');
+  }
 
   /// Returns all `.dart` files under [roots] (default: [defaultRoots]) of
   /// [rootDir], excluding [defaultExcludes]. Non-existing roots are
@@ -47,7 +58,7 @@ class SourceFinder {
     for (final path in paths) {
       final type = FileSystemEntity.typeSync(path);
       if (type == FileSystemEntityType.file) {
-        if (path.endsWith('.dart') && !isExcluded(p.normalize(path))) {
+        if (path.endsWith(kDartExtension) && !isExcluded(p.normalize(path))) {
           result.add(path);
         }
       } else if (type == FileSystemEntityType.directory) {
@@ -58,16 +69,6 @@ class SourceFinder {
     }
     final sorted = result.toList()..sort();
     return sorted;
-  }
-
-  /// Whether [path] matches any of the [defaultExcludes] patterns.
-  static bool isExcluded(String path) {
-    final segments = p.split(path);
-    if (segments.contains('.dart_tool')) return true;
-    final baseName = p.basename(path);
-    return baseName.endsWith('.g.dart') ||
-        baseName.endsWith('.freezed.dart') ||
-        baseName.endsWith('.mocks.dart');
   }
 
   /// Filters out [files] matching any of [patterns]: glob patterns matched
@@ -92,7 +93,7 @@ class SourceFinder {
   List<String> _findUnder(String dir) => [
         for (final entity in Directory(dir).listSync(recursive: true))
           if (entity is File &&
-              entity.path.endsWith('.dart') &&
+              entity.path.endsWith(kDartExtension) &&
               !isExcluded(p.normalize(entity.path)))
             entity.path,
       ];

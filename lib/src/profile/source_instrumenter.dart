@@ -21,11 +21,11 @@ class _Insertion {
 /// can measure inclusive time per call and subtract nested call time to
 /// derive self time.
 class SourceInstrumenter {
-  /// Creates a [SourceInstrumenter].
-  const SourceInstrumenter({required this.packageName});
-
   /// Package name used for the collector import URI.
   final String packageName;
+
+  /// Creates a [SourceInstrumenter].
+  const SourceInstrumenter({required this.packageName});
 
   /// Instruments [source] and returns the modified source code.
   ///
@@ -40,7 +40,7 @@ class SourceInstrumenter {
     if (parsed.unit.directives.any((d) => d is PartOfDirective)) {
       return source;
     }
-    final extracted = MethodExtractor().extractWithNodes(
+    final extracted = const MethodExtractor().extractWithNodes(
       parsed.unit,
       parsed.lineInfo,
       filePath: filePath,

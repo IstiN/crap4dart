@@ -1,4 +1,4 @@
-import 'package:crap4dart/src/gates/weight_of_class_gate.dart';
+import 'package:crap4dart/src/gates/quality/weight_of_class_gate.dart';
 import 'package:test/test.dart';
 
 import 'gate_test_utils.dart';
@@ -25,7 +25,7 @@ class Service {
   int d() => 4;
 }
 ''');
-    final result = await WeightOfClassGate().run(
+    final result = await const WeightOfClassGate().run(
       makeContext(
         project,
         ['lib/dto.dart', 'lib/service.dart'],

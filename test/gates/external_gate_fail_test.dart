@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:crap4dart/src/gates/external_gate.dart';
+import 'package:crap4dart/src/gates/content/external_gate.dart';
 import 'package:test/test.dart';
 
 import 'gate_test_utils.dart';
@@ -12,7 +12,7 @@ void main() {
     final failing = File('${project.path}/failing_tool.sh')
       ..writeAsStringSync('#!/bin/sh\nexit 3\n');
     Process.runSync('chmod', ['+x', failing.path]);
-    final result = await ExternalGate().run(
+    final result = await const ExternalGate().run(
       makeContext(
         project,
         const [],

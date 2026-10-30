@@ -1,4 +1,4 @@
-import 'package:crap4dart/src/gates/nesting_gate.dart';
+import 'package:crap4dart/src/gates/quality/nesting_gate.dart';
 import 'package:test/test.dart';
 
 import 'gate_test_utils.dart';
@@ -23,7 +23,7 @@ String classify(int x) {
   return 'huge';
 }
 ''');
-    final result = await NestingGate().run(
+    final result = await const NestingGate().run(
       makeContext(
         project,
         ['lib/chain.dart'],
@@ -52,7 +52,7 @@ String classify(int x) {
   return 'large';
 }
 ''');
-    final result = await NestingGate().run(
+    final result = await const NestingGate().run(
       makeContext(
         project,
         ['lib/nested.dart'],

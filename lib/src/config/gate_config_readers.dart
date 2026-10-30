@@ -3,12 +3,15 @@ part of 'config_loader.dart';
 /// YAML keys shared by the per-gate config readers.
 const String _maxLinesKey = 'max_lines';
 const String _entriesKey = 'entries';
-const String _excludeKey = 'exclude';
 const String _dirsKey = 'dirs';
+
+/// The per-pattern `config` key of folder_structure.
 const String _maxParamsKey = 'max_params';
 const String _maxComplexityKey = 'max_complexity';
-const String _locEntriesCtx = 'gates.loc.entries';
-const String _complexityEntriesCtx = 'gates.complexity.entries';
+const String _minLengthKey = 'min_length';
+const String _locEntriesCtx = '$kGatePrefix.${GateIds.loc}.entries';
+const String _complexityEntriesCtx =
+    '$kGatePrefix.${GateIds.complexity}.entries';
 
 /// Reads the per-gate sub-configs under the `gates` key; each reader
 /// validates its gate's keys and applies per-key defaults from [base].
@@ -18,14 +21,14 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.loc',
+      '$kGatePrefix.${GateIds.loc}',
       const {
         _enabledKey,
         _severityKey,
         _ignorableKey,
         _maxLinesKey,
         _entriesKey,
-        _excludeKey
+        kExclude
       },
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -37,7 +40,7 @@ class _GateConfigReaders {
               map, _maxLinesKey, base.maxLines, path, ctx),
           entries: readLocEntries(map[_entriesKey], path),
           exclude:
-              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+              _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
         );
       },
     );
@@ -63,7 +66,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.test_coverage',
+      '$kGatePrefix.${GateIds.testCoverage}',
       const {
         _enabledKey,
         _severityKey,
@@ -97,7 +100,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.golden',
+      '$kGatePrefix.${GateIds.golden}',
       const {
         _enabledKey,
         _severityKey,
@@ -135,7 +138,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.hardcoded_strings',
+      '$kGatePrefix.${GateIds.hardcodedStrings}',
       const {
         _enabledKey,
         _severityKey,
@@ -158,6 +161,28 @@ class _GateConfigReaders {
     );
   }
 
+  static StringHazardsGateConfig readStringHazards(
+    Object? node,
+    StringHazardsGateConfig base,
+    String path,
+  ) {
+    return _ConfigScalars.readGateConfig(
+      node,
+      base,
+      path,
+      '$kGatePrefix.${GateIds.stringHazards}',
+      const {_enabledKey, _severityKey, _ignorableKey},
+      (map, base, path, ctx) {
+        final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
+        return StringHazardsGateConfig(
+          enabled: flags.enabled,
+          severity: flags.severity,
+          ignorable: flags.ignorable,
+        );
+      },
+    );
+  }
+
   static AccessibilityGateConfig readAccessibility(
     Object? node,
     AccessibilityGateConfig base,
@@ -167,7 +192,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.accessibility',
+      '$kGatePrefix.${GateIds.accessibility}',
       const {_enabledKey, _severityKey, _ignorableKey, 'require_label_for'},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -191,7 +216,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.complexity',
+      '$kGatePrefix.${GateIds.complexity}',
       const {
         _enabledKey,
         _severityKey,
@@ -243,7 +268,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.method_size',
+      '$kGatePrefix.${GateIds.methodSize}',
       const {
         _enabledKey,
         _severityKey,
@@ -273,7 +298,7 @@ class _GateConfigReaders {
     String path,
   ) {
     if (node == null) return const [];
-    const ctx = 'gates.method_size.entries';
+    const ctx = '$kGatePrefix.${GateIds.methodSize}.entries';
     return _ConfigScalars.entryMaps(node, ctx, path).map((entry) {
       _ConfigScalars.checkKeys(
           entry, const {_maxLinesKey, _maxParamsKey, 'paths'}, path, ctx);
@@ -305,7 +330,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.nesting',
+      '$kGatePrefix.${GateIds.nesting}',
       const {_enabledKey, _severityKey, _ignorableKey, 'max_nesting'},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -329,7 +354,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.class_size',
+      '$kGatePrefix.${GateIds.classSize}',
       const {
         _enabledKey,
         _severityKey,
@@ -361,14 +386,8 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.weight_of_class',
-      const {
-        _enabledKey,
-        _severityKey,
-        _ignorableKey,
-        'max_weight',
-        _excludeKey
-      },
+      '$kGatePrefix.${GateIds.weightOfClass}',
+      const {_enabledKey, _severityKey, _ignorableKey, 'max_weight', kExclude},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
         return WeightOfClassGateConfig(
@@ -378,7 +397,7 @@ class _GateConfigReaders {
           maxWeight: _ConfigScalars.readNum(
               map, 'max_weight', base.maxWeight, path, ctx),
           exclude:
-              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+              _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
         );
       },
     );
@@ -393,8 +412,8 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.unused_code',
-      const {_enabledKey, _severityKey, _ignorableKey, _excludeKey},
+      '$kGatePrefix.${GateIds.unusedCode}',
+      const {_enabledKey, _severityKey, _ignorableKey, kExclude},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
         return UnusedCodeGateConfig(
@@ -402,7 +421,7 @@ class _GateConfigReaders {
           severity: flags.severity,
           ignorable: flags.ignorable,
           exclude:
-              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+              _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
         );
       },
     );
@@ -417,8 +436,8 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.unused_files',
-      const {_enabledKey, _severityKey, _ignorableKey, _dirsKey, _excludeKey},
+      '$kGatePrefix.${GateIds.unusedFiles}',
+      const {_enabledKey, _severityKey, _ignorableKey, _dirsKey, kExclude},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
         return UnusedFilesGateConfig(
@@ -427,7 +446,7 @@ class _GateConfigReaders {
           ignorable: flags.ignorable,
           dirs: _ConfigScalars.strList(map, _dirsKey, base.dirs, path, ctx),
           exclude:
-              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+              _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
         );
       },
     );
@@ -442,7 +461,7 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.banned_imports',
+      '$kGatePrefix.${GateIds.bannedImports}',
       const {_enabledKey, _severityKey, _ignorableKey, 'rules'},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -464,11 +483,11 @@ class _GateConfigReaders {
     if (node is! YamlList) {
       throw ConfigException(
         path,
-        'gates.banned_imports.rules',
+        '$kGatePrefix.${GateIds.bannedImports}.rules',
         'expected a list of rules',
       );
     }
-    const ctx = 'gates.banned_imports.rules';
+    const ctx = '$kGatePrefix.${GateIds.bannedImports}.rules';
     return [
       for (final n in node.nodes) _readBannedImportRule(n, path, ctx),
     ];
@@ -511,7 +530,7 @@ class _GateConfigReaders {
   /// An optional string value at [key], when not `null`.
   static String? _optionalString(Object? value, String key, String path) {
     if (value != null && value is! String) {
-      throw ConfigException(path, key, 'expected a string');
+      throw ConfigException(path, key, _expectedStringMsg);
     }
     return value as String?;
   }
@@ -525,8 +544,8 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.public_docs',
-      const {_enabledKey, _severityKey, _ignorableKey, _excludeKey},
+      '$kGatePrefix.${GateIds.publicDocs}',
+      const {_enabledKey, _severityKey, _ignorableKey, kExclude},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
         return PublicDocsGateConfig(
@@ -534,7 +553,7 @@ class _GateConfigReaders {
           severity: flags.severity,
           ignorable: flags.ignorable,
           exclude:
-              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+              _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
         );
       },
     );
@@ -549,12 +568,12 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.duplication',
+      '$kGatePrefix.${GateIds.duplication}',
       const {
         _enabledKey,
         _severityKey,
         _ignorableKey,
-        'threshold',
+        kThreshold,
         'report',
         'min_tokens',
         'min_lines',
@@ -563,7 +582,7 @@ class _GateConfigReaders {
         'ignore_identifiers',
         'ignore_imports',
         'skip_duplicate_files',
-        _excludeKey,
+        kExclude,
         _sourcesKey
       },
       (map, base, path, ctx) {
@@ -573,7 +592,7 @@ class _GateConfigReaders {
           severity: flags.severity,
           ignorable: flags.ignorable,
           threshold: _ConfigScalars.readNum(
-              map, 'threshold', base.threshold, path, ctx),
+              map, kThreshold, base.threshold, path, ctx),
           report: _ConfigScalars.duplicationReport(
               map, 'report', base.report, path, ctx),
           matching: DuplicationMatching(
@@ -601,7 +620,7 @@ class _GateConfigReaders {
                 ctx),
           ),
           exclude:
-              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+              _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
           sources:
               _ConfigScalars.strList(map, _sourcesKey, base.sources, path, ctx),
         );
@@ -618,8 +637,8 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.file_naming',
-      const {_enabledKey, _severityKey, _ignorableKey, _excludeKey, 'allow'},
+      '$kGatePrefix.${GateIds.fileNaming}',
+      const {_enabledKey, _severityKey, _ignorableKey, kExclude, 'allow'},
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
         return FileNamingGateConfig(
@@ -627,7 +646,7 @@ class _GateConfigReaders {
           severity: flags.severity,
           ignorable: flags.ignorable,
           exclude:
-              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+              _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
           allow: _ConfigScalars.strList(map, 'allow', base.allow, path, ctx),
         );
       },
@@ -643,15 +662,15 @@ class _GateConfigReaders {
       node,
       base,
       path,
-      'gates.magic_constants',
+      '$kGatePrefix.${GateIds.magicConstants}',
       const {
         _enabledKey,
         _severityKey,
         _ignorableKey,
         'flag_hex_colors',
         'min_duplicates',
-        'min_length',
-        _excludeKey,
+        _minLengthKey,
+        kExclude,
       },
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -664,9 +683,9 @@ class _GateConfigReaders {
           minDuplicates: _ConfigScalars.readInt(
               map, 'min_duplicates', base.minDuplicates, path, ctx),
           minLength: _ConfigScalars.readInt(
-              map, 'min_length', base.minLength, path, ctx),
+              map, _minLengthKey, base.minLength, path, ctx),
           exclude:
-              _ConfigScalars.strList(map, _excludeKey, base.exclude, path, ctx),
+              _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
         );
       },
     );

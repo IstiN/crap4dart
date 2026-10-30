@@ -4,7 +4,7 @@ import 'gate_context.dart';
 
 /// Outcome of visiting a single file: how many declarations were checked
 /// and the violations found among them.
-typedef FileVisitOutcome = (int checked, List<GateViolation> violations);
+typedef FileVisitOutcome = ({int checked, List<GateViolation> violations});
 
 /// Runs [visit] on every file in [context.files] that is not matched by
 /// [exclude], and returns the accumulated outcome across all files.
@@ -19,8 +19,8 @@ FileVisitOutcome visitGateFiles(
     if (context.matchesAnyGlob(file, exclude)) continue;
     final parsed = context.parsed(file);
     final outcome = visit(context.relativePath(file), parsed);
-    checked += outcome.$1;
-    violations.addAll(outcome.$2);
+    checked += outcome.checked;
+    violations.addAll(outcome.violations);
   }
-  return (checked, violations);
+  return (checked: checked, violations: violations);
 }

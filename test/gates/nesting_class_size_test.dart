@@ -1,5 +1,5 @@
-import 'package:crap4dart/src/gates/class_size_gate.dart';
-import 'package:crap4dart/src/gates/nesting_gate.dart';
+import 'package:crap4dart/src/gates/quality/class_size_gate.dart';
+import 'package:crap4dart/src/gates/quality/nesting_gate.dart';
 import 'package:test/test.dart';
 
 import 'gate_test_utils.dart';
@@ -32,7 +32,7 @@ void deep() {
   }
 }
 ''');
-    final result = await NestingGate().run(
+    final result = await const NestingGate().run(
       makeContext(
         project,
         ['lib/shallow.dart', 'lib/deep.dart'],
@@ -61,7 +61,7 @@ class Ok {
   }
 }
 ''');
-    final result = await ClassSizeGate().run(
+    final result = await const ClassSizeGate().run(
       makeContext(
         project,
         ['lib/god.dart', 'lib/ok.dart'],

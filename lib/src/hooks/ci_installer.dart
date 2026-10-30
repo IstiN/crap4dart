@@ -7,11 +7,11 @@ import 'hook_installer.dart';
 
 /// Installs a GitHub Actions quality workflow into a project.
 class CiInstaller {
-  /// Creates a [CiInstaller].
-  const CiInstaller();
-
   /// Path of the workflow relative to the project root.
   static const String workflowPath = '.github/workflows/quality.yml';
+
+  /// Creates a [CiInstaller].
+  const CiInstaller();
 
   /// Creates `.github/workflows/quality.yml` in [projectRoot].
   ///
@@ -23,7 +23,7 @@ class CiInstaller {
   String installCi(String projectRoot, {bool force = false}) {
     final file = File(p.join(projectRoot, workflowPath));
     if (file.existsSync() && !force) {
-      throw HookInstallException(
+      throw const HookInstallException(
         '$workflowPath already exists, use --force',
       );
     }

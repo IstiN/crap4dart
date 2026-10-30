@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:crap4dart/src/gates/mutation_engine.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_engine.dart';
 import 'package:test/test.dart';
 
 import 'gate_test_utils.dart';
@@ -39,7 +39,7 @@ void main() {
   test('skips when the test command cannot be spawned', () async {
     final result = await mutationGateWith(
       (root, timeout, args) =>
-          throw MutationTestUnavailableException('dart not found'),
+          throw const MutationTestUnavailableException('dart not found'),
     ).run(makeContext(project, ['lib/a.dart'], lcov: mutationFixtureLcov()));
     expect(result.skipped, isTrue);
     expect(result.skipReason, contains('dart not found'));

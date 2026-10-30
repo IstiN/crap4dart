@@ -6,16 +6,20 @@ import 'package:path/path.dart' as p;
 import 'shingles.dart';
 import 'similarity_profile.dart';
 
+/// The strongest pair metrics of one file: best Jaccard and
+/// containment across all pairs it participates in.
+typedef SimilarityMetrics = ({double jaccard, double containment});
+
 /// One analyzed file: its (project-relative) path and shingle set.
 class SimilarityFile {
-  /// Creates a [SimilarityFile].
-  const SimilarityFile({required this.path, required this.shingles});
-
   /// Project-relative path.
   final String path;
 
   /// The file's shingle set (empty when below the shingle floor).
   final Set<String> shingles;
+
+  /// Creates a [SimilarityFile].
+  const SimilarityFile({required this.path, required this.shingles});
 
   @override
   String toString() => path;
@@ -23,14 +27,6 @@ class SimilarityFile {
 
 /// A pair of files whose similarity crosses at least one threshold.
 class SimilarityPair {
-  /// Creates a [SimilarityPair].
-  const SimilarityPair({
-    required this.a,
-    required this.b,
-    required this.jaccard,
-    required this.containment,
-  });
-
   /// First file (path), lexicographically before [b].
   final String a;
 
@@ -43,6 +39,14 @@ class SimilarityPair {
   /// Containment of the smaller set in the larger one.
   final double containment;
 
+  /// Creates a [SimilarityPair].
+  const SimilarityPair({
+    required this.a,
+    required this.b,
+    required this.jaccard,
+    required this.containment,
+  });
+
   @override
   String toString() => '$a <-> $b (jaccard ${jaccard.toStringAsFixed(2)}, '
       'containment ${containment.toStringAsFixed(2)})';
@@ -50,14 +54,14 @@ class SimilarityPair {
 
 /// A connected group of similar files (transitively merged pairs).
 class SimilarityCluster {
-  /// Creates a [SimilarityCluster].
-  const SimilarityCluster({required this.files, required this.pairs});
-
   /// Member paths, sorted.
   final List<String> files;
 
   /// The threshold-crossing pairs inside the cluster.
   final List<SimilarityPair> pairs;
+
+  /// Creates a [SimilarityCluster].
+  const SimilarityCluster({required this.files, required this.pairs});
 
   @override
   String toString() => '${files.length} files (${files.first}…)';
@@ -65,14 +69,6 @@ class SimilarityCluster {
 
 /// The outcome of a similarity scan.
 class SimilarityReport {
-  /// Creates a [SimilarityReport].
-  const SimilarityReport({
-    required this.scanned,
-    required this.skipped,
-    required this.pairs,
-    required this.clusters,
-  });
-
   /// Number of files read and analyzed.
   final int scanned;
 
@@ -85,6 +81,14 @@ class SimilarityReport {
   /// Clusters (groups of ≥ 2 files), largest first.
   final List<SimilarityCluster> clusters;
 
+  /// Creates a [SimilarityReport].
+  const SimilarityReport({
+    required this.scanned,
+    required this.skipped,
+    required this.pairs,
+    required this.clusters,
+  });
+
   /// The paths inside all clusters.
   Iterable<String> get clusteredPaths => clusters.expand((c) => c.files);
 
@@ -92,12 +96,17 @@ class SimilarityReport {
   bool get clean => pairs.isEmpty;
 
   /// The strongest pair metrics [path] participates in, or `null`.
-  (double, double)? metricsFor(String path) {
-    (double, double)? best;
+  SimilarityMetrics? metricsFor(String path) {
+    SimilarityMetrics? best;
     for (final pair in pairs) {
       if (pair.a != path && pair.b != path) continue;
-      final candidate = (pair.jaccard, pair.containment);
-      if (best == null || candidate.$1 > best.$1) best = candidate;
+      final candidate = (
+        jaccard: pair.jaccard,
+        containment: pair.containment,
+      );
+      if (best == null || candidate.jaccard > best.jaccard) {
+        best = candidate;
+      }
     }
     return best;
   }
@@ -108,6 +117,12 @@ class _UnionFind {
   final Map<String, String> _parent = {};
 
   void add(String item) => _parent[item] = item;
+
+  void union(String a, String b) {
+    final ra = _find(a);
+    final rb = _find(b);
+    if (ra != rb) _parent[rb] = ra;
+  }
 
   String _find(String item) {
     var root = item;
@@ -122,12 +137,6 @@ class _UnionFind {
     }
     return root;
   }
-
-  void union(String a, String b) {
-    final ra = _find(a);
-    final rb = _find(b);
-    if (ra != rb) _parent[rb] = ra;
-  }
 }
 
 /// Scans directories for text files and clusters near-duplicate
@@ -135,6 +144,73 @@ class _UnionFind {
 class SimilarityAnalyzer {
   /// Creates a [SimilarityAnalyzer].
   const SimilarityAnalyzer();
+
+  /// Whether [path] matches any compiled glob.
+  static bool _matchesAny(List<Glob> globs, String path) =>
+      globs.any((glob) => glob.matches(path));
+
+  /// The path of [absolute] relative to the project root.
+  static String _relative(Directory root, String absolute) =>
+      p.relative(absolute, from: root.path);
+
+  /// All pairs crossing either threshold, strongest first.
+  static List<SimilarityPair> _pairsOverThresholds(
+    List<SimilarityFile> files,
+    double jaccardThreshold,
+    double containmentThreshold,
+  ) {
+    final pairs = <SimilarityPair>[];
+    for (var i = 0; i < files.length; i++) {
+      for (var j = i + 1; j < files.length; j++) {
+        final a = files[i];
+        final b = files[j];
+        final jScore = jaccard(a.shingles, b.shingles);
+        if (jScore < jaccardThreshold &&
+            containment(a.shingles, b.shingles) < containmentThreshold) {
+          continue;
+        }
+        pairs.add(SimilarityPair(
+          a: a.path,
+          b: b.path,
+          jaccard: jScore,
+          containment: containment(a.shingles, b.shingles),
+        ));
+      }
+    }
+    pairs.sort((x, y) => y.jaccard.compareTo(x.jaccard));
+    return pairs;
+  }
+
+  /// Transitive clusters of the threshold-crossing pairs, largest
+  /// first.
+  static List<SimilarityCluster> _clusters(
+    List<SimilarityFile> files,
+    List<SimilarityPair> pairs,
+  ) {
+    final union = _UnionFind();
+    for (final file in files) {
+      union.add(file.path);
+    }
+    for (final pair in pairs) {
+      union.union(pair.a, pair.b);
+    }
+    final groups = <String, List<String>>{};
+    for (final file in files) {
+      groups.putIfAbsent(union._find(file.path), () => []).add(file.path);
+    }
+    final clusters = [
+      for (final members in groups.values)
+        if (members.length > 1)
+          SimilarityCluster(
+            files: members..sort(),
+            pairs: [
+              for (final pair in pairs)
+                if (members.contains(pair.a) && members.contains(pair.b)) pair,
+            ],
+          ),
+    ]..sort((a, b) => b.files.length.compareTo(a.files.length));
+    return clusters;
+  }
 
   /// Analyzes [dirs] (project-relative, recursive) under [root],
   /// keeping files matching [include] and dropping [exclude] globs.
@@ -212,72 +288,5 @@ class SimilarityAnalyzer {
       (a, b) => _relative(root, a.path).compareTo(_relative(root, b.path)),
     );
     return collected;
-  }
-
-  /// Whether [path] matches any compiled glob.
-  static bool _matchesAny(List<Glob> globs, String path) =>
-      globs.any((glob) => glob.matches(path));
-
-  /// The path of [absolute] relative to the project root.
-  static String _relative(Directory root, String absolute) =>
-      p.relative(absolute, from: root.path);
-
-  /// All pairs crossing either threshold, strongest first.
-  static List<SimilarityPair> _pairsOverThresholds(
-    List<SimilarityFile> files,
-    double jaccardThreshold,
-    double containmentThreshold,
-  ) {
-    final pairs = <SimilarityPair>[];
-    for (var i = 0; i < files.length; i++) {
-      for (var j = i + 1; j < files.length; j++) {
-        final a = files[i];
-        final b = files[j];
-        final jScore = jaccard(a.shingles, b.shingles);
-        if (jScore < jaccardThreshold &&
-            containment(a.shingles, b.shingles) < containmentThreshold) {
-          continue;
-        }
-        pairs.add(SimilarityPair(
-          a: a.path,
-          b: b.path,
-          jaccard: jScore,
-          containment: containment(a.shingles, b.shingles),
-        ));
-      }
-    }
-    pairs.sort((x, y) => y.jaccard.compareTo(x.jaccard));
-    return pairs;
-  }
-
-  /// Transitive clusters of the threshold-crossing pairs, largest
-  /// first.
-  static List<SimilarityCluster> _clusters(
-    List<SimilarityFile> files,
-    List<SimilarityPair> pairs,
-  ) {
-    final union = _UnionFind();
-    for (final file in files) {
-      union.add(file.path);
-    }
-    for (final pair in pairs) {
-      union.union(pair.a, pair.b);
-    }
-    final groups = <String, List<String>>{};
-    for (final file in files) {
-      groups.putIfAbsent(union._find(file.path), () => []).add(file.path);
-    }
-    final clusters = [
-      for (final members in groups.values)
-        if (members.length > 1)
-          SimilarityCluster(
-            files: members..sort(),
-            pairs: [
-              for (final pair in pairs)
-                if (members.contains(pair.a) && members.contains(pair.b)) pair,
-            ],
-          ),
-    ]..sort((a, b) => b.files.length.compareTo(a.files.length));
-    return clusters;
   }
 }

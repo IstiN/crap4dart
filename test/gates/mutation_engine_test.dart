@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:crap4dart/src/gates/mutation_engine.dart';
-import 'package:crap4dart/src/gates/mutation_operators.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_engine.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_operators.dart';
 import 'package:test/test.dart';
 
 MutationSite site(String file, {String mutant = 'X', int offset = 0}) =>
@@ -50,7 +50,8 @@ void main() {
 
   test('restores the file when the runner throws', () async {
     final engine = MutationEngine(
-      runner: (root, timeout, args) => throw MutationTestUnavailableException(
+      runner: (root, timeout, args) =>
+          throw const MutationTestUnavailableException(
         'dart not found on PATH: no such file',
       ),
     );

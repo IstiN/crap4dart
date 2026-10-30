@@ -1,3 +1,4 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -11,6 +12,7 @@ import '../coverage/lcov_parser.dart';
 import '../crap/crap_analyzer.dart';
 import '../crap/crap_report.dart';
 import '../files/changed_files.dart';
+import 'prepared_run.dart';
 import '../files/diff_parser.dart';
 import '../files/source_finder.dart';
 import '../gates/baseline.dart';
@@ -24,7 +26,9 @@ import '../report/json_reporter.dart';
 import 'exit_codes.dart';
 import 'goldens_command.dart';
 import 'profile_command.dart';
+import 'reorder_command.dart';
 import 'similarity_command.dart';
+import 'memory_command.dart';
 import 'skill_command.dart';
 
 /// Canonical absolute form of [path] (symlinks resolved — git reports
@@ -52,37 +56,22 @@ Future<String> gitTopLevel(String dir) async {
 }
 
 /// Current crap4dart version.
-const String crap4dartVersion = '0.15.0';
-
-/// Shared CLI flag names used by multiple commands.
-const String _configFlag = 'config';
-const String _changedFlag = 'changed';
+const String crap4dartVersion = '0.29.0';
 const String _runTestsFlag = 'run-tests';
-const String _formatFlag = 'format';
 const String _forceFlag = 'force';
-const String _diffBaseFlag = 'diff-base';
-const String _diffFlag = 'diff';
-const String _stagedFlagName = 'staged';
 
-/// Shared `--format` option values.
-const String _consoleFormat = 'console';
-const String _jsonFormat = 'json';
-
-/// Option names used by a single command family.
-const String _thresholdFlagName = 'threshold';
 const String _lcovFlag = 'lcov';
-const String _configHelp = 'Path to a crap4dart.yaml config file.';
 
 /// Command-line entry point of crap4dart.
 class Crap4DartRunner {
+  final CommandRunner<int> _runner;
+
   /// Creates a [Crap4DartRunner].
   ///
   /// [projectRoot] overrides the project root (default: the current
   /// working directory) — used by in-process invocations and tests.
   Crap4DartRunner({String? projectRoot, ProfileRunner? profileRunner})
       : _runner = _buildRunner(projectRoot, profileRunner);
-
-  final CommandRunner<int> _runner;
 
   static CommandRunner<int> _buildRunner(
     String? projectRoot,
@@ -101,6 +90,8 @@ class Crap4DartRunner {
       ..addCommand(SkillCommand(projectRoot: projectRoot))
       ..addCommand(GoldensCommand(projectRoot: projectRoot))
       ..addCommand(SimilarityCommand(projectRoot: projectRoot))
+      ..addCommand(ReorderCommand(projectRoot: projectRoot))
+      ..addCommand(MemoryCommand(projectRoot: projectRoot))
       ..addCommand(InitCommand(projectRoot: projectRoot))
       ..addCommand(InstallCommand(projectRoot: projectRoot));
     runner.argParser.addFlag(
@@ -143,13 +134,17 @@ Future<DiffLineMap?> _loadDiff(String projectRoot, String base) async {
 
 /// Shared helpers for [AnalyzeCommand] and [CheckCommand].
 mixin CommandHelpers on Command<int> {
+  /// Reads the optional `--staged` flag when the command exposes it.
+  bool get stagedFlag =>
+      argResults!.options.contains(kStaged) && argResults![kStaged] as bool;
+
   /// Loads the config, reporting errors to stderr and returning `null` on
   /// failure.
   Crap4DartConfig? loadConfig(String projectRoot) {
     try {
       return const ConfigLoader().load(
         projectRoot,
-        configPath: argResults![_configFlag] as String?,
+        configPath: argResults![kConfig] as String?,
       );
     } on ConfigException catch (e) {
       stderr.writeln(e);
@@ -159,15 +154,18 @@ mixin CommandHelpers on Command<int> {
 
   /// Resolves `--diff` / `--diff-base` and returns the diff map together with
   /// the base ref.
-  Future<({DiffLineMap? map, String? base, bool ok})> resolveDiff(
-    String projectRoot,
-  ) async {
-    final diffBase = argResults![_diffBaseFlag] as String?;
-    final diffMode = (argResults![_diffFlag] as bool) || diffBase != null;
+  Future<ResolvedDiff> resolveDiff(
+    String projectRoot, {
+    bool positionalPathsAreSources = true,
+  }) async {
+    final diffBase = argResults![kDiffBase] as String?;
+    final diffMode = (argResults![kDiff] as bool) || diffBase != null;
     if (!diffMode) return (map: null, base: null, ok: true);
-    final changed = argResults![_changedFlag] as bool;
+    final changed = argResults![kChanged] as bool;
     final staged = stagedFlag;
-    if (changed || staged || argResults!.rest.isNotEmpty) {
+    if (changed ||
+        staged ||
+        (positionalPathsAreSources && argResults!.rest.isNotEmpty)) {
       throw UsageException(
         '--diff cannot be combined with --changed, --staged, or explicit paths',
         invocation,
@@ -181,11 +179,13 @@ mixin CommandHelpers on Command<int> {
   /// sources.
   Future<List<String>> selectFiles(
     String projectRoot,
-    List<String> sources,
-  ) async {
+    List<String> sources, {
+    bool positionalPathsAreSources = true,
+  }) async {
     const finder = SourceFinder();
-    final paths = argResults!.rest;
-    final changed = argResults![_changedFlag] as bool;
+    final paths =
+        positionalPathsAreSources ? argResults!.rest : const <String>[];
+    final changed = argResults![kChanged] as bool;
     final staged = stagedFlag;
     if (changed && staged) {
       throw UsageException(
@@ -203,11 +203,6 @@ mixin CommandHelpers on Command<int> {
       throw UsageException('Invalid path: ${e.path}', invocation);
     }
   }
-
-  /// Reads the optional `--staged` flag when the command exposes it.
-  bool get stagedFlag =>
-      argResults!.options.contains(_stagedFlagName) &&
-      argResults![_stagedFlagName] as bool;
 
   /// Finds changed or staged files and keeps only those inside the project
   /// root.
@@ -258,91 +253,85 @@ mixin CommandHelpers on Command<int> {
   ///
   /// Pass an already loaded [config] to avoid parsing it twice when the caller
   /// needs to validate command-specific arguments before file selection.
-  Future<
-      ({
-        Crap4DartConfig? config,
-        List<String>? files,
-        DiffLineMap? diffMap,
-        String? diffBase,
-        bool partialSelection,
-        int? exitCode,
-      })> prepareRun(
+  Future<PreparedRun> prepareRun(
     String projectRoot,
     String emptyMessage, {
     Crap4DartConfig? config,
+    bool positionalPathsAreSources = true,
   }) async {
     final resolvedConfig = config ?? loadConfig(projectRoot);
     if (resolvedConfig == null) {
-      return (
-        config: null,
-        files: null,
-        diffMap: null,
-        diffBase: null,
-        partialSelection: false,
-        exitCode: ExitCodes.usageError
-      );
+      return const PreparedRun(exitCode: ExitCodes.usageError);
     }
-    final diff = await resolveDiff(projectRoot);
+    final diff = await resolveDiff(
+      projectRoot,
+      positionalPathsAreSources: positionalPathsAreSources,
+    );
     if (!diff.ok) {
-      return (
-        config: null,
-        files: null,
-        diffMap: null,
-        diffBase: null,
-        partialSelection: false,
-        exitCode: ExitCodes.usageError
-      );
+      return const PreparedRun(exitCode: ExitCodes.usageError);
     }
-    final partial = _isPartialSelection(diff.map);
+    final partial = _isPartialSelection(
+      diff.map,
+      positionalPathsAreSources: positionalPathsAreSources,
+    );
     final files = const SourceFinder().filterByGlobs(
       projectRoot,
       diff.map != null
           ? diff.map!.existingFiles()
-          : await selectFiles(projectRoot, resolvedConfig.sources),
+          : await selectFiles(
+              projectRoot,
+              resolvedConfig.sources,
+              positionalPathsAreSources: positionalPathsAreSources,
+            ),
       resolvedConfig.exclude,
     );
     if (files.isEmpty) {
       stdout.writeln(emptyMessage);
-      return (
-        config: null,
-        files: null,
-        diffMap: null,
-        diffBase: null,
-        partialSelection: false,
-        exitCode: ExitCodes.success
-      );
+      return const PreparedRun(exitCode: ExitCodes.success);
     }
-    return (
+    return PreparedRun(
       config: resolvedConfig,
       files: files,
       diffMap: diff.map,
       diffBase: diff.base,
       partialSelection: partial,
-      exitCode: null,
     );
   }
 
   /// Whether this run analyzes a subset of the project (diff, changed,
   /// staged or explicit paths) instead of the full source set.
-  bool _isPartialSelection(DiffLineMap? diffMap) =>
+  bool _isPartialSelection(
+    DiffLineMap? diffMap, {
+    bool positionalPathsAreSources = true,
+  }) =>
       diffMap != null ||
-      argResults![_changedFlag] as bool ||
+      argResults![kChanged] as bool ||
       stagedFlag ||
-      argResults!.rest.isNotEmpty;
+      (positionalPathsAreSources && argResults!.rest.isNotEmpty);
 }
 
 /// The `analyze` command: computes CRAP scores for Dart source files.
 class AnalyzeCommand extends Command<int> with CommandHelpers {
+  /// Project root override (default: the current working directory).
+  final String? projectRoot;
+
+  @override
+  final String name = 'analyze';
+
+  @override
+  final String description =
+      'Analyze Dart files and print CRAP scores (default command).';
+
   /// Creates an [AnalyzeCommand].
   AnalyzeCommand({this.projectRoot}) {
     argParser
       ..addFlag(
-        _changedFlag,
+        kChanged,
         negatable: false,
         help: 'Analyze only changed Dart files (git working tree).',
       )
       ..addOption(
-        _thresholdFlagName,
+        kThreshold,
         help: 'Maximum allowed CRAP score (overrides the config value).',
       )
       ..addOption(
@@ -355,39 +344,29 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
         help: 'Run the test suite first to generate coverage.',
       )
       ..addOption(
-        _configFlag,
-        help: _configHelp,
+        kConfig,
+        help: kConfigHelp,
       )
       ..addOption(
-        _formatFlag,
-        allowed: [_consoleFormat, _jsonFormat],
-        defaultsTo: _consoleFormat,
-        help: 'Output format (json writes only JSON to stdout).',
+        kFormat,
+        allowed: [kConsole, kJson],
+        defaultsTo: kConsole,
+        help: kOutputFormatHelp,
       )
       ..addFlag(
-        _diffFlag,
+        kDiff,
         negatable: false,
         help: 'Analyze only methods on lines changed since HEAD.',
       )
       ..addOption(
-        _diffBaseFlag,
-        help: 'Like --diff, but diffs against the given git ref.',
+        kDiffBase,
+        help: kDiffBaseHelp,
       )
       ..addOption(
-        'badge',
+        kBadge,
         help: 'Write an SVG badge with the max CRAP score to this path.',
       );
   }
-
-  /// Project root override (default: the current working directory).
-  final String? projectRoot;
-
-  @override
-  final String name = 'analyze';
-
-  @override
-  final String description =
-      'Analyze Dart files and print CRAP scores (default command).';
 
   @override
   String get invocation =>
@@ -462,7 +441,7 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
   }
 
   void _printReport(CrapReport report, double threshold, String? diffBase) {
-    if (argResults![_formatFlag] == _jsonFormat) {
+    if (argResults![kFormat] == kJson) {
       stdout.writeln(
         const JsonReporter().renderAnalyze(
           report,
@@ -483,7 +462,7 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
   /// Writes the SVG badge when `--badge` is given. Always runs — also
   /// when the threshold is exceeded — and never changes the exit code.
   void _writeBadge(CrapReport report, double threshold) {
-    final badgePath = argResults!['badge'] as String?;
+    final badgePath = argResults![kBadge] as String?;
     if (badgePath == null) return;
     final hasNumeric = report.metrics.any((m) => m.crap != null);
     final message = hasNumeric ? report.maxCrap.toStringAsFixed(2) : 'N/A';
@@ -502,10 +481,10 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
   }
 
   double _resolveThreshold(Crap4DartConfig config) {
-    if (!argResults!.wasParsed(_thresholdFlagName)) {
+    if (!argResults!.wasParsed(kThreshold)) {
       return config.crap.threshold;
     }
-    final raw = argResults![_thresholdFlagName] as String;
+    final raw = argResults![kThreshold] as String;
     final value = double.tryParse(raw);
     if (value == null) {
       throw UsageException('Invalid --threshold value: "$raw"', invocation);
@@ -541,6 +520,15 @@ class AnalyzeCommand extends Command<int> with CommandHelpers {
 
 /// The `check` command: runs the quality gates enabled in the config.
 class CheckCommand extends Command<int> with CommandHelpers {
+  /// Project root override (default: the current working directory).
+  final String? projectRoot;
+
+  @override
+  final String name = 'check';
+
+  @override
+  final String description = 'Run the quality gates enabled in the config.';
+
   /// Creates a [CheckCommand].
   CheckCommand({this.projectRoot}) {
     argParser
@@ -550,37 +538,37 @@ class CheckCommand extends Command<int> with CommandHelpers {
         help: 'Check all Dart files under lib/ and bin/ (default).',
       )
       ..addFlag(
-        _changedFlag,
+        kChanged,
         negatable: false,
         help: 'Check only changed Dart files (git working tree).',
       )
       ..addFlag(
-        _stagedFlagName,
+        kStaged,
         negatable: false,
         help: 'Check only staged Dart files (git index).',
       )
       ..addOption('only', help: 'Run only these gates (comma-separated ids).')
       ..addOption('skip', help: 'Skip these gates (comma-separated ids).')
-      ..addOption(_configFlag, help: 'Path to a crap4dart.yaml config file.')
+      ..addOption(kConfig, help: kConfigHelp)
       ..addFlag(
         _runTestsFlag,
         negatable: false,
         help: 'Run the test suite first to generate coverage.',
       )
       ..addOption(
-        _formatFlag,
-        allowed: [_consoleFormat, _jsonFormat],
-        defaultsTo: _consoleFormat,
-        help: 'Output format (json writes only JSON to stdout).',
+        kFormat,
+        allowed: [kConsole, kJson],
+        defaultsTo: kConsole,
+        help: kOutputFormatHelp,
       )
       ..addFlag(
-        _diffFlag,
+        kDiff,
         negatable: false,
         help: 'Check only lines changed since HEAD (ratchet mode).',
       )
       ..addOption(
-        _diffBaseFlag,
-        help: 'Like --diff, but diffs against the given git ref.',
+        kDiffBase,
+        help: kDiffBaseHelp,
       )
       ..addFlag(
         'save-baseline',
@@ -594,15 +582,6 @@ class CheckCommand extends Command<int> with CommandHelpers {
         help: 'Fail only on violations not recorded in the baseline file.',
       );
   }
-
-  /// Project root override (default: the current working directory).
-  final String? projectRoot;
-
-  @override
-  final String name = 'check';
-
-  @override
-  final String description = 'Run the quality gates enabled in the config.';
 
   @override
   String get invocation =>
@@ -662,7 +641,7 @@ class CheckCommand extends Command<int> with CommandHelpers {
   }
 
   void _printResult(GateRunner runner, GateRunResult result) {
-    if (argResults![_formatFlag] == _jsonFormat) {
+    if (argResults![kFormat] == kJson) {
       stdout.writeln(const JsonReporter().renderCheck(result));
     } else {
       stdout.writeln(runner.render(result));
@@ -687,16 +666,6 @@ class CheckCommand extends Command<int> with CommandHelpers {
 
 /// The `init` command: writes a default `crap4dart.yaml` config file.
 class InitCommand extends Command<int> {
-  /// Creates an [InitCommand].
-  InitCommand({this.projectRoot}) {
-    argParser.addFlag(
-      _forceFlag,
-      abbr: 'f',
-      negatable: false,
-      help: 'Overwrite an existing config file.',
-    );
-  }
-
   /// Project root override (default: the current working directory).
   final String? projectRoot;
 
@@ -706,6 +675,16 @@ class InitCommand extends Command<int> {
   @override
   final String description =
       'Create a default crap4dart.yaml config file in the current directory.';
+
+  /// Creates an [InitCommand].
+  InitCommand({this.projectRoot}) {
+    argParser.addFlag(
+      _forceFlag,
+      abbr: 'f',
+      negatable: false,
+      help: 'Overwrite an existing config file.',
+    );
+  }
 
   @override
   int run() {
@@ -727,6 +706,16 @@ class InitCommand extends Command<int> {
 
 /// The `install` command: installs git hooks and CI workflow templates.
 class InstallCommand extends Command<int> {
+  /// Project root override (default: the current working directory).
+  final String? projectRoot;
+
+  @override
+  final String name = 'install';
+
+  @override
+  final String description =
+      'Install the pre-commit hook and (with --ci) the CI workflow.';
+
   /// Creates an [InstallCommand].
   InstallCommand({this.projectRoot}) {
     argParser
@@ -746,18 +735,8 @@ class InstallCommand extends Command<int> {
         negatable: false,
         help: 'Merge into existing hooks / overwrite existing files.',
       )
-      ..addOption(_configFlag, help: _configHelp);
+      ..addOption(kConfig, help: kConfigHelp);
   }
-
-  /// Project root override (default: the current working directory).
-  final String? projectRoot;
-
-  @override
-  final String name = 'install';
-
-  @override
-  final String description =
-      'Install the pre-commit hook and (with --ci) the CI workflow.';
 
   @override
   Future<int> run() async {
@@ -765,7 +744,7 @@ class InstallCommand extends Command<int> {
     try {
       final config = const ConfigLoader().load(
         projectRoot,
-        configPath: argResults![_configFlag] as String?,
+        configPath: argResults![kConfig] as String?,
       );
       final force = argResults![_forceFlag] as bool;
       final hookPath = await const HookInstaller().installHook(
@@ -783,7 +762,8 @@ class InstallCommand extends Command<int> {
       return ExitCodes.success;
     } on ConfigException catch (e) {
       stderr.writeln(e);
-      return ExitCodes.usageError;
+      return ExitCodes
+          .usageError; // ignore:identical_branches — two distinct exception types, identical handling on purpose
     } on HookInstallException catch (e) {
       stderr.writeln(e);
       return ExitCodes.usageError;

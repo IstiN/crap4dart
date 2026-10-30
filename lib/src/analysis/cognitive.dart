@@ -33,6 +33,9 @@ import 'package:analyzer/dart/ast/visitor.dart';
 /// count; it is designed to track how hard a method is to *read*, which
 /// is why flat guard chains stay cheap and nested ones do not.
 class CognitiveCalculator implements MetricCalculator {
+  /// Whether branches inside lambdas count towards the enclosing method.
+  final bool countLambdas;
+
   /// Creates a [CognitiveCalculator].
   ///
   /// When [countLambdas] is false, lambda bodies ([FunctionExpression])
@@ -42,9 +45,6 @@ class CognitiveCalculator implements MetricCalculator {
 
   @override
   String get metricName => 'cognitive';
-
-  /// Whether branches inside lambdas count towards the enclosing method.
-  final bool countLambdas;
 
   /// Returns the cognitive complexity of the body of [node], where [node]
   /// is a [MethodDeclaration] or a top-level [FunctionDeclaration].
@@ -57,19 +57,13 @@ class CognitiveCalculator implements MetricCalculator {
 }
 
 class _CognitiveVisitor extends RecursiveAstVisitor<void> {
-  _CognitiveVisitor({required this.countLambdas});
-
   final bool countLambdas;
 
   int _depth = 0;
+
   int score = 0;
 
-  /// Visits [visit] with the nesting depth increased by one.
-  void _deeper(void Function() visit) {
-    _depth++;
-    visit();
-    _depth--;
-  }
+  _CognitiveVisitor({required this.countLambdas});
 
   /// The basic-plus-nesting increment for a structural construct.
   int get _increment => 1 + _depth;
@@ -166,5 +160,12 @@ class _CognitiveVisitor extends RecursiveAstVisitor<void> {
       if (!sameSequence) score++;
     }
     super.visitBinaryExpression(node);
+  }
+
+  /// Visits [visit] with the nesting depth increased by one.
+  void _deeper(void Function() visit) {
+    _depth++;
+    visit();
+    _depth--;
   }
 }

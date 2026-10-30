@@ -7,20 +7,6 @@ part of 'config.dart';
 
 /// File naming gate settings (`file_naming`).
 class FileNamingGateConfig implements GateConfigFlags {
-  /// Creates a [FileNamingGateConfig].
-  const FileNamingGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.exclude = const [
-      _generatedGlob,
-      _freezedGlob,
-      _mocksGlob,
-      _testGlob,
-    ],
-    this.allow = defaultAllowedStems,
-  });
-
   /// Stems (file names without the `.dart` extension) accepted despite
   /// ending in digits — technical terms where the digits carry meaning.
   static const List<String> defaultAllowedStems = [
@@ -88,18 +74,24 @@ class FileNamingGateConfig implements GateConfigFlags {
   /// Extra file name stems (without extension) allowed to end in digits,
   /// matched case-insensitively against the whole stem.
   final List<String> allow;
+
+  /// Creates a [FileNamingGateConfig].
+  const FileNamingGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.exclude = const [
+      kGeneratedGlob,
+      kFreezedGlob,
+      kMocksGlob,
+      kTestGlob,
+    ],
+    this.allow = defaultAllowedStems,
+  });
 }
 
 /// Public API documentation gate settings (`public_docs`).
 class PublicDocsGateConfig implements GateConfigFlags {
-  /// Creates a [PublicDocsGateConfig].
-  const PublicDocsGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.exclude = const [_testGlob],
-  });
-
   /// Whether the gate is enabled.
   final bool enabled;
 
@@ -112,22 +104,19 @@ class PublicDocsGateConfig implements GateConfigFlags {
 
   /// Glob patterns excluded from the gate.
   final List<String> exclude;
+
+  /// Creates a [PublicDocsGateConfig].
+  const PublicDocsGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.exclude = const [kTestGlob],
+  });
 }
 
 /// Matching knobs of the `duplication` gate: block granularity and the
 /// clone normalizations (PMD CPD parity).
 class DuplicationMatching {
-  /// Creates a [DuplicationMatching].
-  const DuplicationMatching({
-    this.minTokens = 50,
-    this.minLines = 5,
-    this.ignoreLocals = false,
-    this.ignoreLiterals = false,
-    this.ignoreIdentifiers = false,
-    this.ignoreImports = false,
-    this.skipDuplicateFiles = false,
-  });
-
   /// Minimum number of tokens in a block to be considered for duplication.
   final int minTokens;
 
@@ -163,23 +152,41 @@ class DuplicationMatching {
   /// copied file is reported once instead of as N x N clones. Off by
   /// default.
   final bool skipDuplicateFiles;
+
+  /// Creates a [DuplicationMatching].
+  const DuplicationMatching({
+    this.minTokens = 50,
+    this.minLines = 5,
+    this.ignoreLocals = false,
+    this.ignoreLiterals = false,
+    this.ignoreIdentifiers = false,
+    this.ignoreImports = false,
+    this.skipDuplicateFiles = false,
+  });
 }
 
 /// What the `duplication` gate reports violations for.
 enum DuplicationReport {
   /// One violation per file whose duplicated-line percentage exceeds
   /// `threshold` (the historical behavior).
-  percentage,
+  percentage('percentage'),
 
   /// One violation per clone group (PMD CPD style): every non-overlapping
   /// block of at least `min_tokens` tokens / `min_lines` lines occurring
   /// two or more times, with all its locations in the message.
-  clones;
+  clones('clones');
+
+  /// The persisted `report:` spelling of this report mode — the contract
+  /// value that survives identifier renames (the built-in `.name`
+  /// changes with them).
+  final String value;
+
+  const DuplicationReport(this.value);
 
   /// Parses a `report:` config value, `null` when unrecognized.
   static DuplicationReport? tryParse(String value) {
     for (final report in values) {
-      if (report.name == value) return report;
+      if (report.value == value) return report;
     }
     return null;
   }
@@ -187,23 +194,6 @@ enum DuplicationReport {
 
 /// Code duplication gate settings (`duplication`).
 class DuplicationGateConfig implements GateConfigFlags {
-  /// Creates a [DuplicationGateConfig].
-  const DuplicationGateConfig({
-    this.enabled = true,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.threshold = 1.0,
-    this.report = DuplicationReport.percentage,
-    this.matching = const DuplicationMatching(),
-    this.exclude = const [
-      _generatedGlob,
-      _freezedGlob,
-      _mocksGlob,
-      _testGlob,
-    ],
-    this.sources = const [],
-  });
-
   /// Whether the gate is enabled.
   final bool enabled;
 
@@ -232,4 +222,21 @@ class DuplicationGateConfig implements GateConfigFlags {
   /// are scanned recursively, `.dart` files are taken directly, missing
   /// paths are skipped.
   final List<String> sources;
+
+  /// Creates a [DuplicationGateConfig].
+  const DuplicationGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.threshold = 1.0,
+    this.report = DuplicationReport.percentage,
+    this.matching = const DuplicationMatching(),
+    this.exclude = const [
+      kGeneratedGlob,
+      kFreezedGlob,
+      kMocksGlob,
+      kTestGlob,
+    ],
+    this.sources = const [],
+  });
 }

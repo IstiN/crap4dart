@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../common/constants.dart';
 import '../crap/crap_report.dart';
 import '../gates/gate.dart';
 import '../gates/gate_runner.dart';
@@ -8,8 +9,6 @@ import '../profile/profile_reporter.dart';
 /// JSON keys shared across the report shapes.
 const String _commandKey = 'command';
 const String _passedKey = 'passed';
-const String _fileKey = 'file';
-const String _lineKey = 'line';
 
 /// Renders analyze and check results as JSON for machine consumption.
 ///
@@ -17,10 +16,10 @@ const String _lineKey = 'line';
 /// values are JSON `null` (never the console placeholder "N/A"), and the
 /// method order matches the console report (CRAP descending, N/A last).
 class JsonReporter {
+  static const JsonEncoder _encoder = JsonEncoder.withIndent('  ');
+
   /// Creates a [JsonReporter].
   const JsonReporter();
-
-  static const JsonEncoder _encoder = JsonEncoder.withIndent('  ');
 
   /// Renders the `analyze` report from [report] (already computed metrics)
   /// evaluated against [threshold]. When [diffBase] is given (diff mode),
@@ -40,8 +39,8 @@ class JsonReporter {
       'methods': [
         for (final m in report.sorted)
           {
-            _fileKey: m.method.filePath,
-            _lineKey: m.method.startLine,
+            kFileKey: m.method.filePath,
+            kLineKey: m.method.startLine,
             'class': m.method.className,
             'method': m.method.methodName,
             'complexity': m.complexity,
@@ -75,15 +74,15 @@ class JsonReporter {
     final passed = thresholdMs == null ||
         sorted.every((p) => p.timing.totalMillis <= thresholdMs);
     return _encoder.convert({
-      _commandKey: 'profile',
+      _commandKey: kProfile,
       'totalMicros': totalMicros,
       if (thresholdMs != null) 'thresholdMs': thresholdMs,
       _passedKey: passed,
       'methods': [
         for (final p in shown)
           {
-            _fileKey: p.method.filePath,
-            _lineKey: p.method.startLine,
+            kFileKey: p.method.filePath,
+            kLineKey: p.method.startLine,
             'class': p.method.className,
             'method': p.method.methodName,
             'calls': p.timing.calls,
@@ -103,11 +102,11 @@ class JsonReporter {
     }
     return {
       'id': r.gateId,
-      'status': r.passed ? 'passed' : 'failed',
+      'status': r.passed ? _passedKey : 'failed',
       'summary': r.summary,
       'violations': [
         for (final v in r.violations)
-          {_fileKey: v.file, _lineKey: v.line, 'message': v.message},
+          {kFileKey: v.file, kLineKey: v.line, 'message': v.message},
       ],
     };
   }

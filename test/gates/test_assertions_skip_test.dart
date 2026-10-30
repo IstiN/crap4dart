@@ -1,4 +1,4 @@
-import 'package:crap4dart/src/gates/test_assertions_gate.dart';
+import 'package:crap4dart/src/gates/content/test_assertions_gate.dart';
 import 'package:test/test.dart';
 
 import 'gate_test_utils.dart';
@@ -29,7 +29,7 @@ void main() {
   }, timeout: const Timeout(Duration(seconds: 30)));
 }
 ''');
-    final result = await TestAssertionsGate().run(
+    final result = await const TestAssertionsGate().run(
       makeContext(project, ['test/skip_test.dart']),
     );
     expect(result.passed, isFalse);

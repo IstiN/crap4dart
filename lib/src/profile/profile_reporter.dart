@@ -1,30 +1,25 @@
+import '../common/constants.dart';
 import '../analysis/method_extractor.dart';
 import '../report/table_formatter.dart';
 import 'profile_runner.dart';
 
 /// Per-method profile data combining [MethodInfo] with timing data.
 class MethodProfile {
-  /// Creates a [MethodProfile].
-  const MethodProfile({
-    required this.method,
-    required this.timing,
-  });
-
   /// The analyzed method.
   final MethodInfo method;
 
   /// Timing data from the instrumented run.
   final MethodTiming timing;
+
+  /// Creates a [MethodProfile].
+  const MethodProfile({
+    required this.method,
+    required this.timing,
+  });
 }
 
 /// Renders CPU profiling results as a console table.
 class ProfileReport {
-  /// Creates a [ProfileReport].
-  const ProfileReport({required this.profiles});
-
-  /// Attributed per-method profiles.
-  final List<MethodProfile> profiles;
-
   /// Column headers of the report table.
   static const List<String> headers = [
     'TOTAL',
@@ -37,6 +32,29 @@ class ProfileReport {
     'METHOD',
     'FILE:LINE',
   ];
+
+  /// Attributed per-method profiles.
+  final List<MethodProfile> profiles;
+
+  /// Creates a [ProfileReport].
+  const ProfileReport({required this.profiles});
+
+  static String _fmt(double value) => value.toStringAsFixed(2);
+
+  /// TOTAL/SELF with adaptive units. At extreme call counts (tens of
+  /// billions, as seen on a markdown hot loop) a plain `toStringAsFixed(2)`
+  /// renders e.g. `50000000.00` — a wall of digits that blows the column
+  /// width up. Unit suffixes keep the value compact at any magnitude.
+  static String _fmtTotal(double millis) {
+    if (millis < millisPerSecond) {
+      return '${millis.toStringAsFixed(2)}ms';
+    }
+    if (millis < 60000) {
+      return '${(millis / millisPerSecond).toStringAsFixed(2)}s';
+    }
+    if (millis < 3600000) return '${(millis / 60000).toStringAsFixed(2)}m';
+    return '${(millis / 3600000).toStringAsFixed(2)}h';
+  }
 
   /// Profiles sorted by total time descending.
   List<MethodProfile> get sorted {
@@ -73,7 +91,7 @@ class ProfileReport {
       'total ${_fmtTotal(totalMicros / 1000.0)})',
     );
     buffer.writeln(
-      TableFormatter(numericColumnCount: 7).renderTable(headers, rows),
+      const TableFormatter(numericColumnCount: 7).renderTable(headers, rows),
     );
     buffer.writeln();
 
@@ -100,7 +118,7 @@ class ProfileReport {
         totalMicros > 0 ? p.timing.totalMicros / totalMicros * 100.0 : 0.0;
     // Estimate cost at 60fps: if a widget rebuilds every frame, calls ~60/sec.
     // This shows the "hidden" cost of frequently-rebuilt widgets.
-    final fps60ms = p.timing.meanMicros * 60.0 / 1000.0;
+    final fps60ms = p.timing.meanMicros * 60.0 / microsPerMillisecond;
     return [
       _fmtTotal(p.timing.totalMillis),
       _fmtTotal(p.timing.totalSelfMillis),
@@ -122,19 +140,6 @@ class ProfileReport {
   String _meanWithCaveat(double meanMicros) => meanMicros < 30
       ? '~${meanMicros.toStringAsFixed(1)}'
       : meanMicros.toStringAsFixed(1);
-
-  static String _fmt(double value) => value.toStringAsFixed(2);
-
-  /// TOTAL/SELF with adaptive units. At extreme call counts (tens of
-  /// billions, as seen on a markdown hot loop) a plain `toStringAsFixed(2)`
-  /// renders e.g. `50000000.00` — a wall of digits that blows the column
-  /// width up. Unit suffixes keep the value compact at any magnitude.
-  static String _fmtTotal(double millis) {
-    if (millis < 1000) return '${millis.toStringAsFixed(2)}ms';
-    if (millis < 60000) return '${(millis / 1000).toStringAsFixed(2)}s';
-    if (millis < 3600000) return '${(millis / 60000).toStringAsFixed(2)}m';
-    return '${(millis / 3600000).toStringAsFixed(2)}h';
-  }
 }
 
 /// Attributes raw [MethodTiming] data to [MethodInfo] by class.method name.

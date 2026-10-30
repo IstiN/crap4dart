@@ -1,6 +1,268 @@
 # Changelog
 
+## 0.29.0 — 2026-10-30
+
+- New `non_null_assertion` gate (warning severity by default): flags
+  every non-null assertion — the postfix `!` operator (`x!`,
+  `map['k']!`, chains `a!.b!`) and the null-assert pattern
+  (`case var x!`). A bang crashes on unexpected null where the
+  null-safe alternatives carry the same intent with a readable check:
+  `?.`/`??` (the check-then-bang ternary `E != null ? E!.m() : f`
+  collapses to `E?.m() ?? f`; getters and record fields do not
+  promote, so the collapse is the only bang-free form) and the
+  null-check pattern (`case var x?`). `!=`, logical-not `!x`,
+  `++`/`--`, `?.` and `??` are not flagged. Zero thresholds; every
+  violation carries the file and line of the `!` token. Existing
+  codebases adopt via baseline ratchet (`check --save-baseline`) or
+  warning severity. Independently validated by DCM's
+  `avoid-non-null-assertion`.
+
+## 0.28.0 — 2026-10-29
+
+- New `collapsible_flow` gate (warning severity by default): flags
+  control-flow nesting that a semantics-preserving mechanical rewrite
+  can flatten. Three checks: collapsible `if (a) { if (b) X }` merges
+  into `if (a && b) X` (short-circuit preserves order — always
+  equivalent, pattern `case` conditions never merge); redundant
+  `else` after an always-exiting then-branch dedents (an inner `if`
+  without `else` never counts as exiting — control falls through;
+  `switch` bodies are not analyzed for case fall-through); and an
+  `else if` after an always-exiting then is a chain-flattening hint
+  (guard sequence or dispatch table — report-only). Independently
+  validated by DCM's `avoid-collapsible-if`/`avoid-redundant-else`.
+  Dogfooded: the gate's first self-scan found a collapsible if inside
+  the `identical_branches` gate's own canonicalizer — fixed here.
+- Config model: the post-0.25 gates (`string_hazards`,
+  `identical_branches`, `enum_name_contract`, `collapsible_flow`) are
+  grouped into a `QualityGatesConfig` subgroup to keep the
+  `GatesConfig` constructor under the `method_size` parameter cap.
+  YAML keys are unchanged (still top-level `gates.string_hazards` etc.
+  — no `quality` nesting in the file).
+
+## 0.27.0 — 2026-10-29
+
+- `reorder` now covers enum member sections: the constants block (enum
+  value order — `values`, `.index`, ordinal persistence) is never
+  touched, while fields, constructors, getters and methods after the
+  constants are reordered into the canonical order exactly like a class
+  body. Previously the entire enum body was skipped, so a constructor
+  above its field survived in enhanced enums. Byte-identical for
+  enums without a member section; constants are copied verbatim
+  (spacing included), so `.index`/`values` semantics cannot drift.
+
+## 0.26.0 — 2026-10-29
+
+- New `enum_name_contract` gate (warning severity by default): flags
+  usages of the built-in `.name`/`.index` members inside enum
+  declaration bodies — the persisted YAML/JSON value changes when a
+  Dart identifier is renamed (`Color.red.name` is `"red"` until the
+  constant is renamed). Provable receivers only: `this`, implicit
+  `this` (bare `name`/`index` in instance members without local
+  shadowing), the enum's own constants, `values` loop variables and
+  index accesses, and parameters explicitly typed with the enum.
+  Self-shadowing (`name`/`index` members declared by the enum) is
+  respected; usages outside enum bodies are out of scope. Fix hint:
+  declare a `final String value` field and contract on `.value`.
+  Dogfooded: the gate found and this release fixes the two shipped
+  violations (`ComplexityMetric.tryParse`, `DuplicationReport.tryParse`
+  — both now contract on an explicit `value` field).
+
+## 0.25.0 — 2026-10-28
+
+- `memory` accepts positional test paths on the Flutter engine:
+  `crap4dart memory test/foo_test.dart` measures that subset only
+  (paths forward into both `flutter test` runs — targeted A/B without
+  the whole-package cost). From a workspace root, the package root is
+  inferred by walking up from the first path. Missing paths exit with
+  a usage error naming them. Dart-engine behavior unchanged (paths
+  already worked).
+
+- Adopt four additional lints on top of `lints/recommended` and fix all
+  findings: `prefer_const_constructors` (55 sites, via `dart fix`),
+  `unnecessary_ignore` (3 stale `// ignore:` comments removed — a stale
+  ignore silently eats the next occurrence of the real diagnostic),
+  `unnecessary_lambdas` and `use_string_buffers` (zero findings today;
+  adopted for the shapes they prevent — callback over-wrapping and
+  O(n²) string concatenation in loops).
+
+## 0.24.0 — 2026-10-27
+
+- New `identical_branches` gate (warning severity by default): the
+  copy-paste-edit bug family, compared by canonical form
+  (formatting-, parenthesis- and comment-independent; commutative
+  operands sorted; same-operator nests flattened) — (1) duplicate
+  conditions in one if/else-if chain, (2) duplicate branch bodies in
+  one chain (including `else` equal to its `then`; a single-statement
+  block equals the naked statement), (3) duplicate or absorbed
+  operands in one boolean chain (`a || a` collapses to `a`;
+  `a || b && a` collapses to `a` by absorption — the extra terms are
+  dead), (4) identical ternary
+  branches (`c ? x : x`), (5) duplicate positional arguments in one
+  call (`f(w, h, w)`; named arguments exempt — the name documents the
+  slot — and all-literal argument lists exempt, so uniform-value APIs
+  like `EdgeInsets.fromLTRB(8, 8, 8, 8)` stay quiet), and (6) duplicate
+  catch bodies in one try. Only pieces of the same construct are
+  compared; identical conditions in separate `if` statements are legal.
+  Config keys: `enabled`, `severity`, `ignorable`.
+- `ConfigException` file-level failures no longer render the path in
+  the key slot (`Invalid config "x": x: config file not found` →
+  `Invalid config "x": config file not found`); the duplicate-argument
+  finding that surfaced it came from the new gate's first dogfood run.
+
+## 0.23.0 — 2026-10-27
+
+- New `string_hazards` gate (warning severity by default): flags string
+  literals whose escaping or pattern usage contradicts the author's
+  almost-certain intent — (1) escaped interpolations (`\$name` /
+  `\${name}` in non-raw strings render literally) flagged only when the
+  same identifier is interpolated elsewhere in the file, (2) raw
+  `RegExp` patterns ending with `\$` (or starting with `\^`) where the
+  end/start anchor was intended, and (3) regex anchors (`^` / unescaped
+  trailing `$`) inside literal `String` patterns of
+  `replaceFirst`/`replaceAll`/`replace*Mapped`/`split`, where they can
+  only match that literal character. Config keys: `enabled`, `severity`,
+  `ignorable`.
+
+## 0.22.0 — 2026-10-27
+
+- New `reorder` command: deterministically rewrites class members into
+  the canonical Dart/Flutter order (constants, static fields, fields,
+  constructors, static methods, getters/setters, public methods,
+  private methods — same-kind members keep their relative order; a
+  stable partition, never alphabetical). Doc comments, annotations and
+  `//` comment blocks directly above a member (even separated by one
+  blank line) move with it; enum bodies are untouched; CRLF files keep
+  their line endings. Idempotent and byte-stable on canonical input —
+  including single-line class bodies and members sharing the header
+  line, which are preserved (and never corrupted) as-is.
+  `--dry-run` lists would-change files and exits 2 for CI/pre-commit
+  use.
+- Ignore comments gain Dart-lint-style granularity alongside the
+  legacy `// crap:ignore` / `// crap:ignore-file` (both unchanged):
+  `// ignore:<gate-id>` suppresses that gate on the line (trailing
+  or stacked above — several markers combine), `// ignore-file:<id>`
+  that gate file-wide. One rule per marker; `// ignore:` with no id
+  means every ignorable gate; unknown ids are inert. The
+  `ignorable: true` opt-in still applies per gate.
+- `scattered_constants` — new `aliases` rule (default on): a private
+  pure value alias (`const _x = kY;`) is flagged as adding a name
+  without information; the message says to reference the shared
+  constant directly. Public declarations (re-export shims) are
+  exempt; `aliases: false` switches the rule off.
+- `folder_structure` — `dirs` entries accept glob patterns
+  (`lib/src/*`, `packages/**`) expanding to every matching directory,
+  and generated siblings of one source file (`magic.dart` +
+  `magic.g.dart` + `magic.freezed.dart`) count as one logical unit;
+  only a directory's own files count (nested directories are the
+  organized form). New optional `config` map with per-pattern caps —
+  `config: {lib/src: 3, 'lib/src/**': 30}` — taking precedence over
+  `dirs`/`max_loose_files`, which stay fully backward compatible.
+
+## 0.21.0 — 2026-10-23
+
+- `scattered_constants` v2: new constant-regression rule — when a
+  named `const` for a value already exists in the corpus, every
+  hardcoded re-introduction flags immediately (any occurrence count),
+  naming the constant and its `file:line`; scattered literals (no
+  constant, `min_files`+ files) keep the extract-and-verify message.
+- `scattered_fragments` gate removed — too noisy in practice; parked
+  on the `feature/scattered-constants-gate` branch (0.20.0) should we
+  return to it.
+
+## 0.19.0 — 2026-10-24
+
+- Flutter memory reports no longer show a misleading `0.0` for
+  reclaimed-new-gen churn: the VM Service GC stream has no reclaimed
+  counters, so `churnNewMb` (per test/suite) and `totalChurnMb` are
+  JSON `null` there, a top-level `churnAvailable` flag says so, and
+  the console prints "new-gen churn unavailable". Use `allocatedMb` /
+  `totalAllocatedMb` (exact allocated bytes) as the churn metric on
+  both engines; `--badge` follows the same rule. Dart-engine output
+  is unchanged (numeric churn, `churnAvailable: true`).
+
+## 0.18.0 — 2026-10-23
+
+- New `record_named_fields` gate: record type annotations with unnamed
+  fields and `.$N` positional accesses are flagged.
+- New `inline_record_types` gate: inline record types in signatures
+  must move behind one named `typedef` declaration.
+- New `record_size` gate: records over `max_fields` (default 5,
+  positional plus named) should be transformed into classes.
+- `PreparedRun` (CLI run preparation) converted from a six-field
+  record typedef to a class — the first `record_size` dogfooding fix.
+
 All notable changes to this project will be documented in this file.
+
+## Unreleased
+
+### Added
+
+- `identical_branches` gate (24th): fails `if`/`else if` chains that
+  test the same condition twice — every later branch is unreachable,
+  the copy-paste-edit bug family. Conditions compare by canonical form:
+  whitespace-, parenthesis- and comment-independent, with operands of
+  commutative operators sorted (`a == b` matches `b == a`) and
+  `&&`/`||` nests flattened. Only conditions of one chain are compared
+  (state may change between separate statements); `if case` links and
+  `switch` are excluded. Enabled by default with `severity: warning`
+  (reordering is only equivalent for side-effect-free operands).
+
+### Fixed
+
+- `gate_runner` ran `broken_goldens`, `test_assertions`,
+  `folder_structure` and `external` twice per `check` (leftover from
+  the external-gate commit); duplicate results are gone.
+
+## 0.17.0 — 2026-10-23
+
+### Added
+
+- `memory --engine auto|dart|flutter` (default `auto`): Flutter test
+  suites are now measurable. `auto` picks `flutter` when pubspec.yaml
+  declares a `flutter:` dependency, else `dart`.
+  - `flutter test` passes no VM flags through and the engine's
+    `--dart-flags` whitelist rejects `--verbose_gc`; the Flutter mode
+    instead re-runs every `flutter_tester` spawn traced by
+    `flutter test --verbose --no-pub -j1 -r json` with the VM Service
+    enabled, drives the suite over package:test's remote protocol
+    (initial -> success -> run/close per test) and measures through
+    the VM Service:
+    - per-test ALLOCATED bytes — the allocation profile is reset
+      before each test and read after it (exact, more precise than
+      the Dart engine's reclaimed-new-gen proxy);
+    - GC events from the `GC` stream, attributed by arrival;
+    - old-gen growth chained across consecutive service events;
+    - suite-load allocations read once before the first reset.
+  - The tool deletes each file's temp dill when the file finishes and
+    at -j1 outruns the measured copy: dills are snapshotted at trace
+    time and the snapshots measured (and cleaned up after).
+  - Every file executes twice (the tool's run plus the measured copy);
+    trace paths must not contain commas (the tool prints its argv via
+    plain `List.toString()`).
+- Reports (both engines) gained `totalAllocatedMb` (JSON) and an
+  `allocated` headline/column; the churn leaderboard sorts by
+  allocation volume (Dart engine: reclaimed new-gen proxy; Flutter
+  engine: profile-allocated bytes).
+
+## 0.16.0 — 2026-10-22
+
+### Added
+
+- `memory` command (phase 1 of the memory-profiling plan): runs
+  `dart --verbose_gc test --concurrency=1 -r json` and attributes GC
+  events to tests — allocation churn (reclaimed new-gen MB,
+  deterministic across runs) and old-gen growth (leak suspects).
+  Per-test windows use each isolate's own clock (GC rows count from
+  isolate start; the suite event time is the same zero); loading and
+  teardown GCs land in an unattributed bucket. `--badge` writes a
+  shields-style churn SVG (see `badges/memory.svg`).
+- Dogfooding across three repos (file-level numbers stable across
+  runs): crap4dart 497 tests / 245 MB (no heavy files — the earlier
+  "30 MB" hotspots were detector artifacts, fixed by the
+  window-only attribution); dmtools-dart 4254 tests / 1.5 GB (top:
+  AiSyncTools transport test 35 MB, justified); flutter_agent 12387
+  tests / 84 GB (top: `AC3 — status without id stays bounded` 2.5 GB
+  churn + 14.7 MB retained — reported upstream).
 
 ## 0.15.0 — 2026-10-15
 

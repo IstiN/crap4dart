@@ -55,6 +55,9 @@ FunctionBody functionBodyOf(AstNode node) {
 /// ([FunctionDeclaration]) are skipped — they are reported as separate
 /// methods only when declared at the top level.
 class ComplexityCalculator implements MetricCalculator {
+  /// Whether branches inside lambdas count towards the enclosing method.
+  final bool countLambdas;
+
   /// Creates a [ComplexityCalculator].
   ///
   /// When [countLambdas] is false, lambda bodies ([FunctionExpression])
@@ -64,9 +67,6 @@ class ComplexityCalculator implements MetricCalculator {
 
   @override
   String get metricName => 'CC';
-
-  /// Whether branches inside lambdas count towards the enclosing method.
-  final bool countLambdas;
 
   /// Returns the cyclomatic complexity of the body of [node], where [node]
   /// is a [MethodDeclaration] or a top-level [FunctionDeclaration].
@@ -79,11 +79,11 @@ class ComplexityCalculator implements MetricCalculator {
 }
 
 class _ComplexityVisitor extends RecursiveAstVisitor<void> {
-  _ComplexityVisitor({required this.countLambdas});
-
   final bool countLambdas;
 
   int complexity = 1;
+
+  _ComplexityVisitor({required this.countLambdas});
 
   @override
   void visitFunctionExpression(FunctionExpression node) {

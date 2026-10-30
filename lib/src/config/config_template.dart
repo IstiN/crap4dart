@@ -1,3 +1,5 @@
+import '../common/constants.dart';
+
 /// Template written by `crap4dart init`.
 ///
 /// Every gate supports two common keys (shown here once):
@@ -16,7 +18,7 @@ const String defaultConfigTemplate = '''
 
 # Files excluded from analysis in every mode (glob patterns relative
 # to the project root).
-# exclude: ['example/**', 'tool/**', '**.g.dart']
+# exclude: ['example/**', 'tool/**', '$kGeneratedGlob']
 
 # CRAP metric analysis settings ("analyze" command).
 crap:
@@ -67,9 +69,9 @@ gates:
       #   paths: ['lib/legacy/**']
     # Glob patterns excluded from the gate.
     exclude:
-      - '**.g.dart'
-      - '**.freezed.dart'
-      - '**.mocks.dart'
+      - '$kGeneratedGlob'
+      - '$kFreezedGlob'
+      - '$kMocksGlob'
   # Enforce a minimum test coverage percentage.
   test_coverage:
     enabled: true
@@ -130,6 +132,26 @@ gates:
     enabled: true
     # Maximum number of nested blocks in a method body.
     max_nesting: 5
+  # Flag record types that must be named: an inline record type in a
+  # signature is declared as a typedef (or class) and referenced by
+  # name. Record values (literals, destructuring) stay legal; record
+  # type aliases are the blessed form and are not scanned.
+  inline_record_types:
+    enabled: true
+    severity: warning
+  # Require named record fields: positional (unnamed) fields in record
+  # types and `.\$N` positional accesses are flagged — name the fields
+  # (`({int x, int y})`) or destructure.
+  record_named_fields:
+    enabled: true
+    severity: warning
+  # Cap record arity: a record with more than max_fields positional +
+  # named fields has outgrown the tuple idea and should be transformed
+  # into a class.
+  record_size:
+    enabled: true
+    severity: warning
+    max_fields: 5
   # Limit class size: method count and weighted methods per class
   # (WMC = sum of cyclomatic complexities). Catches god-classes that
   # pass the per-method complexity gate.
@@ -148,9 +170,9 @@ gates:
     max_weight: 0.33
     # Glob patterns excluded from the gate.
     exclude:
-      - '**.g.dart'
-      - '**.freezed.dart'
-      - '**.mocks.dart'
+      - '$kGeneratedGlob'
+      - '$kFreezedGlob'
+      - '$kMocksGlob'
   # Flag private declarations never referenced in the analyzed sources
   # (dead methods, fields, classes AI agents tend to leave behind).
   unused_code:
@@ -158,9 +180,9 @@ gates:
     # Glob patterns whose files are ignored entirely (declarations and
     # references).
     exclude:
-      - '**.g.dart'
-      - '**.freezed.dart'
-      - '**.mocks.dart'
+      - '$kGeneratedGlob'
+      - '$kFreezedGlob'
+      - '$kMocksGlob'
       - 'bin/**'
   # Flag files under `dirs` that are never imported by any analyzed
   # file (orphans of refactoring). Files with main() and part-of
@@ -171,9 +193,9 @@ gates:
     dirs: [lib]
     # Glob patterns excluded from the gate.
     exclude:
-      - '**.g.dart'
-      - '**.freezed.dart'
-      - '**.mocks.dart'
+      - '$kGeneratedGlob'
+      - '$kFreezedGlob'
+      - '$kMocksGlob'
   # Enforce architectural boundaries: forbid imports matching `forbid`
   # globs in files matching `from`. With no rules the gate passes.
   banned_imports:
@@ -211,23 +233,51 @@ gates:
     skip_duplicate_files: false
     # Glob patterns excluded from the gate.
     exclude:
-      - '**.g.dart'
-      - '**.freezed.dart'
-      - '**.mocks.dart'
+      - '$kGeneratedGlob'
+      - '$kFreezedGlob'
+      - '$kMocksGlob'
       - 'test/**'
     # Extra file/directory paths scanned for duplication (cross-module
     # checks), unioned with the analyzed source set.
     # sources:
     #   - 'flutter_app/lib'
     #   - 'packages/fa_ui/lib'
+  # Flag literals (strings of min_length+ chars, numbers of
+  # min_value+ magnitude) appearing in min_files+ distinct files —
+  # one business fact hardcoded in many places. Extract a shared
+  # constant and verify all occurrences mean the same thing.
+  scattered_constants:
+    enabled: true
+    severity: warning
+    min_files: 3
+    min_length: 4
+    min_value: 100
+    # Pure value aliases — const _x = kY; — add a name without
+    # information; reference the shared constant directly. Public
+    # declarations (re-export shims) are exempt.
+    aliases: true
+    # Literal values never flagged (fast-development repos: generic
+    # vocabulary whose extraction adds churn without benefit).
+    # Whole literals match by value, prefixes by head, numbers by
+    # their decimal form.
+    # ignore: [test, dart, flutter]
+    # Glob patterns excluded from the gate.
+    exclude:
+      - '$kGeneratedGlob'
+      - '$kFreezedGlob'
+      - '$kMocksGlob'
+      - 'test/**'
+  # and substring candidates against existing named constants —
+  # partial reuse the whole-value gate cannot see. Findings are
+  # candidates; verify intent before extracting.
   # Forbid mechanical file names (numeric suffixes, generic names).
   file_naming:
     enabled: true
     # Glob patterns excluded from the gate.
     exclude:
-      - '**.g.dart'
-      - '**.freezed.dart'
-      - '**.mocks.dart'
+      - '$kGeneratedGlob'
+      - '$kFreezedGlob'
+      - '$kMocksGlob'
       - 'test/**'
     # Extra whole-stem names allowed to end in digits (technical terms).
     allow: []
@@ -243,9 +293,9 @@ gates:
     min_length: 4
     # Glob patterns excluded from the gate.
     exclude:
-      - '**.g.dart'
-      - '**.freezed.dart'
-      - '**.mocks.dart'
+      - '$kGeneratedGlob'
+      - '$kFreezedGlob'
+      - '$kMocksGlob'
       - 'test/**'
   # Scan golden PNG files for rendered error artifacts: overflow
   # stripes (yellow/black) and build-error screens (dark red). Golden
@@ -270,9 +320,13 @@ gates:
   # feature packages (flat-file sprawl).
   folder_structure:
     enabled: true
-    # Directories checked for loose-file sprawl.
+    # Directories checked for file sprawl — literal paths or glob
+    # patterns ('lib/src/*', 'packages/**') expanding to every
+    # matching directory.
     dirs: [lib]
-    # Max .dart files directly inside each directory.
+    # Max logical .dart units directly inside each directory. Files
+    # in subdirectories never count; generated siblings of one source
+    # file (foo.dart, foo.g.dart) are one unit.
     max_loose_files: 0
     # Glob patterns excluded from the gate.
     exclude: []
@@ -296,8 +350,7 @@ gates:
   # that file" — reuse, generate or delete, not extract-method.
   # Explore with `crap4dart similarity`, tune, then enable — typically
   # with `check --save-baseline` so only NEW near-duplicates fail.
-  similarity:
-    # Disabled by default: corpora differ wildly; opt in deliberately.
+  similarity:    # Disabled by default: corpora differ wildly; opt in deliberately.
     enabled: false
     # Directories recursively scanned for text files.
     dirs: ['.']
@@ -348,9 +401,9 @@ gates:
     scope_tests: false
     # Glob patterns excluded from the gate.
     exclude:
-      - '**.g.dart'
-      - '**.freezed.dart'
-      - '**.mocks.dart'
+      - '$kGeneratedGlob'
+      - '$kFreezedGlob'
+      - '$kMocksGlob'
       - 'test/**'
   # Require dartdoc comments on the public API.
   public_docs:
@@ -358,4 +411,45 @@ gates:
     # Glob patterns excluded from the gate.
     exclude:
       - 'test/**'
+  # String literal hazards: escaped interpolations that render
+  # literally ('\$name' where '\$name' was interpolated elsewhere in the
+  # file), raw RegExp patterns with an escaped anchor (r'...\\\$'
+  # matches a literal dollar, not the end anchor), and regex anchors
+  # (^ / \$) inside literal String patterns of replaceFirst/replaceAll/
+  # split, where they can only match that literal character. Warning
+  # severity: deliberate literal dollars (shell code, prices) trip it
+  # occasionally.
+  string_hazards:
+    enabled: true
+    severity: warning
+  # Copy-paste-edit bug family, compared by canonical form
+  # (formatting-, parenthesis- and reorder-insensitive: `a == b`
+  # matches `b == a`): duplicate conditions in one if/else-if chain
+  # (every later branch becomes unreachable), duplicate branch bodies
+  # in one chain, duplicate or absorbed operands in one boolean chain
+  # (`a || a`, `a || b && a` both collapse), identical ternary branches (`c ? x : x`), duplicate positional
+  # arguments in one call (uniform all-literal lists exempt), and
+  # duplicate catch bodies in one try. Warning severity: equivalence
+  # assumes side-effect-free operands.
+  identical_branches:
+    enabled: true
+    severity: warning
+  # Flag built-in `.name`/`.index` contracts inside enum bodies: the
+  # persisted YAML/JSON value changes when a Dart identifier is renamed.
+  # Fix: declare a `final String value` field and contract on `.value`.
+  enum_name_contract:
+    enabled: true
+    severity: warning
+  collapsible_flow:
+    enabled: true
+    severity: warning
+  # Flag every non-null assertion: the postfix `!` operator (`x!`) and
+  # the null-assert pattern (`case var x!`). A bang crashes on null
+  # where `?.`/`??` (expressions) or a null-check pattern (`?`)
+  # carries the same intent with a readable check. Warning severity:
+  # on an existing codebase every removed `!` needs a per-site
+  # nullability audit — adopt via `--save-baseline` for ratchet mode.
+  non_null_assertion:
+    enabled: true
+    severity: warning
 ''';

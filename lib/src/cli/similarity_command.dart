@@ -1,3 +1,5 @@
+import '../gates/gate_ids.dart';
+import '../common/constants.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -10,6 +12,9 @@ import '../config/config_loader.dart';
 import '../similarity/similarity_analyzer.dart';
 import 'exit_codes.dart';
 
+/// Root and directory list of one `similarity` invocation.
+typedef _ScanTargets = ({String root, List<String> dirs});
+
 /// The `similarity` command: ad-hoc near-duplicate scanning over any
 /// text corpus — the exploration tool for tuning the `similarity`
 /// gate's thresholds before enabling it.
@@ -17,21 +22,31 @@ import 'exit_codes.dart';
 /// Informational: always exits 0; the gate (in `check`) is the
 /// enforcer.
 class SimilarityCommand extends Command<int> {
+  /// Project root override (default: the current working directory).
+  final String? projectRoot;
+
+  @override
+  final String name = GateIds.similarity;
+
+  @override
+  final String description = 'Scan for near-duplicate files (docs, code) '
+      'and print the similarity clusters.';
+
   /// Creates a [SimilarityCommand].
   SimilarityCommand({this.projectRoot}) {
     argParser
       ..addOption(
-        _formatOption,
-        allowed: ['console', 'json'],
-        defaultsTo: 'console',
+        kFormat,
+        allowed: [kConsole, kJson],
+        defaultsTo: kConsole,
         help: 'Output format.',
       )
       ..addOption(
-        _jaccardOption,
+        kJaccard,
         help: 'Jaccard threshold override (0.0-1.0).',
       )
       ..addOption(
-        _containmentOption,
+        kContainment,
         help: 'Containment threshold override (0.0-1.0).',
       )
       ..addOption(
@@ -39,27 +54,17 @@ class SimilarityCommand extends Command<int> {
         help: 'Minimum shingles per file (smaller files are skipped).',
       )
       ..addMultiOption(
-        _includeOption,
+        kInclude,
         help: 'Glob of files to analyze (repeatable); default: the '
             'config include list (**/*.md).',
       )
       ..addMultiOption(
-        _excludeOption,
+        kExclude,
         help: 'Glob of files to skip (repeatable); default: the config '
             'exclude list.',
       )
-      ..addOption(_configFlag, help: _configHelp);
+      ..addOption(kConfig, help: kConfigHelp);
   }
-
-  /// Project root override (default: the current working directory).
-  final String? projectRoot;
-
-  @override
-  final String name = 'similarity';
-
-  @override
-  final String description = 'Scan for near-duplicate files (docs, code) '
-      'and print the similarity clusters.';
 
   @override
   Future<int> run() async {
@@ -68,20 +73,18 @@ class SimilarityCommand extends Command<int> {
     if (config == null) return ExitCodes.usageError;
     final similarity = config.gates.similarity;
     final args = argResults!;
-    final (scanRoot, dirs) = _scanTargets(root, similarity.dirs);
-    final jaccard = _doubleArg(args, _jaccardOption) ?? similarity.jaccard;
+    final (root: scanRoot, dirs: dirs) = _scanTargets(root, similarity.dirs);
+    final jaccard = _doubleArg(args, kJaccard) ?? similarity.jaccard;
     final containment =
-        _doubleArg(args, _containmentOption) ?? similarity.containment;
+        _doubleArg(args, kContainment) ?? similarity.containment;
     final minShingles =
         _intArg(args, _minShinglesOption) ?? similarity.minShingles;
-    final include =
-        (args[_includeOption] as List<String>).cast<String>().isNotEmpty
-            ? (args[_includeOption] as List<String>).cast<String>()
-            : similarity.include;
-    final exclude =
-        (args[_excludeOption] as List<String>).cast<String>().isNotEmpty
-            ? (args[_excludeOption] as List<String>).cast<String>()
-            : similarity.exclude;
+    final include = (args[kInclude] as List<String>).cast<String>().isNotEmpty
+        ? (args[kInclude] as List<String>).cast<String>()
+        : similarity.include;
+    final exclude = (args[kExclude] as List<String>).cast<String>().isNotEmpty
+        ? (args[kExclude] as List<String>).cast<String>()
+        : similarity.exclude;
     final report = const SimilarityAnalyzer().analyze(
       Directory(scanRoot),
       dirs: dirs,
@@ -91,7 +94,7 @@ class SimilarityCommand extends Command<int> {
       containmentThreshold: containment,
       minShingles: minShingles,
     );
-    if (args[_formatOption] == 'json') {
+    if (args[kFormat] == kJson) {
       _printJson(report, jaccard, containment, minShingles);
     } else {
       _printConsole(report, jaccard, containment, minShingles);
@@ -103,14 +106,20 @@ class SimilarityCommand extends Command<int> {
   /// directory argument becomes the scan root itself, several
   /// arguments are subdirectories of the project root, none uses the
   /// config's `dirs`.
-  (String, List<String>) _scanTargets(String root, List<String> configDirs) {
+  _ScanTargets _scanTargets(
+    String root,
+    List<String> configDirs,
+  ) {
     final rest = argResults!.rest;
     if (rest.length == 1 && Directory(rest.single).existsSync()) {
       final target = rest.single;
-      return (p.isAbsolute(target) ? target : p.join(root, target), ['.']);
+      return (
+        root: p.isAbsolute(target) ? target : p.join(root, target),
+        dirs: ['.'],
+      );
     }
-    if (rest.isNotEmpty) return (root, rest);
-    return (root, configDirs);
+    if (rest.isNotEmpty) return (root: root, dirs: rest);
+    return (root: root, dirs: configDirs);
   }
 
   /// Loads the config, reporting errors to stderr, `null` on failure.
@@ -118,7 +127,7 @@ class SimilarityCommand extends Command<int> {
     try {
       return const ConfigLoader().load(
         root,
-        configPath: argResults![_configFlag] as String?,
+        configPath: argResults![kConfig] as String?,
       );
     } on ConfigException catch (e) {
       stderr.writeln(e);
@@ -174,8 +183,8 @@ class SimilarityCommand extends Command<int> {
         final metrics = report.metricsFor(file);
         stdout.writeln(
           '  $file '
-          '(jaccard ${metrics?.$1.toStringAsFixed(2)}, '
-          'containment ${metrics?.$2.toStringAsFixed(2)})',
+          '(jaccard ${metrics?.jaccard.toStringAsFixed(2)}, '
+          'containment ${metrics?.containment.toStringAsFixed(2)})',
         );
       }
     }
@@ -219,11 +228,4 @@ class SimilarityCommand extends Command<int> {
   }
 }
 
-const String _formatOption = 'format';
-const String _jaccardOption = 'jaccard';
-const String _containmentOption = 'containment';
 const String _minShinglesOption = 'min-shingles';
-const String _includeOption = 'include';
-const String _excludeOption = 'exclude';
-const String _configFlag = 'config';
-const String _configHelp = 'Path to a crap4dart.yaml config file.';

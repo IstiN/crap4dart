@@ -14,25 +14,6 @@ part of 'config.dart';
 /// enables the gate — typically with a baseline capturing the current
 /// state so only *new* near-duplicates fail the run.
 class SimilarityGateConfig implements GateConfigFlags {
-  /// Creates a [SimilarityGateConfig].
-  const SimilarityGateConfig({
-    this.enabled = false,
-    this.severity = GateSeverity.error,
-    this.ignorable = false,
-    this.dirs = const ['.'],
-    this.include = const ['**/*.md'],
-    this.minShingles = 50,
-    this.jaccard = 0.8,
-    this.containment = 0.95,
-    this.exclude = const [
-      '.git/**',
-      '.dart_tool/**',
-      'build/**',
-      'coverage/**',
-      'node_modules/**',
-    ],
-  });
-
   /// Whether the gate is enabled.
   final bool enabled;
 
@@ -62,4 +43,23 @@ class SimilarityGateConfig implements GateConfigFlags {
 
   /// Glob patterns excluded from the gate.
   final List<String> exclude;
+
+  /// Creates a [SimilarityGateConfig].
+  const SimilarityGateConfig({
+    this.enabled = false,
+    this.severity = GateSeverity.error,
+    this.ignorable = false,
+    this.dirs = const ['.'],
+    this.include = const ['**/*.md'],
+    this.minShingles = 50,
+    this.jaccard = 0.8,
+    this.containment = 0.95,
+    this.exclude = const [
+      '.git/**',
+      '.dart_tool/**',
+      'build/**',
+      'coverage/**',
+      'node_modules/**',
+    ],
+  });
 }

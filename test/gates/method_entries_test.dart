@@ -1,5 +1,5 @@
-import 'package:crap4dart/src/gates/complexity_gate.dart';
-import 'package:crap4dart/src/gates/method_size_gate.dart';
+import 'package:crap4dart/src/gates/quality/complexity_gate.dart';
+import 'package:crap4dart/src/gates/quality/method_size_gate.dart';
 import 'package:test/test.dart';
 
 import 'gate_test_utils.dart';
@@ -15,7 +15,7 @@ int tables(int x) {
   return x;
 }
 ''');
-    final result = await ComplexityGate().run(
+    final result = await const ComplexityGate().run(
       makeContext(
         project,
         ['lib/gen/tables.dart'],
@@ -40,7 +40,7 @@ int helper(int a) {
   return a;
 }
 ''');
-    final result = await MethodSizeGate().run(
+    final result = await const MethodSizeGate().run(
       makeContext(
         project,
         ['lib/test_helpers.dart'],

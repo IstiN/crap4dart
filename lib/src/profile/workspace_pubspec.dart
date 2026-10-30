@@ -1,16 +1,27 @@
+import '../common/constants.dart';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
 /// Rewrites pubspec.yaml for the temp copy of a workspace member.
 class WorkspacePubspec {
-  /// Creates a rewriter for the member at [projectRoot].
-  WorkspacePubspec(this.projectRoot);
+  /// The `resolution: workspace` marker line of a member pubspec.
+  static final RegExp _workspaceMarker =
+      RegExp(r'^resolution:\s*workspace\s*$');
+
+  /// The `dependency_overrides:` section header line.
+  static final RegExp _overridesHeader = RegExp(r'^dependency_overrides:\s*$');
+
+  /// A relative `path:` dependency line (`group(1)` is the prefix,
+  /// `group(2)` the relative path).
+  static final RegExp _relativePathDep =
+      RegExp(r'^(\s*path:\s*)(\.\.?[/\\].*)$');
 
   /// The workspace member being profiled.
   final String projectRoot;
 
-  static const String _pubspecFileName = 'pubspec.yaml';
+  /// Creates a rewriter for the member at [projectRoot].
+  WorkspacePubspec(this.projectRoot);
 
   /// Writes a standalone `pubspec.yaml` for the temp copy: strips the
   /// `resolution: workspace` marker (the temp dir belongs to no
@@ -20,7 +31,7 @@ class WorkspacePubspec {
   /// it is what makes conflicting member constraints resolve inside the
   /// workspace, and without it `pub get` in the temp dir fails.
   void writeStandalone(Directory tempDir) {
-    final src = File(p.join(projectRoot, _pubspecFileName));
+    final src = File(p.join(projectRoot, kPubspec));
     final absRoot = p.absolute(projectRoot);
     final overrides = dependencyOverrides();
     final rewritten = StringBuffer();
@@ -46,7 +57,7 @@ class WorkspacePubspec {
         ..writeln('dependency_overrides:')
         ..write(overrides);
     }
-    File(p.join(tempDir.path, _pubspecFileName))
+    File(p.join(tempDir.path, kPubspec))
         .writeAsStringSync(rewritten.toString());
   }
 
@@ -70,7 +81,7 @@ class WorkspacePubspec {
   /// when the pubspec is absent, not a workspace root, or declares no
   /// overrides.
   String? _overridesOfPubspecAt(String dir) {
-    final pubspec = File(p.join(dir, _pubspecFileName));
+    final pubspec = File(p.join(dir, kPubspec));
     if (!pubspec.existsSync()) return null;
     final content = pubspec.readAsStringSync();
     if (!RegExp(r'^workspace:', multiLine: true).hasMatch(content)) {
@@ -89,16 +100,4 @@ class WorkspacePubspec {
     ).firstMatch(tail);
     return nextKey == null ? tail : tail.substring(0, nextKey.start);
   }
-
-  /// The `resolution: workspace` marker line of a member pubspec.
-  static final RegExp _workspaceMarker =
-      RegExp(r'^resolution:\s*workspace\s*$');
-
-  /// The `dependency_overrides:` section header line.
-  static final RegExp _overridesHeader = RegExp(r'^dependency_overrides:\s*$');
-
-  /// A relative `path:` dependency line (`group(1)` is the prefix,
-  /// `group(2)` the relative path).
-  static final RegExp _relativePathDep =
-      RegExp(r'^(\s*path:\s*)(\.\.?[/\\].*)$');
 }

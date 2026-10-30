@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:crap4dart/src/gates/method_size_gate.dart';
+import 'package:crap4dart/src/gates/quality/method_size_gate.dart';
 import 'package:test/test.dart';
 
 import 'gate_test_utils.dart';

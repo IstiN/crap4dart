@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:crap4dart/src/gates/mutation_cache.dart';
-import 'package:crap4dart/src/gates/mutation_operators.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_cache.dart';
+import 'package:crap4dart/src/gates/mutation/mutation_operators.dart';
 import 'package:test/test.dart';
 
 MutationSite site({int offset = 10, String mutant = '-'}) => MutationSite(
@@ -119,7 +119,7 @@ final meta = MutationCacheMeta.current(
 MutationCache populated() => MutationCache(
       meta: meta,
       methods: {
-        'lib/a.dart#C.add': CachedMethod(digest: 'd1', outcomes: const [
+        'lib/a.dart#C.add': const CachedMethod(digest: 'd1', outcomes: [
           CachedOutcome(
             offset: 5,
             line: 2,
@@ -129,7 +129,7 @@ MutationCache populated() => MutationCache(
             status: 'killed',
           ),
         ]),
-        'lib/b.dart#C.add': CachedMethod(digest: 'd2', outcomes: const [
+        'lib/b.dart#C.add': const CachedMethod(digest: 'd2', outcomes: [
           CachedOutcome(
             offset: 7,
             line: 4,
