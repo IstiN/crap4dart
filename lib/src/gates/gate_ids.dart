@@ -103,6 +103,9 @@ abstract final class GateIds {
   /// Collapsible flow gate (`collapsible_flow`).
   static const String collapsibleFlow = 'collapsible_flow';
 
+  /// Non-null assertion gate (`non_null_assertion`).
+  static const String nonNullAssertion = 'non_null_assertion';
+
   /// Every gate id in runner order.
   static const List<String> all = [
     loc,
@@ -136,5 +139,6 @@ abstract final class GateIds {
     identicalBranches,
     enumNameContract,
     collapsibleFlow,
+    nonNullAssertion,
   ];
 }

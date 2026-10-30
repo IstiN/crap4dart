@@ -278,6 +278,8 @@ class ConfigLoader {
           map[GateIds.enumNameContract], base.enumNameContract, path),
       collapsibleFlow: _ExtendedGateConfigReaders.readCollapsibleFlow(
           map[GateIds.collapsibleFlow], base.collapsibleFlow, path),
+      nonNullAssertion: _ExtendedGateConfigReaders.readNonNullAssertion(
+          map[GateIds.nonNullAssertion], base.nonNullAssertion, path),
     );
   }
 

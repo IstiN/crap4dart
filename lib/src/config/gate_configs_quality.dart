@@ -67,6 +67,28 @@ class CollapsibleFlowGateConfig implements GateConfigFlags {
   });
 }
 
+/// Non-null assertion gate settings (`non_null_assertion`).
+class NonNullAssertionGateConfig implements GateConfigFlags {
+  /// Whether the gate is enabled.
+  final bool enabled;
+
+  /// Whether violations fail the run or are reported as warnings.
+  /// Defaults to `warning`: on an existing codebase every removed `!`
+  /// needs a per-site nullability audit.
+  final GateSeverity severity;
+
+  /// Whether `// crap:ignore` comments may suppress violations of this
+  /// gate. Disabled by default — suppression must be opted into.
+  final bool ignorable;
+
+  /// Creates a [NonNullAssertionGateConfig].
+  const NonNullAssertionGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.warning,
+    this.ignorable = false,
+  });
+}
+
 /// The quality-gate subgroup of [GatesConfig]: the post-0.25 gates
 /// that flag suspicious logic shapes rather than size or resource
 /// budgets. Grouping keeps the [GatesConfig] constructor under the
@@ -85,12 +107,16 @@ class QualityGatesConfig {
   /// Collapsible flow gate (`collapsible_flow`).
   final CollapsibleFlowGateConfig collapsibleFlow;
 
+  /// Non-null assertion gate (`non_null_assertion`).
+  final NonNullAssertionGateConfig nonNullAssertion;
+
   /// Creates a [QualityGatesConfig].
   const QualityGatesConfig({
     this.stringHazards = const StringHazardsGateConfig(),
     this.identicalBranches = const IdenticalBranchesGateConfig(),
     this.enumNameContract = const EnumNameContractGateConfig(),
     this.collapsibleFlow = const CollapsibleFlowGateConfig(),
+    this.nonNullAssertion = const NonNullAssertionGateConfig(),
   });
 }
 

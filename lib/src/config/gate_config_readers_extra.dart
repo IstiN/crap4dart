@@ -561,4 +561,26 @@ class _ExtendedGateConfigReaders {
       },
     );
   }
+
+  static NonNullAssertionGateConfig readNonNullAssertion(
+    Object? node,
+    NonNullAssertionGateConfig base,
+    String path,
+  ) {
+    return _ConfigScalars.readGateConfig(
+      node,
+      base,
+      path,
+      '$kGatePrefix.${GateIds.nonNullAssertion}',
+      const {_enabledKey, _severityKey, _ignorableKey},
+      (map, base, path, ctx) {
+        final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
+        return NonNullAssertionGateConfig(
+          enabled: flags.enabled,
+          severity: flags.severity,
+          ignorable: flags.ignorable,
+        );
+      },
+    );
+  }
 }

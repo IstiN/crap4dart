@@ -443,4 +443,13 @@ gates:
   collapsible_flow:
     enabled: true
     severity: warning
+  # Flag every non-null assertion: the postfix `!` operator (`x!`) and
+  # the null-assert pattern (`case var x!`). A bang crashes on null
+  # where `?.`/`??` (expressions) or a null-check pattern (`?`)
+  # carries the same intent with a readable check. Warning severity:
+  # on an existing codebase every removed `!` needs a per-site
+  # nullability audit — adopt via `--save-baseline` for ratchet mode.
+  non_null_assertion:
+    enabled: true
+    severity: warning
 ''';
