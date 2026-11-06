@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.30.1 — 2026-11-06
+
+- Memory and scale fixes for large trees (IstiN/crap4dart#34):
+  - `GateContext` AST and line caches are now LRU-bounded (32 MB source
+    bytes each, `cacheBudgetBytes` override) instead of retaining every
+    touched file for the whole run.
+  - The `similarity` gate stores shingle hashes (64-bit FNV-1a) instead
+    of the full shingle token strings — scan memory drops by an order
+    of magnitude on large corpora.
+  - Exact similarity runs only on candidate pairs sharing at least one
+    shingle hash (inverted index) instead of all file pairs — the
+    pairwise pass is no longer quadratic in the file count.
+  - A scan matching more than 20000 files fails the gate with an
+    actionable message (narrow `include`/`dirs`, extend `exclude`)
+    instead of exhausting heap; the standalone `similarity` command
+    reports the same to stderr and exits 1.
+  - Default similarity excludes gain `.worktrees/**` (parallel-agent
+    scratch checkouts).
+
 ## 0.30.0 — 2026-10-30
 
 - Visual-regression guard (IstiN/crap4dart#32):

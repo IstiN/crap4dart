@@ -15,8 +15,8 @@ class SimilarityFile {
   /// Project-relative path.
   final String path;
 
-  /// The file's shingle set (empty when below the shingle floor).
-  final Set<String> shingles;
+  /// The file's shingle hash set (empty when below the shingle floor).
+  final Set<int> shingles;
 
   /// Creates a [SimilarityFile].
   const SimilarityFile({required this.path, required this.shingles});
@@ -112,6 +112,26 @@ class SimilarityReport {
   }
 }
 
+/// The scan scope matched more files than [SimilarityAnalyzer
+/// .maxScanFiles]; thrown instead of exhausting memory on the shingle
+/// index. Narrows the gate's `include`/`dirs` or extends its
+/// `exclude`.
+class SimilarityScanTooLargeException implements Exception {
+  /// Number of files the scope matched.
+  final int matched;
+
+  /// The ceiling that was exceeded.
+  final int max;
+
+  /// Creates a [SimilarityScanTooLargeException].
+  const SimilarityScanTooLargeException(this.matched, this.max);
+
+  @override
+  String toString() =>
+      'similarity scan scope matches $matched files, above the $max-file '
+      'safety cap: narrow `include`/`dirs` or extend `exclude`';
+}
+
 /// Union-find over analyzed file indices.
 class _UnionFind {
   final Map<String, String> _parent = {};
@@ -145,6 +165,14 @@ class SimilarityAnalyzer {
   /// Creates a [SimilarityAnalyzer].
   const SimilarityAnalyzer();
 
+  /// Hard ceiling on the number of files one scan analyzes. Beyond
+  /// this the scan is almost certainly an over-broad `include`/`dirs`
+  /// scope (vendored checkouts, generated corpora) that would exhaust
+  /// memory on the shingle index; [analyze] throws
+  /// [SimilarityScanTooLargeException] instead of crashing the whole
+  /// check run.
+  static const int maxScanFiles = 20000;
+
   /// Whether [path] matches any compiled glob.
   static bool _matchesAny(List<Glob> globs, String path) =>
       globs.any((glob) => glob.matches(path));
@@ -153,32 +181,70 @@ class SimilarityAnalyzer {
   static String _relative(Directory root, String absolute) =>
       p.relative(absolute, from: root.path);
 
+  /// Shingle hashes shared by more files than this carry no duplicate
+  /// signal (boilerplate) and are skipped when building pair
+  /// candidates.
+  static const int _maxPostings = 100;
+
   /// All pairs crossing either threshold, strongest first.
+  ///
+  /// Comparisons are candidate-pruned through an inverted shingle
+  /// index: a pair can only cross a positive threshold when the two
+  /// files share at least one shingle hash, so exact Jaccard /
+  /// containment run on candidate pairs only. The naive all-pairs loop
+  /// is quadratic in the file count and made large trees effectively
+  /// hang (IstiN/crap4dart#34).
   static List<SimilarityPair> _pairsOverThresholds(
     List<SimilarityFile> files,
     double jaccardThreshold,
     double containmentThreshold,
   ) {
     final pairs = <SimilarityPair>[];
-    for (var i = 0; i < files.length; i++) {
-      for (var j = i + 1; j < files.length; j++) {
-        final a = files[i];
-        final b = files[j];
-        final jScore = jaccard(a.shingles, b.shingles);
-        if (jScore < jaccardThreshold &&
-            containment(a.shingles, b.shingles) < containmentThreshold) {
-          continue;
-        }
-        pairs.add(SimilarityPair(
-          a: a.path,
-          b: b.path,
-          jaccard: jScore,
-          containment: containment(a.shingles, b.shingles),
-        ));
+    for (final (a, b) in _candidates(files)) {
+      final jScore = jaccard(a.shingles, b.shingles);
+      final cScore = containment(a.shingles, b.shingles);
+      if (jScore < jaccardThreshold && cScore < containmentThreshold) {
+        continue;
       }
+      pairs.add(SimilarityPair(
+        a: a.path,
+        b: b.path,
+        jaccard: jScore,
+        containment: cScore,
+      ));
     }
     pairs.sort((x, y) => y.jaccard.compareTo(x.jaccard));
     return pairs;
+  }
+
+  /// Unique file pairs sharing at least one shingle hash, via an
+  /// inverted index. Pairs are emitted in index order; deduplicated
+  /// with a set of flattened (i, j) keys that grows with the candidate
+  /// count, not the quadratic pair space.
+  static Iterable<(SimilarityFile, SimilarityFile)> _candidates(
+    List<SimilarityFile> files,
+  ) sync* {
+    final index = <int, List<int>>{};
+    for (var i = 0; i < files.length; i++) {
+      for (final hash in files[i].shingles) {
+        index.putIfAbsent(hash, () => []).add(i);
+      }
+    }
+    final seen = <int>{};
+    final width = files.length;
+    for (final postings in index.values) {
+      if (postings.length < 2 || postings.length > _maxPostings) {
+        continue;
+      }
+      for (var x = 0; x < postings.length; x++) {
+        for (var y = x + 1; y < postings.length; y++) {
+          final i = postings[x];
+          final j = postings[y];
+          if (!seen.add(i * width + j)) continue;
+          yield (files[i], files[j]);
+        }
+      }
+    }
   }
 
   /// Transitive clusters of the threshold-crossing pairs, largest
@@ -233,6 +299,9 @@ class SimilarityAnalyzer {
       [for (final pattern in include) Glob(pattern)],
       [for (final pattern in exclude) Glob(pattern)],
     );
+    if (files.length > maxScanFiles) {
+      throw SimilarityScanTooLargeException(files.length, maxScanFiles);
+    }
     final analyzed = <SimilarityFile>[];
     var skipped = 0;
     for (final entry in files) {

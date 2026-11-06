@@ -57,6 +57,7 @@ class SimilarityGateConfig implements GateConfigFlags {
     this.exclude = const [
       '.git/**',
       '.dart_tool/**',
+      '.worktrees/**',
       'build/**',
       'coverage/**',
       'node_modules/**',

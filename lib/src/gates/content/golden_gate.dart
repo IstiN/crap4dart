@@ -73,10 +73,7 @@ class GoldenGate implements Gate {
   ) {
     final widgets = <_WidgetInfo>[];
     for (final file in _dartFiles(context.projectRoot, widgetDirs)) {
-      final parsed = DartParser().parse(
-        content: File(file).readAsStringSync(),
-        path: file,
-      );
+      final parsed = context.parsed(file);
       final visitor = _WidgetVisitor(
         context.relativePath(file),
         parsed,
@@ -109,10 +106,7 @@ class GoldenGate implements Gate {
     List<String> testDirs,
   ) sync* {
     for (final file in _dartFiles(context.projectRoot, testDirs)) {
-      final parsed = DartParser().parse(
-        content: File(file).readAsStringSync(),
-        path: file,
-      );
+      final parsed = context.parsed(file);
       final visitor = _GoldenTestVisitor();
       parsed.unit.accept(visitor);
       if (!visitor.hasGoldenMatcher) continue;

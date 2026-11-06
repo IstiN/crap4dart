@@ -1083,7 +1083,12 @@ Two files are *similar* when Jaccard(A,B) >= `jaccard` (default 0.8)
 OR containment(A,B) >= `containment` (default 0.95; intersection over
 the smaller set — catches a small file largely copied into a big one).
 Similar pairs merge transitively into clusters. Files with fewer than
-`min_shingles` shingles (default 50) are skipped.
+`min_shingles` shingles (default 50) are skipped. Shingles are stored
+as 64-bit hashes (not the token strings) so the scan's memory stays
+proportional to the corpus, and exact similarity runs only on candidate
+pairs sharing at least one shingle hash (an inverted index), not on all
+file pairs. A scan whose scope matches more than 20000 files fails the
+gate with an actionable message instead of exhausting memory.
 
 Config keys: `enabled` (default false — opt-in), `severity`,
 `ignorable`, `dirs` (default `['.']`), `include` (default

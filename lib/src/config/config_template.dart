@@ -377,8 +377,8 @@ gates:
     jaccard: 0.8
     containment: 0.95
     # Glob patterns excluded from the gate.
-    exclude: ['.git/**', '.dart_tool/**', 'build/**', 'coverage/**',
-              'node_modules/**']
+    exclude: ['.git/**', '.dart_tool/**', '.worktrees/**', 'build/**',
+              'coverage/**', 'node_modules/**']
   # Mutation testing: mutate one operator/literal at a time and re-run
   # the test suite per mutant. Expensive — disabled by default; enable
   # explicitly once the suite is fast. Sites in unexecuted code are

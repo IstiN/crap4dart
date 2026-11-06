@@ -39,9 +39,9 @@ void main() {
     });
   });
   group('similarity math', () {
-    final a = {'x', 'y', 'z'};
-    final b = {'x', 'y', 'q'};
-    final big = {'x', 'y', 'z', 'q', 'r', 's'};
+    final a = {1, 2, 3};
+    final b = {1, 2, 4};
+    final big = {1, 2, 3, 4, 5, 6};
 
     test('jaccard is intersection over union', () {
       expect(jaccard(a, b), closeTo(2 / 4, 1e-9));
