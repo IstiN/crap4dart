@@ -109,6 +109,7 @@ class _GateConfigReaders {
         'widget_dirs',
         'test_dirs',
         'exclude_widgets',
+        'require_viewport_matrix',
       },
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
@@ -124,6 +125,8 @@ class _GateConfigReaders {
               map, 'test_dirs', base.testDirs, path, ctx),
           excludeWidgets: _ConfigScalars.strList(
               map, 'exclude_widgets', base.excludeWidgets, path, ctx),
+          requireViewportMatrix: _ConfigScalars.readBool(map,
+              'require_viewport_matrix', base.requireViewportMatrix, path, ctx),
         );
       },
     );

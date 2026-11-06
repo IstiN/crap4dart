@@ -56,6 +56,14 @@ const String kInclude = 'include';
 /// The shared `--exclude` option name and per-gate `exclude` key.
 const String kExclude = 'exclude';
 
+/// The shared `--force` flag name (commands refuse to overwrite
+/// without it).
+const String kForce = 'force';
+
+/// The shared `--dry-run` flag name (list what would change, write
+/// nothing).
+const String kDryRun = 'dry-run';
+
 /// The `jaccard` similarity setting (CLI option and config key).
 const String kJaccard = 'jaccard';
 
