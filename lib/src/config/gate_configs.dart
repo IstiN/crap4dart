@@ -100,6 +100,12 @@ class GoldenGateConfig implements GateConfigFlags {
   /// Widget class names excluded from the gate.
   final List<String> excludeWidgets;
 
+  /// Whether every golden test file must vary both theme (light/dark)
+  /// and viewport (phone/desktop) — the visual-regression matrix.
+  /// Off by default; enable to catch single-surface goldens that miss
+  /// theme-scope or layout regressions on the other surface.
+  final bool requireViewportMatrix;
+
   /// Creates a [GoldenGateConfig].
   const GoldenGateConfig({
     this.enabled = true,
@@ -109,6 +115,7 @@ class GoldenGateConfig implements GateConfigFlags {
     this.widgetDirs = const ['lib'],
     this.testDirs = const [kTest],
     this.excludeWidgets = const [],
+    this.requireViewportMatrix = false,
   });
 }
 
@@ -513,6 +520,18 @@ class BrokenGoldensGateConfig implements GateConfigFlags {
   /// an overflow stripe pattern.
   final int minStripeRun;
 
+  /// Maximum fraction (0–1) of sampled pixels that may share one color
+  /// before the golden is flagged as a blank/stub scene. A golden that
+  /// is almost entirely one color has no concrete visible content.
+  /// Values outside 0–1 are config errors.
+  final double blankRatio;
+
+  /// Whether the blank-scene detector runs at all. Off by default:
+  /// near-uniform goldens are legitimate for sparse scenes (a dark TUI
+  /// with short lines of text is ~99% one color), so the detector is
+  /// opt-in for directories that hold full-screen UI scenes.
+  final bool detectBlank;
+
   /// Glob patterns excluded from the gate.
   final List<String> exclude;
 
@@ -523,6 +542,8 @@ class BrokenGoldensGateConfig implements GateConfigFlags {
     this.ignorable = false,
     this.dirs = const [kTest],
     this.minStripeRun = 8,
+    this.blankRatio = 0.92,
+    this.detectBlank = false,
     this.exclude = const [],
   });
 }

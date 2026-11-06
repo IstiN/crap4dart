@@ -23,8 +23,10 @@ const int _blackCode = 2;
 typedef _Segment = ({int kind, int length});
 
 /// The `broken_goldens` gate: scans golden PNG files for rendered
-/// Flutter error artifacts — yellow/black overflow stripes and the red
-/// build-error screen (dark red background with yellow text).
+/// Flutter error artifacts — yellow/black overflow stripes, the red
+/// build-error screen (dark red background with yellow text), broken
+/// icon placeholders, fallback-font glyph blocks and blank/stub
+/// scenes.
 ///
 /// Golden tests do not fail on these: the broken frame gets captured
 /// (often permanently, via `--update-goldens`), so the pixels are the
@@ -46,7 +48,13 @@ class BrokenGoldensGate implements Gate {
       if (!directory.existsSync()) continue;
       for (final png in _goldenFiles(directory, config.exclude, context)) {
         checked++;
-        final violation = _violation(png, config.minStripeRun, context);
+        final violation = _violation(
+          png,
+          config.minStripeRun,
+          config.blankRatio,
+          config.detectBlank,
+          context,
+        );
         if (violation != null) violations.add(violation);
       }
     }
@@ -77,9 +85,11 @@ class BrokenGoldensGate implements Gate {
   GateViolation? _violation(
     File png,
     int minStripeRun,
+    double blankRatio,
+    bool detectBlank,
     GateContext context,
   ) {
-    final message = _analyze(png, minStripeRun);
+    final message = _analyze(png, minStripeRun, blankRatio, detectBlank);
     if (message == null) return null;
     return GateViolation(
       file: context.relativePath(png.path),
@@ -88,11 +98,32 @@ class BrokenGoldensGate implements Gate {
   }
 
   /// Returns a violation message for [file], or `null` when clean.
-  String? _analyze(File file, int minStripeRun) {
+  String? _analyze(
+    File file,
+    int minStripeRun,
+    double blankRatio,
+    bool detectBlank,
+  ) {
     final image = img.decodeImage(file.readAsBytesSync());
     if (image == null) return null;
-    // One pixel classification pass feeds both detectors.
+    // One pixel classification pass feeds all detectors.
     final stats = _PixelStats.of(image);
+    if (detectBlank && stats.dominantFraction >= blankRatio) {
+      return 'blank scene (>= ${(blankRatio * 100).round()}% one color) '
+          'rendered in the golden — the scene has no concrete visible '
+          'content (lost scopes, empty fixtures or a stub build)';
+    }
+    return _structuralDefect(stats, image, minStripeRun);
+  }
+
+  /// The rendered-error detectors that survive on any golden: overflow
+  /// stripes, build-error screens and broken-icon/fallback-font
+  /// artifacts. Returns the violation message, or `null` when clean.
+  String? _structuralDefect(
+    _PixelStats stats,
+    img.Image image,
+    int minStripeRun,
+  ) {
     if (stats.hasYellow && _hasOverflowStripes(stats, image, minStripeRun)) {
       return 'overflow stripes (yellow/black) rendered in the golden — '
           'the widget overflows and the snapshot recorded it';
@@ -240,7 +271,7 @@ class BrokenGoldensGate implements Gate {
   }
 }
 
-/// Single-pass pixel statistics feeding both golden detectors.
+/// Single-pass pixel statistics feeding the golden detectors.
 class _PixelStats {
   /// Stripe classification code per pixel (see
   /// [BrokenGoldensGate._stripeKindOf]).
@@ -253,18 +284,34 @@ class _PixelStats {
   /// Share of pixels matching the dark-red error background.
   final double redFraction;
 
-  _PixelStats(this.kinds, this.hasYellow, this.redFraction);
+  /// Share of pixels whose quantized color is the image's dominant
+  /// one — the blank-scene signal. Quantized to 4 bits per channel so
+  /// antialiased shades of one surface merge into a single bucket.
+  final double dominantFraction;
+
+  _PixelStats(
+    this.kinds,
+    this.hasYellow,
+    this.redFraction,
+    this.dominantFraction,
+  );
 
   /// Classifies every pixel of [image] once.
   static _PixelStats of(img.Image image) {
     final kinds = Uint8List(image.width * image.height);
+    final colorCounts = <int, int>{};
     var hasYellow = false;
     var red = 0;
+    var dominant = 0;
     var i = 0;
     for (final pixel in image) {
       final kind = _classify(pixel);
       if (kind == _yellowCode) hasYellow = true;
       if (kind == _redCode) red++;
+      final bucket = _colorBucket(pixel);
+      final count = (colorCounts[bucket] ?? 0) + 1;
+      colorCounts[bucket] = count;
+      if (count > dominant) dominant = count;
       kinds[i++] = kind;
     }
     final total = kinds.length;
@@ -272,8 +319,20 @@ class _PixelStats {
       kinds,
       hasYellow,
       total > 0 ? red / total : 0.0,
+      total > 0 ? dominant / total : 0.0,
     );
   }
+
+  /// A 12-bit quantization of the pixel's RGB — antialiased shades of
+  /// one surface land in the same bucket while distinct surfaces do
+  /// not.
+  static int _colorBucket(img.Pixel pixel) =>
+      ((pixel.r.toInt() & _channelMask) << 8) |
+      ((pixel.g.toInt() & _channelMask) << 4) |
+      (pixel.b.toInt() & _channelMask);
+
+  /// High nibble kept per channel by [_colorBucket] quantization.
+  static const int _channelMask = 0xF0;
 
   /// The classification of one pixel: none, stripe yellow, stripe
   /// black or error-screen red.

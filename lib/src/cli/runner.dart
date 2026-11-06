@@ -56,9 +56,8 @@ Future<String> gitTopLevel(String dir) async {
 }
 
 /// Current crap4dart version.
-const String crap4dartVersion = '0.29.0';
+const String crap4dartVersion = '0.30.0';
 const String _runTestsFlag = 'run-tests';
-const String _forceFlag = 'force';
 
 const String _lcovFlag = 'lcov';
 
@@ -679,7 +678,7 @@ class InitCommand extends Command<int> {
   /// Creates an [InitCommand].
   InitCommand({this.projectRoot}) {
     argParser.addFlag(
-      _forceFlag,
+      kForce,
       abbr: 'f',
       negatable: false,
       help: 'Overwrite an existing config file.',
@@ -691,7 +690,7 @@ class InitCommand extends Command<int> {
     final root = projectRoot ?? Directory.current.path;
     final path = p.join(root, ConfigLoader.configFileName);
     final file = File(path);
-    if (file.existsSync() && !(argResults![_forceFlag] as bool)) {
+    if (file.existsSync() && !(argResults![kForce] as bool)) {
       stderr.writeln(
         '${ConfigLoader.configFileName} already exists '
         '(use --force to overwrite).',
@@ -730,7 +729,7 @@ class InstallCommand extends Command<int> {
         help: 'Also install the GitHub Actions quality workflow.',
       )
       ..addFlag(
-        _forceFlag,
+        kForce,
         abbr: 'f',
         negatable: false,
         help: 'Merge into existing hooks / overwrite existing files.',
@@ -746,7 +745,7 @@ class InstallCommand extends Command<int> {
         projectRoot,
         configPath: argResults![kConfig] as String?,
       );
-      final force = argResults![_forceFlag] as bool;
+      final force = argResults![kForce] as bool;
       final hookPath = await const HookInstaller().installHook(
         projectRoot,
         hookName: argResults!['hook'] as String,

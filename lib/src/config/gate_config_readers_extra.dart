@@ -29,10 +29,21 @@ class _ExtendedGateConfigReaders {
         _ignorableKey,
         _dirsKey,
         'min_stripe_run',
+        'blank_ratio',
+        'detect_blank',
         kExclude
       },
       (map, base, path, ctx) {
         final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
+        final blankRatio = _ConfigScalars.readNum(
+            map, 'blank_ratio', base.blankRatio, path, ctx);
+        if (blankRatio < 0 || blankRatio > 1) {
+          throw ConfigException(
+            path,
+            '$ctx.blank_ratio',
+            'must be between 0 and 1',
+          );
+        }
         return BrokenGoldensGateConfig(
           enabled: flags.enabled,
           severity: flags.severity,
@@ -40,6 +51,9 @@ class _ExtendedGateConfigReaders {
           dirs: _ConfigScalars.strList(map, _dirsKey, base.dirs, path, ctx),
           minStripeRun: _ConfigScalars.readInt(
               map, 'min_stripe_run', base.minStripeRun, path, ctx),
+          blankRatio: blankRatio,
+          detectBlank: _ConfigScalars.readBool(
+              map, 'detect_blank', base.detectBlank, path, ctx),
           exclude:
               _ConfigScalars.strList(map, kExclude, base.exclude, path, ctx),
         );

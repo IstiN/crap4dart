@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.30.0 — 2026-10-30
+
+- Visual-regression guard (IstiN/crap4dart#32):
+  - `golden` gate option `require_viewport_matrix` (default false):
+    every golden test file (anything invoking `matchesGoldenFile`)
+    must vary the theme axis (light/dark) and the viewport axis
+    (phone/desktop) — a single-surface golden silently misses
+    regressions on the other surface, e.g. a theme scope lost on
+    pushed routes. Matching is lexical over the file's identifiers,
+    so app-specific helpers (`pumpGolden(tester, theme: ...,
+    surfaceSize: ...)`) satisfy it; each missing axis is a violation
+    on the test file.
+  - `broken_goldens` opt-in sixth detector (`detect_blank: true`):
+    blank scenes — at least `blank_ratio` (default 0.92, must be
+    within 0–1) of the sampled pixels sharing one 12-bit-quantized
+    color bucket (antialiased shades of one surface still count as
+    blank). Catches goldens with no concrete visible content: lost
+    scopes, empty fixtures, stub builds. Off by default: near-uniform
+    goldens are legitimate for sparse scenes (a dark TUI with short
+    lines of text is ~99% one color) — enable it for dirs holding
+    full-screen UI scenes.
+  - New `crap4dart goldens --scaffold` flag group (Flutter projects)
+    generating the scene harness into `test/golden/`:
+    `GoldenScaffoldApp` installs scopes via `MaterialApp.builder`
+    ABOVE the Navigator (the exact class of bug that lost
+    FahThemeScope on pushed Settings routes), `GoldenVariant`
+    phone/desktop × light/dark matrix, `pumpGoldenScene(scrolled:)`
+    drags past glass headers, `update_goldens.sh <scene>` regenerates
+    ONE scene only (never unrelated baselines) and `montage.dart`
+    rebuilds a `montage.html` contact sheet for the pixel-review
+    step. `--dir`, `--force`, `--dry-run` flags.
+
+
 ## 0.29.0 — 2026-10-30
 
 - New `non_null_assertion` gate (warning severity by default): flags

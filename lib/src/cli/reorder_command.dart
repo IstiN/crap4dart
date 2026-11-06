@@ -18,8 +18,6 @@ import 'exit_codes.dart';
 /// nothing is written; the command lists the files that would change
 /// and exits 2 (0 when everything is already canonical).
 class ReorderCommand extends Command<int> {
-  static const String _dryRun = 'dry-run';
-
   /// Project root override (default: the current working directory).
   final String? projectRoot;
 
@@ -33,7 +31,7 @@ class ReorderCommand extends Command<int> {
   /// Creates a [ReorderCommand].
   ReorderCommand({this.projectRoot}) {
     argParser.addFlag(
-      _dryRun,
+      kDryRun,
       abbr: 'n',
       negatable: false,
       help: 'Show which files would change without writing them. '
@@ -44,7 +42,7 @@ class ReorderCommand extends Command<int> {
   @override
   Future<int> run() async {
     final root = projectRoot ?? Directory.current.path;
-    final dryRun = argResults![_dryRun] as bool;
+    final dryRun = argResults![kDryRun] as bool;
     final targets = argResults!.rest.isEmpty ? ['lib'] : argResults!.rest;
     final files = _collect(root, targets);
     if (files.isEmpty) {
