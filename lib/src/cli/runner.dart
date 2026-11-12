@@ -56,7 +56,7 @@ Future<String> gitTopLevel(String dir) async {
 }
 
 /// Current crap4dart version.
-const String crap4dartVersion = '0.30.0';
+const String crap4dartVersion = '0.30.1';
 const String _runTestsFlag = 'run-tests';
 
 const String _lcovFlag = 'lcov';
