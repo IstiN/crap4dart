@@ -35,7 +35,10 @@ class MemoryEntry {
   /// Only meaningful when [churnAvailable] is true.
   double get churnNewMb => gcs.fold(0, (sum, gc) => sum + gc.reclaimedNewMb);
 
-  /// Signed old-gen growth: positive and never freed = leak suspect.
+  /// Signed old-gen growth in the measurement window. Positive growth
+  /// is a leak SUSPECT only: much of it is reclaimed on teardown, so
+  /// judge leaks by post-teardown/steady-state growth, never by this
+  /// number alone.
   double get oldGrowthMb => gcs.fold(0, (sum, gc) => sum + gc.oldDeltaMb);
 
   /// Allocation volume: profile bytes when available, otherwise the

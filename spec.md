@@ -221,7 +221,8 @@ events to suites and tests:
   that never pollutes file totals;
 - reported metrics per test/file: GC count (diagnostics only),
   reclaimed new-gen MB (churn — deterministic across runs), and signed
-  old-gen growth MB (positive and never freed = leak suspect); the
+  old-gen growth MB (positive growth is a leak suspect only — much of
+  it is reclaimed on teardown; judge by post-teardown steady state); the
   report also carries the unattributed GC list and its churn.
 
 On Flutter projects (`--engine flutter`, or auto-detected), the
@@ -446,6 +447,23 @@ collector (which owns per-call Stopwatches on a call stack), runs the test
 suite against the instrumented copy, and collects deterministic per-method
 timing data. The temporary directory (`.crap_profile_temp/`) shall be
 cleaned up automatically after the run.
+
+Collector flush protocol: each isolate writes its own shard file
+(`<output>.<shardId>.json`) holding that isolate's cumulative per-method
+stats, replaced atomically (temp file + rename) on every flush. Shards
+never read other isolates' data — the runner merges all shards at the end
+(summing calls and totals, minimizing minimums, maximizing maximums), so
+concurrent isolates cannot lose each other's updates. Nested method
+exits never touch the filesystem; the outermost exit of a call tree is
+the only flush point (it always flushes by default — an isolate that
+dies after its last instrumented call has no other chance to report),
+plus a backstop flush every 100000 calls that bounds the loss when the
+call stack is stuck non-empty (a leaked frame) or the process dies
+mid-tree. No timers are used (`flutter_test` forbids pending timers).
+`CRAP_PROFILE_FLUSH_MS` (default 0) optionally throttles outermost
+flushes to one per interval — opt-in, with the documented cost that the
+tail after the last throttled exit is lost unless an explicit `flush()`
+runs. A `#flushes` diagnostic key in each shard counts shard writes.
 
 For pure-Dart projects the test runner shall use
 `dart test --compiler source` (bypassing the kernel cache that would load

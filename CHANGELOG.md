@@ -2,6 +2,20 @@
 
 ## 0.30.1 — 2026-11-06
 
+- Profiler observer-effect fix (reported from flutter_js_widget_runtime:
+  ~1 ms/vertex overhead made a THREE skinning profile useless): the
+  collector flushed (read + decode + merge + encode + write + rename) on
+  every 5th method exit. The flush now happens only at the outermost
+  exit of a call tree (plus a bounded backstop), never in the nested
+  hot path, and writes are per-isolate cumulative shards (`<output>.
+  <shardId>.json`) replaced atomically — O(#methods) per flush, not
+  O(#calls), and cross-isolate lost updates (the old shared-file
+  read-merge-write race) are gone by design; the runner merges shards.
+  Benchmark on a 450k-call nested hot loop: wall 23.3s -> 6.8s (sys
+  15.2s -> 1.0s), per-call means no longer inflated (skinVertex min
+  289µs -> ~0.2µs), call counts exact. `CRAP_PROFILE_FLUSH_MS` opts
+  into interval throttling for outermost-heavy loops (bounded tail
+  loss, documented).
 - Memory and scale fixes for large trees (IstiN/crap4dart#34):
   - `GateContext` AST and line caches are now LRU-bounded (32 MB source
     bytes each, `cacheBudgetBytes` override) instead of retaining every
