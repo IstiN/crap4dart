@@ -224,25 +224,41 @@ class SimilarityAnalyzer {
   static Iterable<(SimilarityFile, SimilarityFile)> _candidates(
     List<SimilarityFile> files,
   ) sync* {
+    final index = _invertedIndex(files);
+    final seen = <int>{};
+    for (final postings in index.values) {
+      if (postings.length < 2 || postings.length > _maxPostings) {
+        continue;
+      }
+      yield* _postingsPairs(files, postings, seen);
+    }
+  }
+
+  /// Maps every shingle hash to the files containing it.
+  static Map<int, List<int>> _invertedIndex(List<SimilarityFile> files) {
     final index = <int, List<int>>{};
     for (var i = 0; i < files.length; i++) {
       for (final hash in files[i].shingles) {
         index.putIfAbsent(hash, () => []).add(i);
       }
     }
-    final seen = <int>{};
+    return index;
+  }
+
+  /// Unique ordered pairs within one postings list, skipping pairs
+  /// already emitted (tracked via [seen] of flattened indices).
+  static Iterable<(SimilarityFile, SimilarityFile)> _postingsPairs(
+    List<SimilarityFile> files,
+    List<int> postings,
+    Set<int> seen,
+  ) sync* {
     final width = files.length;
-    for (final postings in index.values) {
-      if (postings.length < 2 || postings.length > _maxPostings) {
-        continue;
-      }
-      for (var x = 0; x < postings.length; x++) {
-        for (var y = x + 1; y < postings.length; y++) {
-          final i = postings[x];
-          final j = postings[y];
-          if (!seen.add(i * width + j)) continue;
-          yield (files[i], files[j]);
-        }
+    for (var x = 0; x < postings.length; x++) {
+      for (var y = x + 1; y < postings.length; y++) {
+        final i = postings[x];
+        final j = postings[y];
+        if (!seen.add(i * width + j)) continue;
+        yield (files[i], files[j]);
       }
     }
   }
