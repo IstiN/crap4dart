@@ -95,8 +95,7 @@ void main() {
     expect(stats['minMicros'], lessThanOrEqualTo(stats['maxMicros']));
   });
 
-  test('many distinct methods stay bounded: one method-count-sized shard',
-      () {
+  test('many distinct methods stay bounded: one method-count-sized shard', () {
     final json = runCollectorIn(manyMethodsDriver, dir: dir);
     final methodKeys = json.keys.where((k) => !k.startsWith('#')).toList();
     expect(methodKeys, hasLength(300));
