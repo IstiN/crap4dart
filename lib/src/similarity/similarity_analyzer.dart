@@ -162,9 +162,6 @@ class _UnionFind {
 /// Scans directories for text files and clusters near-duplicate
 /// content by shingle similarity.
 class SimilarityAnalyzer {
-  /// Creates a [SimilarityAnalyzer].
-  const SimilarityAnalyzer();
-
   /// Hard ceiling on the number of files one scan analyzes. Beyond
   /// this the scan is almost certainly an over-broad `include`/`dirs`
   /// scope (vendored checkouts, generated corpora) that would exhaust
@@ -173,6 +170,14 @@ class SimilarityAnalyzer {
   /// check run.
   static const int maxScanFiles = 20000;
 
+  /// Shingle hashes shared by more files than this carry no duplicate
+  /// signal (boilerplate) and are skipped when building pair
+  /// candidates.
+  static const int _maxPostings = 100;
+
+  /// Creates a [SimilarityAnalyzer].
+  const SimilarityAnalyzer();
+
   /// Whether [path] matches any compiled glob.
   static bool _matchesAny(List<Glob> globs, String path) =>
       globs.any((glob) => glob.matches(path));
@@ -180,11 +185,6 @@ class SimilarityAnalyzer {
   /// The path of [absolute] relative to the project root.
   static String _relative(Directory root, String absolute) =>
       p.relative(absolute, from: root.path);
-
-  /// Shingle hashes shared by more files than this carry no duplicate
-  /// signal (boilerplate) and are skipped when building pair
-  /// candidates.
-  static const int _maxPostings = 100;
 
   /// All pairs crossing either threshold, strongest first.
   ///

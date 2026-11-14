@@ -273,6 +273,9 @@ class BrokenGoldensGate implements Gate {
 
 /// Single-pass pixel statistics feeding the golden detectors.
 class _PixelStats {
+  /// High nibble kept per channel by [_colorBucket] quantization.
+  static const int _channelMask = 0xF0;
+
   /// Stripe classification code per pixel (see
   /// [BrokenGoldensGate._stripeKindOf]).
   final Uint8List kinds;
@@ -330,9 +333,6 @@ class _PixelStats {
       ((pixel.r.toInt() & _channelMask) << 8) |
       ((pixel.g.toInt() & _channelMask) << 4) |
       (pixel.b.toInt() & _channelMask);
-
-  /// High nibble kept per channel by [_colorBucket] quantization.
-  static const int _channelMask = 0xF0;
 
   /// The classification of one pixel: none, stripe yellow, stripe
   /// black or error-screen red.

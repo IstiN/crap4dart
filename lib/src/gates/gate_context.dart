@@ -14,6 +14,8 @@ import '../files/flutter_project.dart' as files_flutter;
 /// Shared input for all quality gates: project root, config, target files,
 /// optional coverage data and a bounded LRU cache of parsed units.
 class GateContext {
+  static const int _defaultCacheBudgetBytes = 32 * 1024 * 1024;
+
   /// Absolute path of the project root.
   final String projectRoot;
 
@@ -46,8 +48,6 @@ class GateContext {
   /// recently used entries are dropped and re-parsed on next access.
   final int cacheBudgetBytes;
 
-  static const int _defaultCacheBudgetBytes = 32 * 1024 * 1024;
-
   final LinkedHashMap<String, _AstCacheEntry> _astCache = LinkedHashMap();
 
   int _astCacheBytes = 0;
@@ -74,6 +74,14 @@ class GateContext {
   /// Whether the pubspec at [root] declares a `flutter` dependency.
   static bool isFlutterProjectAt(String root) =>
       files_flutter.isFlutterProject(root);
+
+  static List<String> _readLines(String path) {
+    try {
+      return File(path).readAsStringSync().split('\n');
+    } on FileSystemException {
+      return const [];
+    }
+  }
 
   /// The `name:` of the project's pubspec.yaml, or `null` when absent.
   String? get packageName => _packageName ??= _readPackageName(
@@ -115,15 +123,6 @@ class GateContext {
     return unit;
   }
 
-  /// Drops least recently used AST entries until the cache fits the
-  /// budget.
-  void _evictAstCache() {
-    while (_astCacheBytes > cacheBudgetBytes && _astCache.isNotEmpty) {
-      final evicted = _astCache.remove(_astCache.keys.first)!;
-      _astCacheBytes -= evicted.sourceBytes;
-    }
-  }
-
   /// [path] made relative to [projectRoot] when possible.
   String relativePath(String path) =>
       p.isAbsolute(path) ? p.relative(path, from: projectRoot) : path;
@@ -134,6 +133,15 @@ class GateContext {
   bool matchesAnyGlob(String path, List<String> patterns) {
     final relative = relativePath(path);
     return patterns.any((pattern) => _glob(pattern).matches(relative));
+  }
+
+  /// Drops least recently used AST entries until the cache fits the
+  /// budget.
+  void _evictAstCache() {
+    while (_astCacheBytes > cacheBudgetBytes && _astCache.isNotEmpty) {
+      final evicted = _astCache.remove(_astCache.keys.first)!;
+      _astCacheBytes -= evicted.sourceBytes;
+    }
   }
 
   String? _readPackageName(String pubspecPath) {
@@ -163,14 +171,6 @@ class GateContext {
     _linesCacheBytes += sourceBytes;
     _evictLinesCache();
     return lines;
-  }
-
-  static List<String> _readLines(String path) {
-    try {
-      return File(path).readAsStringSync().split('\n');
-    } on FileSystemException {
-      return const [];
-    }
   }
 
   /// Drops least recently used line entries until the cache fits the
