@@ -85,15 +85,21 @@ class SimilarityCommand extends Command<int> {
     final exclude = (args[kExclude] as List<String>).cast<String>().isNotEmpty
         ? (args[kExclude] as List<String>).cast<String>()
         : similarity.exclude;
-    final report = const SimilarityAnalyzer().analyze(
-      Directory(scanRoot),
-      dirs: dirs,
-      include: include,
-      exclude: exclude,
-      jaccardThreshold: jaccard,
-      containmentThreshold: containment,
-      minShingles: minShingles,
-    );
+    SimilarityReport report;
+    try {
+      report = const SimilarityAnalyzer().analyze(
+        Directory(scanRoot),
+        dirs: dirs,
+        include: include,
+        exclude: exclude,
+        jaccardThreshold: jaccard,
+        containmentThreshold: containment,
+        minShingles: minShingles,
+      );
+    } on SimilarityScanTooLargeException catch (e) {
+      stderr.writeln(e);
+      return ExitCodes.usageError;
+    }
     if (args[kFormat] == kJson) {
       _printJson(report, jaccard, containment, minShingles);
     } else {

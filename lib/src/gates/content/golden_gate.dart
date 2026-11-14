@@ -73,10 +73,7 @@ class GoldenGate implements Gate {
   ) {
     final widgets = <_WidgetInfo>[];
     for (final file in _dartFiles(context.projectRoot, widgetDirs)) {
-      final parsed = DartParser().parse(
-        content: File(file).readAsStringSync(),
-        path: file,
-      );
+      final parsed = context.parsed(file);
       final visitor = _WidgetVisitor(
         context.relativePath(file),
         parsed,
@@ -109,10 +106,7 @@ class GoldenGate implements Gate {
     List<String> testDirs,
   ) sync* {
     for (final file in _dartFiles(context.projectRoot, testDirs)) {
-      final parsed = DartParser().parse(
-        content: File(file).readAsStringSync(),
-        path: file,
-      );
+      final parsed = context.parsed(file);
       final visitor = _GoldenTestVisitor();
       parsed.unit.accept(visitor);
       if (!visitor.hasGoldenMatcher) continue;
@@ -220,13 +214,24 @@ class _WidgetVisitor extends RecursiveAstVisitor<void> {
 }
 
 class _GoldenTestVisitor extends RecursiveAstVisitor<void> {
+  static final RegExp _themePattern = RegExp(r'theme|brightness|dark|light');
+
+  static final RegExp _viewportPattern = RegExp(
+    r'surface|viewport|screensize|screen_size|phone|desktop|device|'
+    r'orientation|narrow|wide',
+  );
+
   /// Project-relative path of the test file, set by [GoldenGate._goldenTests].
   String file = '';
 
   bool hasGoldenMatcher = false;
+
   bool hasThemeVariation = false;
+
   bool hasViewportVariation = false;
+
   final Set<String> referencedTypes = {};
+
   final Set<String> importUris = {};
 
   @override
@@ -268,11 +273,4 @@ class _GoldenTestVisitor extends RecursiveAstVisitor<void> {
     if (_themePattern.hasMatch(lower)) hasThemeVariation = true;
     if (_viewportPattern.hasMatch(lower)) hasViewportVariation = true;
   }
-
-  static final RegExp _themePattern = RegExp(r'theme|brightness|dark|light');
-
-  static final RegExp _viewportPattern = RegExp(
-    r'surface|viewport|screensize|screen_size|phone|desktop|device|'
-    r'orientation|narrow|wide',
-  );
 }

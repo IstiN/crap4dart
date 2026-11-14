@@ -25,15 +25,23 @@ class SimilarityGate implements Gate {
   @override
   Future<GateResult> run(GateContext context) async {
     final config = context.config.gates.similarity;
-    final report = const SimilarityAnalyzer().analyze(
-      Directory(context.projectRoot),
-      dirs: config.dirs,
-      include: config.include,
-      exclude: config.exclude,
-      jaccardThreshold: config.jaccard,
-      containmentThreshold: config.containment,
-      minShingles: config.minShingles,
-    );
+    final SimilarityReport report;
+    try {
+      report = const SimilarityAnalyzer().analyze(
+        Directory(context.projectRoot),
+        dirs: config.dirs,
+        include: config.include,
+        exclude: config.exclude,
+        jaccardThreshold: config.jaccard,
+        containmentThreshold: config.containment,
+        minShingles: config.minShingles,
+      );
+    } on SimilarityScanTooLargeException catch (e) {
+      // An over-broad scope must fail the gate loudly, not crash the
+      // whole check run (the scan would exhaust memory on the shingle
+      // index).
+      return GateResult.fail(id, const [], summary: e.toString());
+    }
     if (report.clean) {
       return GateResult.pass(
         id,

@@ -670,10 +670,14 @@ Future<MemoryReport> runFlutterMemory(
   // The tool runs files serially: spawn k produced suite event k. Pair
   // them for display paths (the driver itself only sees temp dills).
   for (var i = 0; i < files.length && i < suitePaths.length; i++) {
+    // Carry allocatedLoadingBytes over — dropping it here silently
+    // zeroes the suite's load-allocation part of the report even though
+    // the driver measured it.
     files[i] = MeasuredFile(
       path: suitePaths[i],
       tests: files[i].tests,
       loadingRows: files[i].loadingRows,
+      allocatedLoadingBytes: files[i].allocatedLoadingBytes,
       error: files[i].error,
     );
   }

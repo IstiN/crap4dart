@@ -12,12 +12,6 @@ import 'exit_codes.dart';
 /// example scene with a scrolled variant, a scoped `update_goldens.sh`
 /// and a montage generator for the pixel-review step.
 class GoldenScaffoldWriter {
-  /// Project root override (default: the current working directory).
-  final String projectRoot;
-
-  /// Creates a [GoldenScaffoldWriter] for [projectRoot].
-  const GoldenScaffoldWriter({required this.projectRoot});
-
   static const Map<String, String> _files = {
     'golden_scaffold_helper.dart': goldenScaffoldHelper,
     'scenes/example_scene_golden_test.dart': goldenScaffoldExampleScene,
@@ -25,6 +19,12 @@ class GoldenScaffoldWriter {
     'montage.dart': goldenScaffoldMontage,
     'goldens/README.md': goldenScaffoldReadme,
   };
+
+  /// Project root override (default: the current working directory).
+  final String projectRoot;
+
+  /// Creates a [GoldenScaffoldWriter] for [projectRoot].
+  const GoldenScaffoldWriter({required this.projectRoot});
 
   /// Generates the harness under [dir] (relative to the project
   /// root). Refuses to overwrite existing files unless [force];

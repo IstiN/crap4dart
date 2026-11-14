@@ -5,9 +5,9 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
-import '../analysis/method_extractor.dart';
 import '../files/flutter_project.dart';
 import 'collector_template.dart';
+import 'profile_shard_reader.dart';
 import 'source_instrumenter.dart';
 import 'workspace_pubspec.dart';
 
@@ -254,45 +254,47 @@ class ProfileRunner {
   }
 
   /// Reports test errors to stderr.
+  ///
+  /// The LAST 30 lines are shown, not the first: test runners print
+  /// progress lines for every file before the failure, so the actual
+  /// error lives at the tail. The message is explicitly prefixed
+  /// `TESTS FAILED` — the profile command can still exit 2 on a
+  /// threshold verdict, and that must not be mistakable for the test
+  /// run's own failure.
   void _reportTestErrors(ProcessResult result) {
     if (result.exitCode != 0) {
-      stderr.writeln('Warning: tests exited with code ${result.exitCode}.');
+      stderr.writeln(
+        'TESTS FAILED (exit code ${result.exitCode}) — profiling data '
+        'may be incomplete; this is separate from any threshold '
+        'verdict below.',
+      );
       final err = '${result.stderr}'.trim();
       if (err.isNotEmpty) {
-        stderr.writeln(err.split('\n').take(30).join('\n'));
+        stderr.writeln(_tail(err));
       }
       final out = '${result.stdout}'.trim();
       if (out.isNotEmpty) {
-        stderr.writeln(out.split('\n').take(30).join('\n'));
+        stderr.writeln(_tail(out));
       }
     }
   }
 
-  /// Reads and parses the profiling output file.
+  /// Last 30 lines of [text].
+  String _tail(String text) {
+    final lines = text.split('\n');
+    final tail = lines.length <= 30 ? lines : lines.sublist(lines.length - 30);
+    return tail.join('\n');
+  }
+
+  /// Reads and parses the profiling output: the collector writes one
+  /// shard file per isolate (`<output>.<shardId>.json`, each holding
+  /// that isolate's cumulative stats); the results are summed.
   ProfileResult? _readResult(File outputFile) {
-    if (!outputFile.existsSync()) {
+    final timings = ProfileShardReader.readTimings(outputFile);
+    if (timings == null || timings.isEmpty) {
       stderr.writeln('Warning: no profiling data was produced.');
       return null;
     }
-    final json =
-        jsonDecode(outputFile.readAsStringSync()) as Map<String, dynamic>;
-    final timings = <MethodTiming>[];
-    for (final entry in json.entries) {
-      final key = entry.key;
-      final stats = entry.value as Map<String, dynamic>;
-      final dotIndex = key.indexOf('.');
-      timings.add(MethodTiming(
-        className:
-            dotIndex > 0 ? key.substring(0, dotIndex) : topLevelClassName,
-        methodName: dotIndex > 0 ? key.substring(dotIndex + 1) : key,
-        calls: stats['calls'] as int? ?? 0,
-        totalMicros: stats['totalMicros'] as int? ?? 0,
-        totalSelfMicros: stats['totalSelfMicros'] as int? ?? 0,
-        minMicros: stats['minMicros'] as int? ?? 0,
-        maxMicros: stats['maxMicros'] as int? ?? 0,
-      ));
-    }
-    timings.sort((a, b) => b.totalMicros.compareTo(a.totalMicros));
     return ProfileResult(timings: timings);
   }
 
