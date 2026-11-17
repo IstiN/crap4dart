@@ -76,4 +76,13 @@ void main() {
     expect(result.passed, isTrue);
     expect(result.summary, contains('no covered mutation sites'));
   });
+
+  test('integrity violations force the verdict to fail', () async {
+    final verdict = integrityVerdict(project);
+    expect(verdict.passed, isFalse);
+    expect(verdict.violations, hasLength(1));
+    expect(verdict.violations.single.file, 'lib/a.dart');
+    expect(verdict.violations.single.message, contains('suspect'));
+    expect(verdict.summary, contains('INTEGRITY'));
+  });
 }

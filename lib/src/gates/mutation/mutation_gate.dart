@@ -61,6 +61,16 @@ class MutationGate implements Gate {
   @override
   String get id => GateIds.mutation;
 
+  /// Internal verdict builder, exposed for verdict tests only;
+  /// production code goes through [run].
+  GateResult buildVerdict(
+    MutationRunResult result,
+    int uncovered,
+    MutationGateConfig config,
+    GateContext context,
+  ) =>
+      _verdict(result, uncovered, config, context);
+
   @override
   Future<GateResult> run(GateContext context) async {
     final config = context.config.gates.mutation;
@@ -116,6 +126,7 @@ class MutationGate implements Gate {
         operators: config.operators,
         testArgs: config.execution.testArgs,
       ),
+      onDiscard: (message) => stderr.writeln('crap4dart mutation: $message'),
     );
     return MutationCacheSession(
       cache: cache,
@@ -341,8 +352,9 @@ class MutationGate implements Gate {
         'Treat this run as suspect and re-run.',
       );
     }
-    final failed =
-        score < config.minScore || result.survived > config.maxSurvivors;
+    final failed = score < config.minScore ||
+        result.survived > config.maxSurvivors ||
+        result.integrityViolations.isNotEmpty;
     if (!failed) return GateResult.pass(id, summary: summary);
     final violations = [
       for (final outcome in result.outcomes)
@@ -352,6 +364,7 @@ class MutationGate implements Gate {
             line: outcome.site.line,
             message: _survivorMessage(outcome.site),
           ),
+      ..._integrityViolations(result, context),
     ];
     final byCategory = result.survivorsByCategory.entries
         .map((e) => '${e.key}=${e.value}')
@@ -362,6 +375,22 @@ class MutationGate implements Gate {
       summary: '$summary; survivors by category: $byCategory',
     );
   }
+
+  /// One violation per re-restored file: the tree was healed, but the
+  /// outcome of a run that left a mutant behind cannot be trusted.
+  List<GateViolation> _integrityViolations(
+    MutationRunResult result,
+    GateContext context,
+  ) =>
+      [
+        for (final path in result.integrityViolations)
+          GateViolation(
+            file: context.relativePath(path),
+            message: 'working tree did not restore cleanly after the '
+                'mutation run — the file was re-restored; treat the '
+                'run as suspect and re-run',
+          ),
+      ];
 
   String _survivorMessage(MutationSite site) {
     final method = site.method == null ? '' : ' in ${site.method}';

@@ -106,6 +106,9 @@ abstract final class GateIds {
   /// Non-null assertion gate (`non_null_assertion`).
   static const String nonNullAssertion = 'non_null_assertion';
 
+  /// Implicit state machine gate (`implicit_state`).
+  static const String implicitState = 'implicit_state';
+
   /// Every gate id in runner order.
   static const List<String> all = [
     loc,
@@ -140,5 +143,6 @@ abstract final class GateIds {
     enumNameContract,
     collapsibleFlow,
     nonNullAssertion,
+    implicitState,
   ];
 }

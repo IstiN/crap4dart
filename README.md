@@ -37,7 +37,8 @@ crap4dart is a Dart port of the Java tool
   `file_naming`, `magic_constants`, `scattered_constants`, `broken_goldens`,
   `test_assertions`, `folder_structure`, `external`, `mutation`,
   `similarity`, `string_hazards`, `identical_branches`,
-  `enum_name_contract`, `collapsible_flow`, `non_null_assertion`
+  `enum_name_contract`, `collapsible_flow`, `non_null_assertion`,
+  `implicit_state`
 - **Gate framework**: per-path thresholds (`entries`), warning
   severity, baseline mode, opt-in ignore markers
 - **Configuration** via `crap4dart.yaml` with strict validation
@@ -884,6 +885,14 @@ gates:
   table). Pattern conditions (`if (x case P)`) are never merged. Every
   finding is correct code — warning severity by default. Independently
   validated by DCM's `avoid-collapsible-if`/`avoid-redundant-else`.
+
+- **implicit_state** — surfaces *implicit finite state machines*:
+  boolean-cluster FSMs (≥ `min_flags` lifecycle bool flags mutated
+  across methods), lifecycle flags or `status`-like fields mutated from
+  ≥ `min_mutators` places, and conditions branching on 2+ declared
+  lifecycle flags. Name-shape heuristic on parsed sources — it cannot
+  prove reachability or races, it marks candidates for an explicit
+  enum/sealed-state refactor. Warning severity by default.
 
 - **non_null_assertion** — flags every non-null assertion: the postfix
   `!` operator (`x!`, `map['k']!`, chains `a!.b!`) and the null-assert
