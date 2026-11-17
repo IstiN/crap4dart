@@ -189,25 +189,46 @@ class MutationCache {
   /// Loads the cache at [path] under [meta]. A missing, corrupt,
   /// outdated or meta-mismatched file yields an empty cache — a full
   /// re-execution under the current semantics.
-  static MutationCache load(
-      {required String path, required MutationCacheMeta meta}) {
+  static MutationCache load({
+    required String path,
+    required MutationCacheMeta meta,
+    void Function(String message)? onDiscard,
+  }) {
     final file = File(path);
     if (!file.existsSync()) return MutationCache(meta: meta);
     try {
       final decoded = jsonDecode(file.readAsStringSync());
       if (decoded is! Map<String, dynamic>) {
-        return MutationCache(meta: meta);
+        return _discard(meta, onDiscard, 'not a JSON object');
       }
       if (decoded['version'] != mutationCacheVersion) {
-        return MutationCache(meta: meta);
+        return _discard(meta, onDiscard,
+            'version mismatch (expected $mutationCacheVersion)');
       }
       final stored = MutationCacheMeta.fromJson(
           (decoded['meta'] as Map?)?.cast<String, dynamic>() ?? const {});
-      if (!stored.matches(meta)) return MutationCache(meta: meta);
+      if (!stored.matches(meta)) {
+        return _discard(
+            meta, onDiscard, 'meta mismatch (operators or test args changed)');
+      }
       return MutationCache(meta: meta, methods: _readMethods(decoded));
     } on FormatException {
-      return MutationCache(meta: meta);
+      return _discard(meta, onDiscard, 'corrupt JSON');
     }
+  }
+
+  /// A fresh cache plus, when [onDiscard] is set, a one-line reason why
+  /// the previous cache was thrown away — a silent full re-run looks
+  /// identical to a warm one and hides config drift.
+  static MutationCache _discard(
+    MutationCacheMeta meta,
+    void Function(String message)? onDiscard,
+    String reason,
+  ) {
+    if (onDiscard != null) {
+      onDiscard('mutation cache discarded: $reason');
+    }
+    return MutationCache(meta: meta);
   }
 
   static Map<String, CachedMethod> _readMethods(Map<String, dynamic> decoded) {

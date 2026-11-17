@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.31.0 — 2026-11-17
+
+- **New gate `implicit_state`** (33rd): surfaces implicit finite state
+  machines — boolean-cluster FSMs (>= `min_flags` lifecycle bool flags
+  mutated across methods), lifecycle flags or `status`-like fields
+  mutated from >= `min_mutators` places, and `if` conditions branching
+  on 2+ declared lifecycle flags of the same class. Syntactic
+  name-shape detection on parsed sources: it marks candidates for an
+  explicit enum/sealed-state refactor, it cannot prove reachability or
+  races. Warning severity by default; `min_flags: 3`,
+  `min_mutators: 2` defaults; unknown config keys are errors.
+  Self-check runs clean on this repo (0 findings at default
+  thresholds).
+- **Mutation gate: integrity violations now fail the verdict** (found
+  by the implicit-FSM audit): a run whose working tree did not restore
+  cleanly was previously reported in the summary/stderr but could
+  still pass on a perfect outcome table; it now fails with one
+  violation per re-restored file ("treat the run as suspect").
+- **Mutation cache: discard reasons are reported** — a cache thrown
+  away for corrupt JSON, a non-object payload, a version mismatch or a
+  meta mismatch now prints a one-line reason (stderr) instead of
+  silently degenerating into a full re-run that looks identical to a
+  warm one.
 ## 0.30.1 — 2026-11-06
 
 - Profiler observer-effect fix (reported from flutter_js_widget_runtime:

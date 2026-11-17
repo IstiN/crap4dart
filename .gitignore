@@ -26,3 +26,13 @@ profile-reports/
 
 # fa agent runtime state (bash job logs, session memory)
 .fah/
+
+# fa runtime state (never publish)
+chat_*.json
+last_connection.json
+launcher_layout.json
+network_mode.json
+onboarding_seen.json
+providers.json
+session_ui_prefs.json
+theme.json

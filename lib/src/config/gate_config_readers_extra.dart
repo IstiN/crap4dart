@@ -576,6 +576,38 @@ class _ExtendedGateConfigReaders {
     );
   }
 
+  static ImplicitStateGateConfig readImplicitState(
+    Object? node,
+    ImplicitStateGateConfig base,
+    String path,
+  ) {
+    return _ConfigScalars.readGateConfig(
+      node,
+      base,
+      path,
+      '$kGatePrefix.${GateIds.implicitState}',
+      const {
+        _enabledKey,
+        _severityKey,
+        _ignorableKey,
+        'min_flags',
+        'min_mutators',
+      },
+      (map, base, path, ctx) {
+        final flags = _ConfigScalars.gateFlags(map, base, path, ctx);
+        return ImplicitStateGateConfig(
+          enabled: flags.enabled,
+          severity: flags.severity,
+          ignorable: flags.ignorable,
+          minFlags: _ConfigScalars.readInt(
+              map, 'min_flags', base.minFlags, path, ctx),
+          minMutators: _ConfigScalars.readInt(
+              map, 'min_mutators', base.minMutators, path, ctx),
+        );
+      },
+    );
+  }
+
   static NonNullAssertionGateConfig readNonNullAssertion(
     Object? node,
     NonNullAssertionGateConfig base,

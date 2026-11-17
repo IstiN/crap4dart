@@ -464,4 +464,14 @@ gates:
   non_null_assertion:
     enabled: true
     severity: warning
+
+  # Flag boolean-cluster state machines: lifecycle flag clusters,
+  # status fields mutated from many places, conditions branching on
+  # flag combinations. Syntactic candidates for an explicit
+  # enum/sealed-state refactor; adopt via warning + baseline.
+  implicit_state:
+    enabled: true
+    severity: warning
+    min_flags: 3
+    min_mutators: 2
 ''';

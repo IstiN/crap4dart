@@ -537,8 +537,8 @@ Known gate ids: `loc`, `test_coverage`, `golden`, `hardcoded_strings`,
 `broken_goldens`, `test_assertions`, `folder_structure`, `external`,
 `mutation`, `similarity`, `string_hazards`, `identical_branches`,
 `enum_name_contract`, `collapsible_flow`, `non_null_assertion`,
-`record_named_fields`, `inline_record_types`, `record_size`,
-`scattered_constants`.
+`implicit_state`, `record_named_fields`, `inline_record_types`,
+`record_size`, `scattered_constants`.
 
 ## 11. Quality Gates
 
@@ -1366,3 +1366,38 @@ An implementation conforms to this specification if it satisfies the CLI,
 file selection, coverage, parsing, CRAP computation, reporting,
 configuration, gating, installation and exit-code rules above for Dart
 and Flutter projects.
+### 11.30 implicit_state
+
+The `implicit_state` gate shall surface *implicit finite state
+machines* — lifecycle logic spread over boolean flag clusters,
+multi-mutator status fields and conditions that branch on flag
+combinations — using name-shape heuristics on parsed (unresolved)
+sources.
+
+Detections:
+
+- *boolean-cluster FSM*: a class declaring at least `min_flags`
+  (default 3) mutable non-static `bool` instance fields whose names
+  match the lifecycle-flag shape (`is/has/was/will/should/can` +
+  `Capital`, or a lifecycle keyword suffix like `Loaded`, `Ready`,
+  `Failed`), where at least one of them is mutated from at least
+  `min_mutators` (default 2) distinct methods; one class-level
+  violation.
+- *scattered lifecycle flag*: a single matching bool field mutated
+  from at least `min_mutators` distinct methods; per-field violation.
+- *scattered status field*: an instance field named `status`, `state`,
+  `phase`, `stage`, `mode` or `lifecycle` assigned from at least
+  `min_mutators` distinct methods; per-field violation.
+- *flag-combination condition*: an `if` condition reading two or more
+  declared lifecycle flags of the same class as bare identifiers
+  (property accesses like `x.isReady` do not count); per-condition
+  violation.
+
+Final, const and static fields are never counted; local variables and
+parameters never count as flags; detection is deliberately syntactic
+and cannot prove reachability, dead states, races or cross-layer
+inconsistency — it marks candidates for an explicit enum/sealed-state
+refactor. Config keys: `enabled`, `severity` (default `warning`),
+`ignorable` (default false), `min_flags`, `min_mutators`. Unknown keys
+are config errors.
+

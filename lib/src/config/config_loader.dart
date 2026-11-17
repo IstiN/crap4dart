@@ -280,6 +280,8 @@ class ConfigLoader {
           map[GateIds.collapsibleFlow], base.collapsibleFlow, path),
       nonNullAssertion: _ExtendedGateConfigReaders.readNonNullAssertion(
           map[GateIds.nonNullAssertion], base.nonNullAssertion, path),
+      implicitState: _ExtendedGateConfigReaders.readImplicitState(
+          map[GateIds.implicitState], base.implicitState, path),
     );
   }
 

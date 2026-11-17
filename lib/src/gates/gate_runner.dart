@@ -31,6 +31,7 @@ import 'content/string_hazards_gate.dart';
 import 'identical_branches_gate.dart';
 import 'quality/collapsible_flow_gate.dart';
 import 'quality/enum_name_contract_gate.dart';
+import 'quality/implicit_state_gate.dart';
 import 'quality/non_null_assertion_gate.dart';
 import 'content/test_assertions_gate.dart';
 import 'usage/unused_code_gate.dart';
@@ -104,6 +105,7 @@ class GateRunner {
         const EnumNameContractGate(),
         const CollapsibleFlowGate(),
         const NonNullAssertionGate(),
+        const ImplicitStateGate(),
       ];
 
   /// Runs every enabled gate against [context].
@@ -252,6 +254,7 @@ class GateRunner {
         GateIds.enumNameContract: gates.quality.enumNameContract,
         GateIds.collapsibleFlow: gates.quality.collapsibleFlow,
         GateIds.nonNullAssertion: gates.quality.nonNullAssertion,
+        GateIds.implicitState: gates.quality.implicitState,
       };
 
   bool _isEnabled(String id, GatesConfig gates) =>

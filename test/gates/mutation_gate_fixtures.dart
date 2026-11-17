@@ -1,4 +1,9 @@
+import 'dart:io';
+
 import 'package:crap4dart/src/coverage/lcov_parser.dart';
+import 'package:crap4dart/src/gates/gate.dart';
+import 'gate_test_utils.dart';
+import 'package:crap4dart/src/config/config.dart';
 import 'package:crap4dart/src/gates/mutation/mutation_engine.dart';
 import 'package:crap4dart/src/gates/mutation/mutation_gate.dart';
 
@@ -35,3 +40,23 @@ List<FileCoverage> mutationFixtureLcovHits(int addHits, int zeroHits) =>
     const LcovParser().parse(
       'SF:lib/a.dart\nDA:3,$addHits\nDA:8,$zeroHits\nend_of_record\n',
     );
+
+/// Builds the gate verdict for a suspect run (integrity violation on a
+/// perfect outcome table) — pins the force-fail contract.
+GateResult integrityVerdict(Directory project) {
+  final gate = MutationGate();
+  final context = makeContext(
+    project,
+    ['lib/a.dart'],
+    lcov: mutationFixtureLcov(),
+  );
+  return gate.buildVerdict(
+    MutationRunResult(
+      const [],
+      integrityViolations: ['lib/a.dart'],
+    ),
+    0,
+    Crap4DartConfig.defaults().gates.mutation,
+    context,
+  );
+}

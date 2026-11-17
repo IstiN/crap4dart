@@ -110,6 +110,9 @@ class QualityGatesConfig {
   /// Non-null assertion gate (`non_null_assertion`).
   final NonNullAssertionGateConfig nonNullAssertion;
 
+  /// Implicit state machine gate (`implicit_state`).
+  final ImplicitStateGateConfig implicitState;
+
   /// Creates a [QualityGatesConfig].
   const QualityGatesConfig({
     this.stringHazards = const StringHazardsGateConfig(),
@@ -117,6 +120,7 @@ class QualityGatesConfig {
     this.enumNameContract = const EnumNameContractGateConfig(),
     this.collapsibleFlow = const CollapsibleFlowGateConfig(),
     this.nonNullAssertion = const NonNullAssertionGateConfig(),
+    this.implicitState = const ImplicitStateGateConfig(),
   });
 }
 
@@ -137,5 +141,38 @@ class StringHazardsGateConfig implements GateConfigFlags {
     this.enabled = true,
     this.severity = GateSeverity.warning,
     this.ignorable = false,
+  });
+}
+
+/// Implicit state machine gate settings (`implicit_state`).
+class ImplicitStateGateConfig implements GateConfigFlags {
+  /// Whether the gate is enabled.
+  final bool enabled;
+
+  /// Whether violations fail the run or are reported as warnings.
+  /// Defaults to `warning`: the detections are name-shape heuristics on
+  /// parsed sources, so adoption on an existing codebase starts with an
+  /// audit (explicit-model refactor or a deliberate ignore).
+  final GateSeverity severity;
+
+  /// Whether `// crap:ignore` comments may suppress violations of this
+  /// gate. Disabled by default — suppression must be opted into.
+  final bool ignorable;
+
+  /// Minimum number of assigned lifecycle bool flags before a class is
+  /// reported as a boolean-cluster state machine.
+  final int minFlags;
+
+  /// Minimum distinct methods mutating a single flag/status field
+  /// before that field is reported.
+  final int minMutators;
+
+  /// Creates an [ImplicitStateGateConfig].
+  const ImplicitStateGateConfig({
+    this.enabled = true,
+    this.severity = GateSeverity.warning,
+    this.ignorable = false,
+    this.minFlags = 3,
+    this.minMutators = 2,
   });
 }

@@ -144,3 +144,10 @@ gates:
   non_null_assertion:
     enabled: true
     severity: warning
+
+  # Self-audit for implicit state machines: flag clusters, scattered
+  # status mutations, flag-combination conditions. Warning severity
+  # keeps findings advisory while the explicit-model refactors land.
+  implicit_state:
+    enabled: true
+    severity: warning
